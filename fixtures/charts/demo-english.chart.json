@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "1.0.0",
+  "chartRevisionId": "rev_demo_en_001",
+  "arrangementId": "arr_demo_en_001",
+  "revision": 1,
+  "language": "en",
+  "title": "Paper Boats (fictional demo)",
+  "concertKey": "Bb",
+  "timeSignature": "6/8",
+  "defaultBpm": null,
+  "instrument": {
+    "type": "guitar",
+    "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+  },
+  "sections": [
+    {
+      "id": "en_verse1",
+      "kind": "verse",
+      "lines": [
+        {
+          "id": "en_v1_l1",
+          "text": "We don't fold our paper boats in half",
+          "chords": [
+            {
+              "id": "en_c01",
+              "symbol": "Bb",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "en_c02",
+              "symbol": "F/A",
+              "anchor": {
+                "graphemeOffset": 9
+              }
+            },
+            {
+              "id": "en_c03",
+              "symbol": "Gm7",
+              "anchor": {
+                "graphemeOffset": 18
+              }
+            },
+            {
+              "id": "en_c04",
+              "symbol": "Ebmaj7",
+              "anchor": {
+                "graphemeOffset": 33
+              }
+            }
+          ]
+        },
+        {
+          "id": "en_v1_l2",
+          "text": "Café lights 🌙 across the water",
+          "chords": [
+            {
+              "id": "en_c05",
+              "symbol": "Cm7",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "en_c06",
+              "symbol": "F7sus4",
+              "anchor": {
+                "graphemeOffset": 14
+              }
+            },
+            {
+              "id": "en_c07",
+              "symbol": "F7",
+              "anchor": {
+                "graphemeOffset": 25
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "en_chorus",
+      "kind": "chorus",
+      "lines": [
+        {
+          "id": "en_ch_l1",
+          "text": "Sail on, sail on",
+          "chords": [
+            {
+              "id": "en_c10",
+              "symbol": "Eb",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "en_c11",
+              "symbol": "Bb/D",
+              "anchor": {
+                "graphemeOffset": 9
+              }
+            }
+          ]
+        },
+        {
+          "id": "en_ch_l2",
+          "text": "Till the morning's gone",
+          "chords": [
+            {
+              "id": "en_c12",
+              "symbol": "Cm7",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "en_c13",
+              "symbol": "F",
+              "anchor": {
+                "graphemeOffset": 9
+              }
+            },
+            {
+              "id": "en_c14",
+              "symbol": "Bb",
+              "anchor": {
+                "graphemeOffset": 19
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "voicingPolicy": {
+    "mode": "recommended",
+    "defaultDifficulty": "intermediate",
+    "occurrenceOverrides": {}
+  },
+  "importMetadata": {
+    "format": "native",
+    "unhandledDirectives": []
+  }
+}

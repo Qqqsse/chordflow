@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "recordingId": "rec_demo_002",
+  "chartRevisionId": "rev_demo_001",
+  "timebase": "recording_start_ms",
+  "offsetMs": 250,
+  "recordingDurationMs": 60000,
+  "alignedChords": [
+    { "chordOccurrenceId": "ch_intro_1", "startMs": 3000, "endMs": 21000, "status": "uncertain" },
+    {
+      "chordOccurrenceId": "ch_verse_1",
+      "startMs": 21000,
+      "endMs": 23500,
+      "status": "high_confidence",
+      "confidence": { "value": 0.82, "model": "synthetic-fixture", "calibrated": false }
+    }
+  ],
+  "alignedLyrics": [
+    {
+      "lineId": "line_verse_1",
+      "fromGrapheme": 0,
+      "toGrapheme": 4,
+      "startMs": 20900,
+      "endMs": 23400,
+      "status": "uncertain"
+    }
+  ],
+  "unmatchedIntervals": [
+    { "startMs": 0, "endMs": 2900, "reason": "instrumental_or_unknown" },
+    { "startMs": 30000, "endMs": 41000, "reason": "ad_lib" }
+  ],
+  "unaligned": { "chordOccurrenceIds": ["ch_verse_2"], "lineIds": [] }
+}

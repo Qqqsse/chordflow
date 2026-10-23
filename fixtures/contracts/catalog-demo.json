@@ -1,0 +1,306 @@
+{
+  "schemaVersion": "1.0.0",
+  "artists": [
+    {
+      "id": "art_demo_a",
+      "name": "示範歌手甲（虛構）",
+      "aliases": ["示范歌手甲", "Demo Singer A"],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "art_demo_b",
+      "name": "Demo Singer B (fictional)",
+      "aliases": [],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "art_demo_writer",
+      "name": "示範作曲人（虛構）",
+      "aliases": [],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "works": [
+    {
+      "id": "work_demo_001",
+      "title": "示範歌曲（虛構）",
+      "titleAliases": ["示范歌曲（虚构）", "Demo Song"],
+      "language": "zh-TW",
+      "credits": [
+        { "artistId": "art_demo_writer", "role": "composer" },
+        { "artistId": "art_demo_writer", "role": "lyricist" },
+        { "artistId": "art_demo_a", "role": "original_artist" }
+      ],
+      "externalIds": {},
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "work_demo_full_zh",
+      "title": "晨光小路（虛構示範）",
+      "titleAliases": ["晨光小路"],
+      "language": "zh-TW",
+      "credits": [{ "artistId": "art_demo_a", "role": "original_artist" }],
+      "externalIds": {},
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "work_demo_en",
+      "title": "Paper Boats (fictional demo)",
+      "titleAliases": ["Paper Boats"],
+      "language": "en",
+      "credits": [{ "artistId": "art_demo_b", "role": "original_artist" }],
+      "externalIds": {},
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "recordings": [
+    {
+      "id": "rec_demo_001",
+      "workId": "work_demo_001",
+      "title": null,
+      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "kind": "studio",
+      "durationMs": 58000,
+      "externalIds": {},
+      "sourceReferenceIds": ["src_demo_upload_001"],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "rec_demo_002",
+      "workId": "work_demo_001",
+      "title": "示範歌曲（虛構）Live",
+      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "kind": "live",
+      "durationMs": 60000,
+      "externalIds": {},
+      "sourceReferenceIds": [],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "rec_demo_003",
+      "workId": "work_demo_001",
+      "title": null,
+      "artistCredits": [{ "artistId": "art_demo_b", "role": "performer" }],
+      "kind": "cover",
+      "durationMs": null,
+      "externalIds": {},
+      "sourceReferenceIds": ["src_demo_video_001"],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "rec_demo_full_zh_001",
+      "workId": "work_demo_full_zh",
+      "title": null,
+      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "kind": "acoustic",
+      "durationMs": null,
+      "externalIds": {},
+      "sourceReferenceIds": [],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "rec_demo_en_001",
+      "workId": "work_demo_en",
+      "title": null,
+      "artistCredits": [{ "artistId": "art_demo_b", "role": "performer" }],
+      "kind": "studio",
+      "durationMs": null,
+      "externalIds": {},
+      "sourceReferenceIds": [],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "arrangements": [
+    {
+      "id": "arr_demo_001",
+      "workId": "work_demo_001",
+      "name": "原調",
+      "variant": "original",
+      "publishedRevisionId": "rev_demo_001",
+      "visibility": "public",
+      "rights": {
+        "lyrics": "synthetic",
+        "chart": "synthetic",
+        "audio": "unknown",
+        "attribution": null,
+        "notes": "Invented demo content."
+      },
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "arr_demo_full_zh_001",
+      "workId": "work_demo_full_zh",
+      "name": "原調",
+      "variant": "original",
+      "publishedRevisionId": "rev_demo_full_zh_001",
+      "visibility": "public",
+      "rights": {
+        "lyrics": "synthetic",
+        "chart": "synthetic",
+        "audio": "unknown",
+        "attribution": null,
+        "notes": "Invented demo content."
+      },
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "arr_demo_en_001",
+      "workId": "work_demo_en",
+      "name": "Original",
+      "variant": "original",
+      "publishedRevisionId": "rev_demo_en_001",
+      "visibility": "public",
+      "rights": {
+        "lyrics": "synthetic",
+        "chart": "synthetic",
+        "audio": "unknown",
+        "attribution": null,
+        "notes": "Invented demo content."
+      },
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "compatibilities": [
+    {
+      "arrangementId": "arr_demo_001",
+      "recordingId": "rec_demo_001",
+      "provenance": "human_verified",
+      "recordedKey": "C",
+      "transposeSemitones": 0,
+      "crossWorkReviewed": false,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "arrangementId": "arr_demo_001",
+      "recordingId": "rec_demo_002",
+      "provenance": "human_verified",
+      "recordedKey": "C",
+      "transposeSemitones": 0,
+      "crossWorkReviewed": false,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "arrangementId": "arr_demo_001",
+      "recordingId": "rec_demo_003",
+      "provenance": "suggested",
+      "recordedKey": "D",
+      "transposeSemitones": 2,
+      "crossWorkReviewed": false,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "arrangementId": "arr_demo_full_zh_001",
+      "recordingId": "rec_demo_full_zh_001",
+      "provenance": "human_verified",
+      "recordedKey": "G",
+      "transposeSemitones": 0,
+      "crossWorkReviewed": false,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "arrangementId": "arr_demo_en_001",
+      "recordingId": "rec_demo_en_001",
+      "provenance": "unknown",
+      "recordedKey": null,
+      "transposeSemitones": null,
+      "crossWorkReviewed": false,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "sources": [
+    {
+      "id": "src_demo_upload_001",
+      "platform": "user_upload",
+      "platformSourceId": null,
+      "url": null,
+      "metadata": {
+        "title": "示範歌曲（虛構）",
+        "artist": "示範歌手甲（虛構）",
+        "durationMs": 58000
+      },
+      "permission": "analysis_permitted",
+      "permittedUses": ["metadata", "audio_analysis"],
+      "acquiredAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "src_demo_video_001",
+      "platform": "youtube",
+      "platformSourceId": "DEMO0000001",
+      "url": null,
+      "metadata": {
+        "title": "Demo cover (fictional)",
+        "artist": "Demo Singer B (fictional)",
+        "durationMs": null
+      },
+      "permission": "discovery_only",
+      "permittedUses": ["metadata", "embed_playback"],
+      "acquiredAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "rev_demo_001",
+      "arrangementId": "arr_demo_001",
+      "revision": 1,
+      "status": "published",
+      "origin": "human",
+      "parentRevisionId": null,
+      "createdBy": null,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "documentFixture": "charts/demo-basic.chart.json"
+    },
+    {
+      "id": "rev_demo_full_zh_001",
+      "arrangementId": "arr_demo_full_zh_001",
+      "revision": 1,
+      "status": "published",
+      "origin": "human",
+      "parentRevisionId": null,
+      "createdBy": null,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "documentFixture": "charts/demo-full-zh.chart.json"
+    },
+    {
+      "id": "rev_demo_en_001",
+      "arrangementId": "arr_demo_en_001",
+      "revision": 1,
+      "status": "published",
+      "origin": "human",
+      "parentRevisionId": null,
+      "createdBy": null,
+      "createdAt": "2026-10-23T00:00:00Z",
+      "documentFixture": "charts/demo-english.chart.json"
+    }
+  ],
+  "syncs": [
+    {
+      "recordingId": "rec_demo_001",
+      "chartRevisionId": "rev_demo_001",
+      "syncFixture": "ai/demo-basic.studio.sync.json"
+    },
+    {
+      "recordingId": "rec_demo_002",
+      "chartRevisionId": "rev_demo_001",
+      "syncFixture": "ai/demo-basic.live.sync.json"
+    }
+  ]
+}

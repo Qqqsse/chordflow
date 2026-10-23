@@ -1,0 +1,400 @@
+{
+  "schemaVersion": "1.0.0",
+  "chartRevisionId": "rev_demo_full_zh_001",
+  "arrangementId": "arr_demo_full_zh_001",
+  "revision": 1,
+  "language": "zh-TW",
+  "title": "晨光小路（虛構示範）",
+  "concertKey": "G",
+  "timeSignature": "4/4",
+  "defaultBpm": 84,
+  "instrument": {
+    "type": "guitar",
+    "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+  },
+  "sections": [
+    {
+      "id": "fz_intro",
+      "kind": "intro",
+      "lines": [
+        {
+          "id": "fz_intro_l1",
+          "text": "",
+          "chords": [
+            {
+              "id": "fz_c001",
+              "symbol": "G",
+              "anchor": null
+            },
+            {
+              "id": "fz_c002",
+              "symbol": "D/F#",
+              "anchor": null
+            },
+            {
+              "id": "fz_c003",
+              "symbol": "Em7",
+              "anchor": null
+            },
+            {
+              "id": "fz_c004",
+              "symbol": "Cadd9",
+              "anchor": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_verse1",
+      "kind": "verse",
+      "label": "主歌 1",
+      "lines": [
+        {
+          "id": "fz_v1_l1",
+          "text": "清晨的光落在小路上",
+          "chords": [
+            {
+              "id": "fz_c010",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c011",
+              "symbol": "D/F#",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            }
+          ]
+        },
+        {
+          "id": "fz_v1_l2",
+          "text": "風把昨天輕輕吹散",
+          "chords": [
+            {
+              "id": "fz_c012",
+              "symbol": "Em7",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c013",
+              "symbol": "Cmaj7",
+              "anchor": {
+                "graphemeOffset": 4
+              }
+            }
+          ]
+        },
+        {
+          "id": "fz_v1_l3",
+          "text": "我背著吉他慢慢走",
+          "chords": [
+            {
+              "id": "fz_c014",
+              "symbol": "Am7",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c015",
+              "symbol": "Bm7",
+              "anchor": {
+                "graphemeOffset": 3
+              }
+            },
+            {
+              "id": "fz_c016",
+              "symbol": "Cmaj7",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "fz_c017",
+              "symbol": "D7sus4",
+              "anchor": {
+                "graphemeOffset": 7
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_pre",
+      "kind": "pre_chorus",
+      "lines": [
+        {
+          "id": "fz_pre_l1",
+          "text": "一步一步　數著心跳",
+          "chords": [
+            {
+              "id": "fz_c020",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c021",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "fz_c022",
+              "symbol": "B7/D#",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_chorus1",
+      "kind": "chorus",
+      "lines": [
+        {
+          "id": "fz_ch1_l1",
+          "text": "唱吧　唱給遠方聽",
+          "chords": [
+            {
+              "id": "fz_c030",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c031",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 3
+              }
+            },
+            {
+              "id": "fz_c032",
+              "symbol": "Em",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            }
+          ]
+        },
+        {
+          "id": "fz_ch1_l2",
+          "text": "讓和弦陪我到天明",
+          "chords": [
+            {
+              "id": "fz_c033",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c034",
+              "symbol": "G/B",
+              "anchor": {
+                "graphemeOffset": 3
+              }
+            },
+            {
+              "id": "fz_c035",
+              "symbol": "Am7",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "fz_c036",
+              "symbol": "D7",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_inst",
+      "kind": "instrumental",
+      "label": "間奏",
+      "lines": [
+        {
+          "id": "fz_inst_l1",
+          "text": "",
+          "chords": [
+            {
+              "id": "fz_c040",
+              "symbol": "Em7",
+              "anchor": null
+            },
+            {
+              "id": "fz_c041",
+              "symbol": "Cadd9",
+              "anchor": null
+            },
+            {
+              "id": "fz_c042",
+              "symbol": "Gsus4",
+              "anchor": null
+            },
+            {
+              "id": "fz_c043",
+              "symbol": "D",
+              "anchor": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_bridge",
+      "kind": "bridge",
+      "lines": [
+        {
+          "id": "fz_br_l1",
+          "text": "如果路很長　就再唱一次",
+          "chords": [
+            {
+              "id": "fz_c050",
+              "symbol": "Am7",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c051",
+              "symbol": "Bm7b5",
+              "anchor": {
+                "graphemeOffset": 3
+              }
+            },
+            {
+              "id": "fz_c052",
+              "symbol": "Cmaj7",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            },
+            {
+              "id": "fz_c053",
+              "symbol": "D9sus4",
+              "anchor": {
+                "graphemeOffset": 9
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_chorus2",
+      "kind": "chorus",
+      "label": "副歌 2",
+      "lines": [
+        {
+          "id": "fz_ch2_l1",
+          "text": "唱吧　唱給遠方聽",
+          "chords": [
+            {
+              "id": "fz_c060",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c061",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 3
+              }
+            },
+            {
+              "id": "fz_c062",
+              "symbol": "Em",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            }
+          ]
+        },
+        {
+          "id": "fz_ch2_l2",
+          "text": "讓和弦陪我到天明",
+          "chords": [
+            {
+              "id": "fz_c063",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "fz_c064",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "fz_c065",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fz_outro",
+      "kind": "outro",
+      "lines": [
+        {
+          "id": "fz_out_l1",
+          "text": "",
+          "chords": [
+            {
+              "id": "fz_c070",
+              "symbol": "Cadd9",
+              "anchor": null
+            },
+            {
+              "id": "fz_c071",
+              "symbol": "G",
+              "anchor": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "voicingPolicy": {
+    "mode": "recommended",
+    "defaultDifficulty": "easy",
+    "symbolDefaults": {
+      "Cadd9": "v_cadd9_x32033"
+    },
+    "occurrenceOverrides": {
+      "fz_c033": "v_c_x35553"
+    }
+  },
+  "importMetadata": {
+    "format": "native",
+    "unhandledDirectives": []
+  }
+}

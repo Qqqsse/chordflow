@@ -1,0 +1,238 @@
+{
+  "$id": "https://chordflow.invalid/schemas/recording-sync.v1.schema.json",
+  "title": "chordflow RecordingSync v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+    },
+    "recordingId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "chartRevisionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "timebase": {
+      "type": "string",
+      "const": "recording_start_ms"
+    },
+    "offsetMs": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "recordingDurationMs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "alignedChords": {
+      "maxItems": 10000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "chordOccurrenceId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "startMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "endMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "high_confidence",
+              "uncertain"
+            ]
+          },
+          "confidence": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "calibrated": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "value",
+              "model",
+              "calibrated"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "chordOccurrenceId",
+          "startMs",
+          "endMs",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "alignedLyrics": {
+      "maxItems": 20000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "fromGrapheme": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "toGrapheme": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "startMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "endMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "high_confidence",
+              "uncertain"
+            ]
+          },
+          "confidence": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "calibrated": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "value",
+              "model",
+              "calibrated"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "lineId",
+          "fromGrapheme",
+          "toGrapheme",
+          "startMs",
+          "endMs",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unmatchedIntervals": {
+      "maxItems": 10000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "startMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "endMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "instrumental_or_unknown",
+              "ad_lib",
+              "backing_vocals",
+              "low_confidence",
+              "not_in_reference"
+            ]
+          }
+        },
+        "required": [
+          "startMs",
+          "endMs",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unaligned": {
+      "type": "object",
+      "properties": {
+        "chordOccurrenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          }
+        },
+        "lineIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          }
+        }
+      },
+      "required": [
+        "chordOccurrenceIds",
+        "lineIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "recordingId",
+    "chartRevisionId",
+    "timebase",
+    "offsetMs",
+    "alignedChords",
+    "alignedLyrics",
+    "unmatchedIntervals"
+  ],
+  "additionalProperties": false
+}

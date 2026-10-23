@@ -1,0 +1,67 @@
+{
+  "$id": "https://chordflow.invalid/schemas/artifact-manifest-entry.v1.schema.json",
+  "title": "chordflow artifact manifest entry v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "source_metadata",
+        "audio_preprocess",
+        "separated_stems",
+        "chord_timeline",
+        "asr_transcript",
+        "aligned_lyrics",
+        "fusion_draft"
+      ]
+    },
+    "cacheKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "storagePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!\\/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$"
+    },
+    "contentDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "byteSize": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "mediaType": {
+      "type": "string",
+      "pattern": "^[a-z]+\\/[a-z0-9.+-]+$"
+    },
+    "parentArtifactIds": {
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "cacheKey",
+    "storagePath",
+    "contentDigest",
+    "byteSize",
+    "mediaType",
+    "parentArtifactIds"
+  ],
+  "additionalProperties": false
+}

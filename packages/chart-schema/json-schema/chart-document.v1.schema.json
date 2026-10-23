@@ -1,0 +1,386 @@
+{
+  "$id": "https://chordflow.invalid/schemas/chart-document.v1.schema.json",
+  "title": "chordflow Chart Document v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+    },
+    "chartRevisionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "arrangementId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "concertKey": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-G](#|b)?m?$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "timeSignature": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^([1-9]|[1-3]\\d)\\/(1|2|4|8|16|32)$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "defaultBpm": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 400
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "instrument": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "guitar"
+        },
+        "tuning": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-G](#|b)?-?\\d$"
+            }
+          ],
+          "items": false,
+          "minItems": 6,
+          "maxItems": 6
+        }
+      },
+      "required": [
+        "type",
+        "tuning"
+      ],
+      "additionalProperties": false
+    },
+    "sections": {
+      "minItems": 1,
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "intro",
+              "verse",
+              "pre_chorus",
+              "chorus",
+              "bridge",
+              "instrumental",
+              "interlude",
+              "outro",
+              "tag",
+              "other"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "lines": {
+            "maxItems": 400,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "chords": {
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      "symbol": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                      },
+                      "anchor": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "graphemeOffset": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "graphemeOffset"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "symbol",
+                      "anchor"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "chords"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "lines"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "voicingPolicy": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "recommended",
+            "explicit"
+          ]
+        },
+        "defaultDifficulty": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "intermediate",
+            "advanced"
+          ]
+        },
+        "symbolDefaults": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          }
+        },
+        "occurrenceOverrides": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          }
+        }
+      },
+      "required": [
+        "mode",
+        "defaultDifficulty",
+        "occurrenceOverrides"
+      ],
+      "additionalProperties": false
+    },
+    "importMetadata": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "native",
+            "chordpro",
+            "ai_draft"
+          ]
+        },
+        "unhandledDirectives": {
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "line",
+              "name",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "format",
+        "unhandledDirectives"
+      ],
+      "additionalProperties": false
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^x-[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/__schema0"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "chartRevisionId",
+    "arrangementId",
+    "revision",
+    "language",
+    "title",
+    "concertKey",
+    "timeSignature",
+    "defaultBpm",
+    "instrument",
+    "sections",
+    "voicingPolicy",
+    "importMetadata"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          }
+        }
+      ]
+    }
+  }
+}
