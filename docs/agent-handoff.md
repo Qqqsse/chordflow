@@ -64,6 +64,13 @@ builds needed sandbox-only base images that trust the egress proxy CA (passed vi
 `PYTHON_IMAGE` build args — the committed Dockerfiles are unchanged); Docker Hub returned 429, so
 `postgres:17-alpine` was pulled from `mirror.gcr.io`. CI builds images without these workarounds.
 
+## CI
+
+- Run 3 (`03754f1`, https://github.com/Qqqsse/chordflow/actions/runs/40014177668): all 4 jobs passed
+  (web, worker, compose build, security).
+- `playwright install --with-deps chromium` takes ~12 min of the ~13 min web job. Worth caching
+  `~/.cache/ms-playwright` keyed on the Playwright version, or using the official Playwright container image.
+
 ## Decisions worth knowing
 
 - `output: 'standalone'` only when `NEXT_OUTPUT_STANDALONE=1` (set in the Dockerfile) so `next start` works
