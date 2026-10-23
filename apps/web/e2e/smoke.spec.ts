@@ -8,8 +8,16 @@ test('home page renders in zh-TW and links to the demo', async ({ page }) => {
   await expect(page).toHaveURL(/\/demo$/);
 });
 
-test('demo chart renders without database or GPU', async ({ page }) => {
+test('demo index lists synthetic charts', async ({ page }) => {
   await page.goto('/demo');
+  await expect(page.getByRole('heading', { level: 1, name: '示範譜' })).toBeVisible();
+  await page.getByRole('link', { name: /晨光小路/ }).click();
+  await expect(page).toHaveURL(/\/demo\/arr_demo_full_zh_001$/);
+  await expect(page.getByRole('region', { name: '副歌 2' })).toBeVisible();
+});
+
+test('demo chart renders without database or GPU', async ({ page }) => {
+  await page.goto('/demo/arr_demo_001');
   await expect(page.getByRole('heading', { name: '示範歌曲（虛構）' })).toBeVisible();
   await expect(page.getByRole('region', { name: '主歌' })).toContainText('微風帶我');
   const slashChord = page.locator('[data-chord-id="ch_verse_2"]');
@@ -28,9 +36,14 @@ test('health endpoint reports liveness without secrets', async ({ request }) => 
 
 test('demo page has no horizontal overflow at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
-  await page.goto('/demo');
+  await page.goto('/demo/arr_demo_full_zh_001');
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('unknown demo arrangement returns 404', async ({ page }) => {
+  const res = await page.goto('/demo/arr_missing');
+  expect(res?.status()).toBe(404);
 });

@@ -1,3 +1,5 @@
+import { splitGraphemes } from '@chordflow/chart-schema';
+
 /**
  * Splits a lyric line into chord-anchored segments using Unicode grapheme
  * clusters (SPEC §4: `graphemeOffset` never counts UTF-16 code units).
@@ -20,12 +22,6 @@ export interface SegmentedLine {
   /** Chords without a lyric anchor (instrumental / time-only), in document order. */
   unanchored: ChordPlacement[];
   segments: LineSegment[];
-}
-
-const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-
-export function splitGraphemes(text: string): string[] {
-  return Array.from(segmenter.segment(text.normalize('NFC')), (part) => part.segment);
 }
 
 export class AnchorOutOfBoundsError extends RangeError {

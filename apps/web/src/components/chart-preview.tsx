@@ -1,33 +1,24 @@
-import { segmentLine, type ChordPlacement } from '@/lib/line-segments';
+import type { ChartLine, ChartSection, SectionKind } from '@chordflow/chart-schema';
+import { segmentLine } from '@/lib/line-segments';
 
-export interface PreviewLine {
-  id: string;
-  text: string;
-  chords: ChordPlacement[];
-}
-
-export interface PreviewSection {
-  id: string;
-  kind: string;
-  label?: string;
-  lines: PreviewLine[];
-}
-
-const SECTION_LABELS: Readonly<Record<string, string>> = {
+const SECTION_LABELS: Readonly<Record<SectionKind, string>> = {
   intro: '前奏',
   verse: '主歌',
   pre_chorus: '導歌',
   chorus: '副歌',
   bridge: '橋段',
   instrumental: '間奏',
+  interlude: '過門',
   outro: '尾奏',
+  tag: '尾段',
+  other: '段落',
 };
 
-function sectionLabel(section: PreviewSection): string {
-  return section.label ?? SECTION_LABELS[section.kind] ?? section.kind;
+export function sectionLabel(section: Pick<ChartSection, 'kind' | 'label'>): string {
+  return section.label ?? SECTION_LABELS[section.kind];
 }
 
-function ChordLine({ line }: { line: PreviewLine }) {
+function ChordLine({ line }: { line: ChartLine }) {
   const { unanchored, segments } = segmentLine(line.text, line.chords);
   return (
     <div className="flex flex-wrap items-end" data-line-id={line.id}>
@@ -52,7 +43,7 @@ function ChordLine({ line }: { line: PreviewLine }) {
   );
 }
 
-export function ChartPreview({ sections }: { sections: readonly PreviewSection[] }) {
+export function ChartPreview({ sections }: { sections: readonly ChartSection[] }) {
   return (
     <div className="space-y-6">
       {sections.map((section) => (

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AnchorOutOfBoundsError, segmentLine, splitGraphemes } from './line-segments';
+import { splitGraphemes } from '@chordflow/chart-schema';
+import { AnchorOutOfBoundsError, segmentLine } from './line-segments';
 
 const chord = (id: string, symbol: string, offset: number | null) => ({
   id,

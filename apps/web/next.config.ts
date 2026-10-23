@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   ...(process.env.NEXT_OUTPUT_STANDALONE === '1' ? { output: 'standalone' as const } : {}),
   outputFileTracingRoot: monorepoRoot,
   turbopack: { root: monorepoRoot },
+  transpilePackages: ['@chordflow/chart-schema'],
   poweredByHeader: false,
   reactStrictMode: true,
   headers() {
