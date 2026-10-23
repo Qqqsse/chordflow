@@ -1,0 +1,6 @@
+# Example site block for an existing Caddy reverse proxy that shares PROXY_NETWORK with chordflow.
+# Replace the hostname with one you control. Caddy obtains and renews the TLS certificate.
+chordflow.example.duckdns.org {
+	encode zstd gzip
+	reverse_proxy chordflow-web-1:3000
+}

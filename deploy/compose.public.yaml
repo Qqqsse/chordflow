@@ -1,0 +1,22 @@
+# Optional overlay: attach `web` to an EXISTING reverse-proxy network instead of a host port.
+# The proxy (Caddy, Traefik, nginx, ...) owns 80/443 and TLS; this file never binds them.
+#
+#   docker compose -f compose.yaml -f deploy/compose.public.yaml up -d
+#
+# Required in .env:
+#   PROXY_NETWORK   name of the proxy's existing external Docker network
+#   APP_BASE_URL    https://<your-hostname>  (e.g. a DuckDNS subdomain you own)
+# Complete the public-exposure checklist in docs/local-deployment.md before enabling this.
+services:
+  web:
+    ports: !reset []
+    environment:
+      APP_BASE_URL: ${APP_BASE_URL:?set APP_BASE_URL to the public https URL}
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:?set PROXY_NETWORK to the reverse proxy network}
+    external: true
