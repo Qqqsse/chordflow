@@ -1,0 +1,49 @@
+{
+  "description": "Confidence value must be within 0..1.",
+  "layer": "structural",
+  "expectedIssue": "SCHEMA_INVALID",
+  "chartFixture": null,
+  "document": {
+    "schemaVersion": "1.0.0",
+    "recordingId": "rec_demo_001",
+    "chartRevisionId": "rev_demo_001",
+    "timebase": "recording_start_ms",
+    "offsetMs": 0,
+    "alignedChords": [
+      {
+        "chordOccurrenceId": "ch_verse_1",
+        "startMs": 12000,
+        "endMs": 13700,
+        "status": "high_confidence",
+        "confidence": {
+          "value": 1.4,
+          "model": "x",
+          "calibrated": false
+        }
+      },
+      {
+        "chordOccurrenceId": "ch_verse_2",
+        "startMs": 13700,
+        "endMs": 15100,
+        "status": "uncertain"
+      }
+    ],
+    "alignedLyrics": [
+      {
+        "lineId": "line_verse_1",
+        "fromGrapheme": 0,
+        "toGrapheme": 2,
+        "startMs": 12040,
+        "endMs": 12800,
+        "status": "high_confidence"
+      }
+    ],
+    "unmatchedIntervals": [
+      {
+        "startMs": 0,
+        "endMs": 11800,
+        "reason": "instrumental_or_unknown"
+      }
+    ]
+  }
+}
