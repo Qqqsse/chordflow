@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# secrets and local config — never commit
+.env
+.env.*
+!.env.example
+
+# local data, media and model weights — never commit
+/data/
+/artifacts/
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "chartRevisionId": "rev_demo_001",
+  "arrangementId": "arr_demo_001",
+  "revision": 1,
+  "language": "zh-TW",
+  "title": "示範歌曲（虛構）",
+  "concertKey": "C",
+  "timeSignature": "4/4",
+  "defaultBpm": null,
+  "instrument": {
+    "type": "guitar",
+    "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+  },
+  "sections": [
+    {
+      "id": "sec_intro_1",
+      "kind": "intro",
+      "lines": [
+        {
+          "id": "line_intro_1",
+          "text": "",
+          "chords": [{ "id": "ch_intro_1", "symbol": "C", "anchor": null }]
+        }
+      ]
+    },
+    {
+      "id": "sec_verse_1",
+      "kind": "verse",
+      "lines": [
+        {
+          "id": "line_verse_1",
+          "text": "微風帶我向前走",
+          "chords": [
+            { "id": "ch_verse_1", "symbol": "C", "anchor": { "graphemeOffset": 0 } },
+            { "id": "ch_verse_2", "symbol": "G/B", "anchor": { "graphemeOffset": 4 } }
+          ]
+        }
+      ]
+    }
+  ],
+  "voicingPolicy": {
+    "mode": "recommended",
+    "defaultDifficulty": "easy",
+    "occurrenceOverrides": {}
+  },
+  "importMetadata": {
+    "format": "native",
+    "unhandledDirectives": []
+  }
+}

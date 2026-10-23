@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+node_modules
+.next
+dist
+coverage
+playwright-report
+test-results
+services/ai-worker
+# Operator-authored source documents are kept verbatim.
+SPEC.md
+docs/claude-code-kickoff.md
