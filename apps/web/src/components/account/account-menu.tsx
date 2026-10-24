@@ -14,6 +14,9 @@ export function AccountMenu() {
   }
   return (
     <span className="ml-auto flex items-center gap-3">
+      <a href="/library" className="text-ink-muted hover:text-ink">
+        我的譜庫
+      </a>
       {account.user.role === 'admin' && (
         <a href="/admin" className="text-ink-muted hover:text-ink">
           管理

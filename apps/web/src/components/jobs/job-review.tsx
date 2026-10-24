@@ -14,7 +14,7 @@ import { transposeChartDisplay } from '@chordflow/music-theory';
 import { useCallback, useEffect, useState } from 'react';
 import { sectionLabel } from '@/components/section-label';
 import { ChordSheet } from '@/components/viewer/chord-sheet';
-import { getJson, postJson } from './http';
+import { getJson, postJson } from '@/lib/api/client';
 import { JobStatusText } from './job-list';
 import { JOB_ERROR_LABEL, LIVE_STATUSES, SPAN_REASON_LABEL, STAGE_LABEL } from './labels';
 

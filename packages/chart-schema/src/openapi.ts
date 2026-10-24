@@ -464,6 +464,11 @@ export function buildOpenApi(): Json {
         },
       },
       '/me/favorites/{id}': {
+        get: {
+          summary: 'Whether the signed-in user has favorited this arrangement',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: { 200: okResponse('FavoriteResponse'), 401: errorResponse('UNAUTHENTICATED') },
+        },
         put: {
           summary: 'Add a visible arrangement to favorites; idempotent',
           parameters: [idParam('id', 'Arrangement id')],

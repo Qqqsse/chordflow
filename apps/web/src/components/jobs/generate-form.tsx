@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type SyntheticEvent } from 'react';
-import { postJson } from './http';
+import { postJson } from '@/lib/api/client';
 import { JobList } from './job-list';
 import { SAMPLE_LYRICS, SAMPLE_TITLE } from './sample-lyrics';
 
