@@ -4,15 +4,16 @@
 
 ## 進度（2026-10-24）
 
-| Milestone                   | 狀態                                       | 說明                                                                    |
-| --------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
-| M0 基礎建設                 | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈                                  |
-| M1 和弦譜 schema 與領域模型 | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
-| M2 樂理                     | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
-| M3 ChordPro                 | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
-| M4 看譜器                   | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
-| M5 指法／播放模式／PWA      | 下一個                                     |                                                                         |
-| M6–M7                       | 尚未開始                                   |                                                                         |
+| Milestone                       | 狀態                                       | 說明                                                                    |
+| ------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| M0 基礎建設                     | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈                                  |
+| M1 和弦譜 schema 與領域模型     | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
+| M2 樂理                         | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
+| M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
+| M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
+| M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
+| M6 PostgreSQL／搜尋／帳號／修訂 | 下一個                                     |                                                                         |
+| M7 生成任務與 CPU mock worker   | 尚未開始                                   |                                                                         |
 
 ## 目前已有的內容
 
@@ -31,6 +32,8 @@
   （明確段落標記、跳脫、刻意遺失的資訊已列出）。
 - **看譜器（apps/web `components/viewer`）：** 和弦區塊排版、移調／移調夾（兩種模式）／按法或實際音／
   羅馬級數與 Nashville／字級、快捷鍵；`/demo/[arrangementId]` 使用。
+- **packages/guitar-voicings：** 指法驗證、精選與可移動指法庫、推薦排序、選擇順序、指法圖幾何。
+- **播放模式與離線：** 連續自動捲動（尊重減少動態）、分頁模式、IndexedDB 離線儲存、`/offline` 譜庫、service worker、manifest。
 - **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
 - **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
   驗證 fixtures。尚無工作迴圈（M7）。
@@ -42,31 +45,37 @@
 
 ## Commits
 
-| Hash    | 訊息                                                              |
-| ------- | ----------------------------------------------------------------- |
-| b43b6c5 | docs: add SPEC and kickoff brief with standard folder layout      |
-| 6d6f562 | chore: bootstrap monorepo                                         |
-| eeb384a | chore: add docker base                                            |
-| 96a92d0 | ci: establish quality gates                                       |
-| 1d8e736 | feat(schema): chart v1                                            |
-| 7ab0ba2 | test(schema): exhaustive fixture validation                       |
-| 20369b8 | feat(web): in-memory catalog repository and validated demo charts |
-| 03754f1 | docs: architecture overview and agent handoff for M0–M1           |
-| 3836414 | docs(handoff): record green CI for M0–M1                          |
-| 2b4334d | docs: switch project docs to Traditional Chinese                  |
-| a368f8f | test(fixtures): add public-domain songs 送別 and Amazing Grace    |
-| 42a3a6d | feat(theory): spelled pitches, keys and chord parser              |
-| f9f2410 | feat(theory): key-aware transposition and capo semantics          |
-| 787f7de | feat(theory): roman numeral and nashville number rendering        |
-| 5efe366 | feat(theory): pure chart display transformation and capo modes    |
-| 7e0bcc0 | docs(handoff): record M2 completion and M1 freeze                 |
-| 03374d4 | feat(chordpro): bounded ChordPro importer                         |
-| 155f51d | feat(chordpro): readable exporter with semantic round trip        |
-| 59b39ae | docs(chordpro): supported subset, capo choice and export losses   |
-| 98bbdbd | test(chordpro): keep the CRLF fixture byte-exact                  |
-| d08b4aa | docs(handoff): record M3 completion                               |
-| 667b27e | feat(viewer): chord sheet layout core and viewer controls         |
-| 6b3f22e | test(viewer): interaction and layout geometry e2e                 |
+| Hash    | 訊息                                                                       |
+| ------- | -------------------------------------------------------------------------- |
+| b43b6c5 | docs: add SPEC and kickoff brief with standard folder layout               |
+| 6d6f562 | chore: bootstrap monorepo                                                  |
+| eeb384a | chore: add docker base                                                     |
+| 96a92d0 | ci: establish quality gates                                                |
+| 1d8e736 | feat(schema): chart v1                                                     |
+| 7ab0ba2 | test(schema): exhaustive fixture validation                                |
+| 20369b8 | feat(web): in-memory catalog repository and validated demo charts          |
+| 03754f1 | docs: architecture overview and agent handoff for M0–M1                    |
+| 3836414 | docs(handoff): record green CI for M0–M1                                   |
+| 2b4334d | docs: switch project docs to Traditional Chinese                           |
+| a368f8f | test(fixtures): add public-domain songs 送別 and Amazing Grace             |
+| 42a3a6d | feat(theory): spelled pitches, keys and chord parser                       |
+| f9f2410 | feat(theory): key-aware transposition and capo semantics                   |
+| 787f7de | feat(theory): roman numeral and nashville number rendering                 |
+| 5efe366 | feat(theory): pure chart display transformation and capo modes             |
+| 7e0bcc0 | docs(handoff): record M2 completion and M1 freeze                          |
+| 03374d4 | feat(chordpro): bounded ChordPro importer                                  |
+| 155f51d | feat(chordpro): readable exporter with semantic round trip                 |
+| 59b39ae | docs(chordpro): supported subset, capo choice and export losses            |
+| 98bbdbd | test(chordpro): keep the CRLF fixture byte-exact                           |
+| d08b4aa | docs(handoff): record M3 completion                                        |
+| 667b27e | feat(viewer): chord sheet layout core and viewer controls                  |
+| 6b3f22e | test(viewer): interaction and layout geometry e2e                          |
+| 88a959e | docs(handoff): record M4 completion                                        |
+| 2ca4421 | feat(voicings): validated guitar voicings and deterministic recommendation |
+| e2d9b08 | feat(voicings): pure chord diagram geometry                                |
+| ecdf091 | feat(viewer): SVG chord diagrams with a per-viewer voicing chooser         |
+| 5e34bd7 | feat(viewer): continuous autoscroll and paged reading mode                 |
+| d548a8c | feat(pwa): explicit offline save with IndexedDB and a service worker       |
 
 ## 驗證結果（本 session，本機）
 
@@ -76,9 +85,9 @@
 | `pnpm format:check`                                                               | 通過                                                                                                                   |
 | `pnpm lint`                                                                       | 通過，0 個警告                                                                                                         |
 | `pnpm typecheck`                                                                  | 通過                                                                                                                   |
-| `pnpm test`                                                                       | 20 個檔案、420 個測試通過（M4 後）                                                                                     |
+| `pnpm test`                                                                       | 24 個檔案、522 個測試通過（M5 後）                                                                                     |
 | `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                      |
-| `CI=1 pnpm exec playwright test`                                                  | 18 個通過（Chromium，M4 後）                                                                                           |
+| `CI=1 pnpm exec playwright test`                                                  | 32 個通過（Chromium，M5 後）                                                                                           |
 | `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 42 個通過                                                                                                              |
 | `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                  |
 | `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                   |
@@ -114,7 +123,8 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **M5**：`packages/guitar-voicings`（精選指法、驗證、推薦排序）、SVG 指法圖、連續捲動／分頁模式、
-   IndexedDB 離線儲存與 service worker。
-2. **M6 PostgreSQL、搜尋、帳號、修訂**（同時接上 `POST /api/v1/chordpro/import` 與使用者偏好保存）。
-3. **M7 生成任務與 CPU mock worker**。
+1. **M6**：Drizzle schema 與 migrations、PostgreSQL repository adapter（實作 `CatalogRepository`）、搜尋 API、
+   邀請制帳號與角色、修訂版本建立與交易式發布、`POST /api/v1/chordpro/import`、使用者偏好與離線資料命名空間。
+   需要 PostgreSQL：雲端沙盒可手動啟動 dockerd 並從 `mirror.gcr.io` 拉 `postgres:17-alpine`；CI 用 service container。
+2. **M7 生成任務與 CPU mock worker**。
+3. 小改善：CI 中快取 Playwright 瀏覽器；`/demo` 以外的頁面加上 CSP。
