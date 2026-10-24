@@ -1,0 +1,86 @@
+# 授權音訊來源（M8 準備）
+
+> **ADR-003（提案）**：本文件是 M8 之前的設計，**尚未實作**。實作前請擁有者確認文末「待決定」各項。
+> 範圍只有「音訊從哪裡來、怎麼證明可以用、怎麼交給 GPU worker」；模型與推論見 SPEC §11。
+
+## 原則（SPEC §11、§12，不可違反）
+
+- 公開網址（YouTube、Spotify…）只用於**辨識與官方嵌入播放**，永遠不下載、不擷取音訊；不使用 `yt-dlp`。
+- 只有能證明有權使用的音訊才能分析：使用者自己上傳並聲明權利，或日後經法律審查的授權來源。
+- 音訊與分離出的音軌（stems）屬於使用者的私人資料：不公開、不進 git、不進 CI，有保留期限並可刪除。
+- web（Next.js）不做轉檔或推論，只做大小與格式檢查；解碼與分析都在 worker。
+
+## SourceProvider 介面
+
+每種來源實作同一組能力（SPEC §11），由 web 的伺服器端使用：
+
+```ts
+interface SourceProvider {
+  /** 取得歌名、歌手、長度等資訊與官方嵌入網址；不取得音訊。 */
+  resolveMetadata(input: { url: string } | { query: string }): Promise<SourceMetadata | null>;
+  /** 這位使用者能否對這個來源做音訊分析（權利、保留期限、檔案是否仍在）。 */
+  canAnalyze(source: SourceReference, principal: Principal): Promise<AnalyzeDecision>;
+  /** 只有 canAnalyze 為真時才可呼叫；回傳 artifact store 中的位置與摘要，不回傳公開網址。 */
+  obtainAuthorizedAudio(source: SourceReference): Promise<AuthorizedAudio>;
+}
+```
+
+| 來源                  | resolveMetadata        | canAnalyze                                   | obtainAuthorizedAudio |
+| --------------------- | ---------------------- | -------------------------------------------- | --------------------- |
+| YouTube／Spotify 連結 | 只解析網址（現有功能） | 永遠否                                       | 不提供                |
+| 使用者上傳（第一個）  | 上傳時填寫的資訊       | 有權利聲明、未過期、未刪除、屬於本人或管理員 | 讀取已上傳的檔案      |
+| 授權音樂服務（未來）  | 依服務 API             | 依合約；需另行法律審查                       | 依合約                |
+
+現有的 `canAnalyzeSource`（`analysis_permitted` + `audio_analysis`）仍是必要條件，上傳來源另外檢查下列項目。
+
+## 使用者上傳流程（第一個實作）
+
+1. **上傳前聲明權利**：勾選「這是我自己錄製或已取得授權的音訊，我同意用於產生和弦譜草稿」。
+   聲明內容的版本、使用者、時間一起保存（和權利稽核紀錄同樣只能新增）。
+2. **伺服器端檢查**：
+   - 檔案大小上限（建議 50 MB）；
+   - 依檔頭判斷格式（WAV、FLAC、MP3、OGG、M4A），不相信副檔名或瀏覽器給的 MIME；
+   - 每位使用者的容量配額與上傳限速。
+3. **儲存**：
+   - 存到 artifact store 的 `uploads/<source id>/<sha256>.<副檔名>`，不提供任何公開網址；
+   - SHA-256 摘要就是 SPEC §9 快取鍵中的 `inputFingerprint`。
+4. **建立紀錄**：建立 `SourceReference`，欄位為：
+   - `platform: user_upload`
+   - `permission: analysis_permitted`
+   - `permittedUses: ['audio_analysis']`
+5. **送出任務**：沿用既有的 `source_reference` 任務，權利檢查已經在排隊前執行。
+
+## GPU worker 如何取得音訊
+
+建議新增 worker API：`GET /worker/jobs/{id}/audio`。
+
+- 呼叫時必須帶 worker token 與該任務目前的租約 token；
+- 以串流回傳檔案，並附上摘要讓 worker 驗證；
+- 租約失效就回 409。
+
+這樣 GPU 主機（可能經由 Tailscale 連線）不需要和 web 共用磁碟；worker 契約只多一個端點（次版本號 +1）。
+解碼與檢查（長度、取樣率、聲道）在 worker 的 `decode_and_probe_audio` 階段進行，不合格時回報
+`AUDIO_INVALID`／`AUDIO_TOO_LONG`。
+
+## 保留與刪除
+
+- 預設在最後一個相關任務結束後保留 30 天，到期自動刪除原始音訊與分離音軌。
+- 和弦時間軸等不含音訊的產出可以保留；它們不能還原出音訊。
+- 使用者可隨時刪除自己的上傳：
+  - 刪除檔案並把來源標記為已撤回；
+  - 進行中的任務以 `SOURCE_NOT_AUTHORIZED` 失敗；
+  - 已發布的和弦譜不受影響（它不含音訊）。
+- 刪除帳號時一併刪除其所有上傳。
+
+## 待擁有者決定
+
+1. 誰可以上傳：只有管理員，或所有受邀會員。
+2. 檔案大小與長度上限（建議 50 MB、15 分鐘）、每人容量配額。
+3. 保留天數（建議 30 天）。
+4. 上傳時的權利聲明文字（建議由擁有者確認措辭）。
+
+## M8 實作切分（需要擁有者的硬體）
+
+1. 上傳 API、權利聲明與檔案儲存（雲端可做，但需先確認上面四項）。
+2. `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（雲端可做，以合成的測試音訊檔驗證，不提交真實音訊）。
+3. GPU worker 映像、模型轉接器、原曲與分離音軌的比較評估（**只能在擁有者的 RTX 5090 主機上做**）。

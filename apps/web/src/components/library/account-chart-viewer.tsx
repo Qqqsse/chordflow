@@ -100,9 +100,14 @@ export function AccountChartViewer({
             {favorite === true ? '★ 已收藏' : '☆ 加入收藏'}
           </button>
           {account.user?.role === 'admin' && (
-            <a className="underline" href={`/admin/arrangements/${arrangementId}/audit`}>
-              權利紀錄
-            </a>
+            <>
+              <a className="underline" href={`/admin/arrangements/${arrangementId}/edit`}>
+                編輯
+              </a>
+              <a className="underline" href={`/admin/arrangements/${arrangementId}/audit`}>
+                權利紀錄
+              </a>
+            </>
           )}
           <span className="text-ink-muted" role="status" data-testid="preference-status">
             {SAVE_LABEL[saveStatus]}
