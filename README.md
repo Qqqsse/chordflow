@@ -3,36 +3,38 @@
 邊彈邊唱的吉他和弦譜 Web App：移調、移調夾、級數顯示、可切換的指法圖，手機／平板／桌機皆清楚易讀。
 本地優先（local-first）、Docker 優先部署；AI 產譜是可選的擴充流程，不是看譜的必要條件。
 
-A local-first, Docker-first guitar sing-along chord-sheet web app. The engineering specification is
-[`SPEC.md`](./SPEC.md); current status lives in [`docs/agent-handoff.md`](./docs/agent-handoff.md).
+工程規格見 [`SPEC.md`](./SPEC.md)；目前進度見 [`docs/agent-handoff.md`](./docs/agent-handoff.md)。
 
-## Repository layout
+> English summary: a local-first, Docker-first guitar sing-along chord-sheet web app. `SPEC.md` is the
+> engineering specification; code identifiers, JSON keys and API paths are in English.
 
-| Path                       | Purpose                                                     |
-| -------------------------- | ----------------------------------------------------------- |
-| `apps/web`                 | Next.js App Router app (UI + `/api/v1` BFF)                 |
-| `packages/chart-schema`    | Zod schemas, TS types, JSON Schema export (M1)              |
-| `packages/music-theory`    | Pure chord parsing / transposition / capo / numbering (M2)  |
-| `packages/chordpro`        | Bounded ChordPro importer/exporter (M3)                     |
-| `packages/guitar-voicings` | Validated guitar voicings and SVG geometry (M5)             |
-| `packages/ui`              | Optional shared presentation components                     |
-| `services/ai-worker`       | Python CPU contract runner; GPU adapters later (M7/M8)      |
-| `fixtures/`                | Synthetic charts, API contracts and AI timelines            |
-| `deploy/`                  | Optional Compose overlays (GPU, public reverse proxy)       |
-| `docs/`                    | Architecture, contracts, deployment, testing, agent handoff |
+## 目錄結構
 
-## Quick start (development)
+| 路徑                       | 用途                                                  |
+| -------------------------- | ----------------------------------------------------- |
+| `apps/web`                 | Next.js App Router 應用（UI 與 `/api/v1` BFF）        |
+| `packages/chart-schema`    | Zod schema、TS 型別、JSON Schema 匯出（M1）           |
+| `packages/music-theory`    | 純函式和弦解析／移調／移調夾／級數（M2）              |
+| `packages/chordpro`        | 有界限的 ChordPro 匯入／匯出（M3）                    |
+| `packages/guitar-voicings` | 經驗證的吉他指法與 SVG 幾何（M5）                     |
+| `packages/ui`              | 選用的共用呈現元件                                    |
+| `services/ai-worker`       | Python CPU 契約執行器；GPU adapter 之後再加（M7／M8） |
+| `fixtures/`                | 合成（虛構）的和弦譜、API 契約與 AI 時間軸測試資料    |
+| `deploy/`                  | 選用的 Compose 疊加設定（GPU、公開反向代理）          |
+| `docs/`                    | 架構、契約、部署、測試、Agent 交接文件                |
 
-Requirements: Node.js ≥ 22.12, pnpm 10 (`corepack enable`), Python ≥ 3.12 for the worker.
+## 快速開始（開發）
+
+需求：Node.js ≥ 22.12、pnpm 10（`corepack enable`）、worker 需 Python ≥ 3.12。
 
 ```sh
 pnpm install
-pnpm dev                            # http://localhost:3000 — /demo works without DB or GPU
-pnpm test                            # unit tests (Vitest)
+pnpm dev                             # http://localhost:3000 — /demo 不需資料庫或 GPU
+pnpm test                            # 單元測試（Vitest）
 pnpm build && pnpm exec playwright test
 ```
 
-Worker:
+Worker：
 
 ```sh
 cd services/ai-worker
@@ -40,17 +42,17 @@ python -m venv .venv && . .venv/bin/activate
 pip install -e '.[dev]' && python -m pytest
 ```
 
-## Docker Compose (local, private)
+## Docker Compose（本機、私人使用）
 
 ```sh
-cp .env.example .env      # then replace every placeholder secret
+cp .env.example .env      # 接著把每個佔位用的密碼／密鑰換掉
 docker compose up -d --build
 ```
 
-See [`docs/local-deployment.md`](./docs/local-deployment.md) for profiles, backups and the destructive
-`docker compose down -v` warning.
+profiles、備份，以及具破壞性的 `docker compose down -v` 警告，請見
+[`docs/local-deployment.md`](./docs/local-deployment.md)。
 
-## License
+## 授權
 
-Software: MIT (see [`LICENSE`](./LICENSE)). The software license grants **no** rights to third-party songs,
-recordings, lyrics or chord charts; content rights are tracked per asset.
+軟體：MIT（見 [`LICENSE`](./LICENSE)）。軟體授權**不**包含任何第三方歌曲、錄音、歌詞或和弦譜的權利；
+內容權利依每項素材個別記錄。

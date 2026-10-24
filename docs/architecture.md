@@ -1,41 +1,47 @@
-# Architecture
+# 架構
 
-See SPEC §2 for the deployment diagram. This file records the implemented structure.
+部署示意圖見 SPEC §2。本文件記錄目前已實作的結構。
 
-## Packages and dependency direction
+## 套件與相依方向
 
 ```text
-apps/web ──► packages/chart-schema        (Zod contracts, JSON Schema, graphemes)
-         ──► packages/music-theory  (M2) ──► chart-schema types only
-         ──► packages/chordpro      (M3) ──► chart-schema, music-theory
-         ──► packages/guitar-voicings (M5) ──► music-theory
-services/ai-worker (Python) ──► packages/chart-schema/json-schema/*.json  (files, not TS code)
+apps/web ──► packages/chart-schema          （Zod 契約、JSON Schema、grapheme 工具）
+         ──► packages/music-theory  （M2） ──► 只用 chart-schema 的型別
+         ──► packages/chordpro      （M3） ──► chart-schema、music-theory
+         ──► packages/guitar-voicings（M5） ──► music-theory
+services/ai-worker（Python）──► packages/chart-schema/json-schema/*.json（讀檔案，不讀 TS 程式碼）
 ```
 
-Shared packages export TypeScript source (`exports: ./src/index.ts`) and are compiled by Next.js via
-`transpilePackages`; they contain no Next.js, React, database or Python dependencies.
+共用套件直接匯出 TypeScript 原始碼（`exports: ./src/index.ts`），由 Next.js 透過 `transpilePackages` 編譯；
+套件內不含 Next.js、React、資料庫或 Python 相依。
 
-## Domain model
+## 領域模型
+
+- **Work**：歌曲本身（作品）。
+- **Recording**：某一次演出／錄音（錄音室版、Live、翻唱…）。
+- **Arrangement**：可彈奏的和弦編曲（原調、簡化版…），與錄音的確切時間無關。
+- **ChartRevision**：某個 Arrangement 的不可變修訂版本，只能追加。
+- **RecordingSync**：某個 Recording × ChartRevision 專屬的時間對齊；絕對時間只存在這裡。
 
 ```text
 Artist ──credits──► Work ◄──workId── Recording ──sourceReferenceIds──► SourceReference
                      ▲                    ▲
                   workId                  │ ArrangementRecordingCompatibility
-                     │                    │ (provenance, recordedKey, transposeSemitones)
+                     │                    │ （provenance、recordedKey、transposeSemitones）
                 Arrangement ◄─────────────┘
-                     │ publishedRevisionId (must be own, published, rights-permitted)
+                     │ publishedRevisionId（必須屬於自己、狀態為 published、權利允許）
                      ▼
-               ChartRevision (immutable, append-only) ── document: ChartDocument v1
+               ChartRevision（不可變、只追加）── document: ChartDocument v1
                      ▲
                      │ chartRevisionId
-               RecordingSync (per Recording × ChartRevision; absolute timing lives only here)
+               RecordingSync（每個 Recording × ChartRevision 各一份；絕對時間只存在這裡）
 ```
 
-## Web app server layers
+## Web 伺服器分層
 
-- `src/lib/api/envelope.ts` — single `/api/v1` response envelope and request ids.
-- `src/server/catalog/repository.ts` — `CatalogRepository` read port.
-- `src/server/catalog/memory-repository.ts` — validated in-memory adapter (demo mode, tests). Construction
-  validates every contract invariant and fails loudly; reads return copies.
-- `src/server/catalog/demo-catalog.ts` — bundles the synthetic fixtures (no runtime filesystem access).
-- The PostgreSQL adapter (Drizzle) implements the same port in M6.
+- `src/lib/api/envelope.ts` — 所有 `/api/v1` 共用的回應 envelope 與 request id。
+- `src/server/catalog/repository.ts` — `CatalogRepository` 讀取介面（port）。
+- `src/server/catalog/memory-repository.ts` — 經驗證的記憶體實作（demo 模式與測試用）。建立時會驗證
+  所有契約不變條件，有問題就直接報錯；讀取回傳的是複本，呼叫端無法改到儲存的資料。
+- `src/server/catalog/demo-catalog.ts` — 把合成 fixtures 打包進建置產物（執行時不讀檔案系統）。
+- M6 的 PostgreSQL adapter（Drizzle）會實作同一個介面。

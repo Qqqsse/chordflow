@@ -1,50 +1,50 @@
-# Local deployment (Docker Compose)
+# 本機部署（Docker Compose）
 
-chordflow runs privately on the owner's machine first. The base stack is CPU-only and needs no GPU.
+chordflow 先在擁有者自己的機器上私人運作。基本 stack 只用 CPU，不需要 GPU。
 
-## Services
+## 服務
 
-| Service  | Image / build                   | Exposure                             | Notes                                     |
-| -------- | ------------------------------- | ------------------------------------ | ----------------------------------------- |
-| `db`     | `postgres:17-alpine`            | internal network only                | Persistent named volume `db-data`         |
-| `web`    | `apps/web/Dockerfile`           | `127.0.0.1:${WEB_PORT:-3000}` (host) | Next.js standalone, non-root, healthcheck |
-| `worker` | `services/ai-worker/Dockerfile` | none                                 | Profile `worker`; CPU mock only (M7)      |
+| 服務     | 映像／建置                      | 對外暴露                           | 說明                                     |
+| -------- | ------------------------------- | ---------------------------------- | ---------------------------------------- |
+| `db`     | `postgres:17-alpine`            | 只在內部網路                       | 持久化 named volume `db-data`            |
+| `web`    | `apps/web/Dockerfile`           | 主機 `127.0.0.1:${WEB_PORT:-3000}` | Next.js standalone、非 root、healthcheck |
+| `worker` | `services/ai-worker/Dockerfile` | 無                                 | profile `worker`；目前僅 CPU mock（M7）  |
 
-Planned overlays: `deploy/compose.gpu-nvidia.yaml` (M8, separate pinned CUDA image) and a future ROCm profile.
-They are intentionally absent until they can be verified on the owner's hardware.
+規劃中的疊加設定：`deploy/compose.gpu-nvidia.yaml`（M8，獨立且鎖定版本的 CUDA 映像），以及未來的 ROCm profile。
+在能於擁有者硬體上驗證之前，刻意不提供。
 
-## First start
+## 第一次啟動
 
 ```sh
 cp .env.example .env
-# Replace POSTGRES_PASSWORD (and the matching part of DATABASE_URL) and WORKER_TOKEN, e.g.:
+# 替換 POSTGRES_PASSWORD（以及 DATABASE_URL 中對應的部分）與 WORKER_TOKEN，例如：
 openssl rand -base64 32
 docker compose up -d --build
-docker compose ps            # db and web should become "healthy"
+docker compose ps            # db 與 web 應變為 "healthy"
 curl http://127.0.0.1:3000/api/v1/health
 ```
 
-`CHORDFLOW_DATA_MODE=demo` (default) serves only synthetic fixture charts and does not need the database.
-The web container still waits for `db` to be healthy so the stack behaves the same in both modes.
+`CHORDFLOW_DATA_MODE=demo`（預設）只提供合成的示範和弦譜，不需要資料庫。
+web 容器仍會等 `db` healthy 才啟動，讓兩種模式的 stack 行為一致。
 
-Worker configuration check (exits after validating settings; the job loop arrives in M7):
+Worker 設定檢查（驗證設定後即結束；工作迴圈在 M7 實作）：
 
 ```sh
 docker compose --profile worker run --rm worker
 ```
 
-## Host notes
+## 主機說明
 
-- **Linux + Docker Engine** and **Windows 11 + WSL2 + Docker Desktop** are both supported for the CPU stack.
-- NVIDIA GPU support (driver, NVIDIA Container Toolkit / Docker Desktop GPU support) is documented and verified
-  separately in M8. Nothing in the base stack requires it.
+- CPU stack 支援 **Linux + Docker Engine** 與 **Windows 11 + WSL2 + Docker Desktop**。
+- NVIDIA GPU 支援（驅動程式、NVIDIA Container Toolkit／Docker Desktop GPU 支援）在 M8 另行撰寫文件與驗證。
+  基本 stack 完全不需要。
 
-## Data, backups and restore
+## 資料、備份與還原
 
-> **Warning:** `docker compose down -v` **deletes the `db-data` volume and every chart, account and revision in it.**
-> Use plain `docker compose down` to stop the stack. Take a backup before upgrades.
+> **警告：** `docker compose down -v` 會**刪除 `db-data` volume，以及其中所有和弦譜、帳號與修訂版本。**
+> 停止服務請用一般的 `docker compose down`。升級前先備份。
 
-Logical backup (run from the repository root):
+邏輯備份（在 repo 根目錄執行）：
 
 ```sh
 mkdir -p backups
@@ -52,7 +52,7 @@ docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -
   > "backups/chordflow-$(date +%Y%m%d-%H%M%S).dump"
 ```
 
-Restore into an empty database (stop `web` first so nothing writes during the restore):
+還原到空的資料庫（先停止 `web`，避免還原期間有寫入）：
 
 ```sh
 docker compose stop web
@@ -61,30 +61,30 @@ docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB
 docker compose start web
 ```
 
-For real use, encrypt dumps (e.g. `age` or `gpg`) and keep an off-host copy. `backups/` must never be committed.
-Artifact storage (authorized audio, model outputs) gets its own manifest-based backup once it exists (M7+).
+正式使用時，請加密備份檔（例如 `age` 或 `gpg`）並保留一份異地副本。`backups/` 絕不可提交到 git。
+Artifact 儲存（已授權音訊、模型輸出）出現後（M7 以後）會有以 manifest 為基礎的獨立備份方式。
 
-## LAN, Tailscale and public HTTPS
+## 區網、Tailscale 與公開 HTTPS
 
-The web port binds to `127.0.0.1` only. Options for wider access:
+web port 只綁定 `127.0.0.1`。若要擴大存取範圍：
 
-- **Tailscale / LAN:** put an existing reverse proxy on the host in front of `127.0.0.1:3000`.
-- **Public HTTPS:** attach `web` to an existing reverse-proxy Docker network with the overlay:
+- **Tailscale／區網：** 在主機上用既有的反向代理轉發到 `127.0.0.1:3000`。
+- **公開 HTTPS：** 用疊加設定把 `web` 接到既有反向代理的 Docker 網路：
 
   ```sh
-  # .env: PROXY_NETWORK=<proxy network name>, APP_BASE_URL=https://<your hostname>
+  # .env：PROXY_NETWORK=<代理所在的網路名稱>，APP_BASE_URL=https://<你的主機名稱>
   docker compose -f compose.yaml -f deploy/compose.public.yaml up -d
   ```
 
-  The overlay removes the host port binding and joins the external `PROXY_NETWORK`. The proxy owns 80/443 and
-  TLS; `deploy/Caddyfile.example` shows a Caddy site block. chordflow never edits another project's proxy,
-  router, PPPoE or DuckDNS configuration.
+  此疊加設定會移除主機 port 綁定，並加入外部網路 `PROXY_NETWORK`。80／443 與 TLS 由代理負責；
+  `deploy/Caddyfile.example` 提供 Caddy 的 site block 範例。chordflow 絕不修改其他專案的代理、路由器、
+  PPPoE 或 DuckDNS 設定。
 
-### Public exposure checklist (all must be true before enabling)
+### 公開前檢查清單（全部成立才可啟用）
 
-- [ ] Hostname (e.g. your DuckDNS subdomain) resolves to the intended public IP.
-- [ ] You know which existing service owns ports 80/443 and the new site block does not conflict with it.
-- [ ] Router port forwarding / ISP routing / firewall rules are confirmed manually.
-- [ ] TLS certificate issuance verified; `APP_BASE_URL` uses `https://`.
-- [ ] Authentication, secure cookies, CSRF and rate limits are implemented and tested (M6) — **not yet true in M0**.
-- [ ] No database, worker, artifact or debug port is published.
+- [ ] 主機名稱（例如你的 DuckDNS 子網域）解析到預期的公開 IP。
+- [ ] 清楚知道目前由哪個服務佔用 80／443，新的 site block 不會與之衝突。
+- [ ] 已手動確認路由器 port forwarding、ISP 路由與防火牆規則。
+- [ ] 已驗證 TLS 憑證簽發；`APP_BASE_URL` 使用 `https://`。
+- [ ] 身分驗證、secure cookie、CSRF 防護與 rate limit 已實作並測試（M6）——**M0 階段尚未成立**。
+- [ ] 沒有對外公開任何資料庫、worker、artifact 或除錯用 port。
