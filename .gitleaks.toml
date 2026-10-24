@@ -1,0 +1,11 @@
+# gitleaks configuration (loaded automatically from the repository root).
+[extend]
+useDefault = true
+
+# Worker lease tokens (`lease_` + 32 hex) are opaque, short-lived job-lease ids, not credentials;
+# the contract fixtures contain synthetic ones. Only a secret that is exactly this format is
+# ignored — any other value, in any file, is still reported.
+[[allowlists]]
+description = "Synthetic worker lease tokens"
+regexTarget = "secret"
+regexes = ['''^lease_[0-9a-f]{32}$''']
