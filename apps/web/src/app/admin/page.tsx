@@ -18,6 +18,11 @@ export default async function AdminPage() {
       <h1 id="admin-title" className="text-2xl font-bold">
         管理：邀請
       </h1>
+      <p>
+        <a className="underline" href="/admin/import">
+          匯入 ChordPro 和弦譜
+        </a>
+      </p>
       <InvitationAdmin />
     </section>
   );
