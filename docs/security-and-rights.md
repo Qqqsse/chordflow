@@ -49,6 +49,18 @@
 ## 其他
 
 - 錯誤回應不含錯誤訊息細節或 stack；伺服器紀錄只寫 requestId、路徑、錯誤名稱與代碼，不寫請求內容或查詢字串。
-- 安全標頭：`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、
-  `X-Frame-Options: DENY`、`Permissions-Policy`。CSP 尚未設定（待辦）。
+- 安全標頭（`apps/web/src/lib/security-headers.ts`）：`Content-Security-Policy`、`X-Content-Type-Options: nosniff`、
+  `Referrer-Policy: strict-origin-when-cross-origin`、`X-Frame-Options: DENY`、`Permissions-Policy`。
+  CSP 只允許本站來源（`default-src 'self'`、`connect-src 'self'`、`frame-src 'none'`、`object-src 'none'`、
+  `frame-ancestors 'none'`、`base-uri 'self'`、`form-action 'self'`）；開發伺服器另外允許 `unsafe-eval`。
+  Playwright 會檢查標頭，並確認看譜、離線儲存與搜尋頁面沒有 CSP 違規。
+
+### ADR-002（提案）：CSP 允許 inline script／style
+
+Next.js App Router 會把 hydration 資料寫成 inline script，而 SSG 頁面（`/demo/*`）與 service worker 快取的頁面
+無法帶每次請求的 nonce。改用 nonce 會讓所有頁面變成動態渲染，失去靜態示範頁與離線快取。因此 `script-src` 與
+`style-src` 允許 `'unsafe-inline'`。風險的緩解：所有使用者內容（歌詞、和弦、標題）都經 React 轉義，程式中沒有
+`dangerouslySetInnerHTML`，ChordPro 當資料解析而非 HTML；不載入任何第三方來源，且 `connect-src` 限本站，
+即使注入成功也無法把資料送到外部網域（以 `fetch`／XHR 而言）。若日後頁面全部改為動態渲染，可改用 nonce 並移除 `'unsafe-inline'`。
+
 - 秘密只從環境變數注入；`.env` 不進版控；CI 以 gitleaks 掃描歷史。
