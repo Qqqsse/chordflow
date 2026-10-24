@@ -17,6 +17,7 @@
     "vitest.config.ts",
     "src",
     "e2e",
+    "e2e-db",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

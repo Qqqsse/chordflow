@@ -1,8 +1,9 @@
 'use client';
 
+import { useAccount } from '@/components/account/account-context';
 import type { ChartDocument } from '@chordflow/chart-schema';
 import { useEffect, useState } from 'react';
-import { GUEST_NAMESPACE, type OfflineChartMeta } from '@/lib/offline/offline-record';
+import { type OfflineChartMeta } from '@/lib/offline/offline-record';
 import { getOfflineChart, saveOfflineChart } from '@/lib/offline/offline-store';
 
 type Status =
@@ -25,11 +26,14 @@ export function SaveOfflineButton({
   chart: ChartDocument;
   meta: OfflineChartMeta;
 }) {
+  const account = useAccount();
+  const namespace = account.offlineNamespace;
   const [status, setStatus] = useState<Status>({ kind: 'checking' });
 
   useEffect(() => {
+    if (account.status !== 'ready') return undefined;
     let active = true;
-    getOfflineChart(GUEST_NAMESPACE, chart.arrangementId)
+    getOfflineChart(namespace, chart.arrangementId)
       .then((existing) => {
         if (!active) return;
         if (existing?.ok) {
@@ -48,10 +52,10 @@ export function SaveOfflineButton({
     return () => {
       active = false;
     };
-  }, [chart.arrangementId, chart.chartRevisionId]);
+  }, [chart.arrangementId, chart.chartRevisionId, namespace, account.status]);
 
   const save = () => {
-    saveOfflineChart(GUEST_NAMESPACE, chart, meta)
+    saveOfflineChart(namespace, chart, meta)
       .then((record) => {
         setStatus({ kind: 'saved', savedAt: record.savedAt, current: true });
       })

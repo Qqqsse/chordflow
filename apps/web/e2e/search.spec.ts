@@ -22,8 +22,12 @@ test.describe('catalog search', () => {
     await expect(hit.locator('[data-recording-id="rec_demo_003"]')).toContainText('建議（未驗證）');
   });
 
-  test('a supported source URL is matched without fetching; others are refused', async ({ page }) => {
-    await page.goto(`/search?q=${encodeURIComponent('https://www.youtube.com/watch?v=DEMO0000001')}`);
+  test('a supported source URL is matched without fetching; others are refused', async ({
+    page,
+  }) => {
+    await page.goto(
+      `/search?q=${encodeURIComponent('https://www.youtube.com/watch?v=DEMO0000001')}`,
+    );
     await expect(page.locator('[data-work-id="work_demo_001"]')).toBeVisible();
     await page.goto(`/search?q=${encodeURIComponent('https://evil.example/song')}`);
     await expect(page.getByRole('alert').filter({ hasText: '不支援這個網址' })).toBeVisible();

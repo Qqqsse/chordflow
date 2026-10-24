@@ -11,12 +11,16 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/server/db/cli.ts migrate",
-    "db:seed-demo": "tsx src/server/db/cli.ts seed-demo"
+    "db:seed-demo": "tsx src/server/db/cli.ts seed-demo",
+    "admin:create": "tsx src/server/db/cli.ts admin-create",
+    "db:reset-test": "tsx src/server/db/cli.ts reset-test"
   },
   "dependencies": {
     "@chordflow/chart-schema": "workspace:*",
     "@chordflow/guitar-voicings": "workspace:*",
     "@chordflow/music-theory": "workspace:*",
+    "@node-rs/argon2": "2.2.2",
+    "better-auth": "1.7.12",
     "drizzle-orm": "0.45.4",
     "next": "16.4.3",
     "postgres": "3.4.9",

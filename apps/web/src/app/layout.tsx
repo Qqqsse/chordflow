@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { AccountProvider } from '@/components/account/account-context';
+import { AccountMenu } from '@/components/account/account-menu';
 import { ServiceWorkerRegistrar } from '@/components/offline/service-worker-registrar';
 import './globals.css';
 
@@ -25,25 +27,28 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           跳到主要內容
         </a>
-        <header className="border-b border-border">
-          <nav
-            aria-label="主選單"
-            className="mx-auto flex max-w-4xl items-center gap-6 px-4 py-3 text-sm"
-          >
-            <Link href="/" className="text-base font-bold tracking-tight">
-              chordflow
-            </Link>
-            <Link href="/demo" className="text-ink-muted hover:text-ink">
-              示範譜
-            </Link>
-            <a href="/offline" className="text-ink-muted hover:text-ink">
-              離線譜庫
-            </a>
-          </nav>
-        </header>
-        <main id="main" className="mx-auto max-w-4xl px-4 py-8">
-          {children}
-        </main>
+        <AccountProvider>
+          <header className="border-b border-border">
+            <nav
+              aria-label="主選單"
+              className="mx-auto flex max-w-4xl items-center gap-6 px-4 py-3 text-sm"
+            >
+              <Link href="/" className="text-base font-bold tracking-tight">
+                chordflow
+              </Link>
+              <Link href="/demo" className="text-ink-muted hover:text-ink">
+                示範譜
+              </Link>
+              <a href="/offline" className="text-ink-muted hover:text-ink">
+                離線譜庫
+              </a>
+              <AccountMenu />
+            </nav>
+          </header>
+          <main id="main" className="mx-auto max-w-4xl px-4 py-8">
+            {children}
+          </main>
+        </AccountProvider>
         <ServiceWorkerRegistrar />
       </body>
     </html>

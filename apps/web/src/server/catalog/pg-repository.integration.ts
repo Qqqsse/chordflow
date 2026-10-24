@@ -1,43 +1,22 @@
 import { sql } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import snapshot from '../../../../../fixtures/contracts/catalog-demo.json';
-import { openDatabase, type DatabaseHandle } from '../db/client';
-import { runMigrations } from '../db/migrate';
+import { beforeAll, expect, it } from 'vitest';
+import type { DatabaseHandle } from '../db/client';
 import * as t from '../db/schema';
-import { DEMO_FIXTURE_FILES } from './demo-catalog';
 import { createPgCatalog } from './pg-repository';
 import type { CatalogRepository } from './repository';
 import { describeCatalogRepositoryContract } from './repository-contract';
-import { seedCatalog } from './seed';
 
-/**
- * PostgreSQL integration tests. Run only when TEST_DATABASE_URL points at a
- * disposable database: the public schema is dropped and recreated.
- */
-const url = process.env.TEST_DATABASE_URL;
-
-describe.skipIf(!url)('PostgreSQL catalog', () => {
+/** Catalog integration suite; registered by `../db.integration.test.ts` against a seeded database. */
+export function catalogIntegrationSuite(getHandle: () => DatabaseHandle): void {
   let handle: DatabaseHandle;
   let repo: CatalogRepository;
 
-  beforeAll(async () => {
-    handle = openDatabase(url ?? '', { max: 4 });
-    await handle.db.execute(
-      sql.raw(
-        'drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;',
-      ),
-    );
-    await runMigrations(handle.db);
-    await seedCatalog(handle.db, snapshot, DEMO_FIXTURE_FILES);
+  beforeAll(() => {
+    handle = getHandle();
     repo = createPgCatalog(handle.db);
-  }, 60_000);
-
-  afterAll(async () => {
-    await handle.close();
   });
 
   describeCatalogRepositoryContract('postgres', () => repo);
-
   const expectDbError = async (work: Promise<unknown>, code: string) => {
     await expect(work).rejects.toSatisfy((error: unknown) => {
       const text = String((error as { cause?: unknown }).cause ?? error);
@@ -139,4 +118,4 @@ describe.skipIf(!url)('PostgreSQL catalog', () => {
       'source_platform_id',
     );
   });
-});
+}

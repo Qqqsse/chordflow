@@ -15,6 +15,13 @@
       "when": 1792841605280,
       "tag": "0001_catalog_invariants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792842840641,
+      "tag": "0002_auth",
+      "breakpoints": true
     }
   ]
 }

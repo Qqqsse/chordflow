@@ -37,6 +37,18 @@ docker compose --profile tools run --rm migrate pnpm db:seed-demo  # （選用�
 docker compose up -d web
 ```
 
+第一位管理員只能用本機 CLI 建立一次（之後的管理員與會員都透過邀請）。密碼不要寫進指令列歷史：
+
+```sh
+read -r -p 'Email: ' ADMIN_EMAIL; read -r -p '名稱: ' ADMIN_NAME; read -r -s -p '密碼（≥12 字元）: ' ADMIN_PASSWORD; echo
+docker compose --profile tools run --rm \
+  -e ADMIN_EMAIL="$ADMIN_EMAIL" -e ADMIN_NAME="$ADMIN_NAME" -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+  migrate pnpm admin:create
+unset ADMIN_PASSWORD
+```
+
+登入後到 `/admin` 建立邀請連結傳給朋友。連結 7 天內有效、只能使用一次，token 放在網址 `#` 後面，不會進到伺服器紀錄。
+
 migration 是明確的操作步驟，web 啟動時**不會**自動執行。`migrate` 服務使用 web 映像的 build stage
 （含開發工具），只在 `tools` profile 下存在。開發機上也可以直接執行
 `DATABASE_URL=... pnpm --filter @chordflow/web db:migrate`。
@@ -100,5 +112,5 @@ web port 只綁定 `127.0.0.1`。若要擴大存取範圍：
 - [ ] 清楚知道目前由哪個服務佔用 80／443，新的 site block 不會與之衝突。
 - [ ] 已手動確認路由器 port forwarding、ISP 路由與防火牆規則。
 - [ ] 已驗證 TLS 憑證簽發；`APP_BASE_URL` 使用 `https://`。
-- [ ] 身分驗證、secure cookie、CSRF 防護與 rate limit 已實作並測試（M6）——**M0 階段尚未成立**。
+- [ ] `APP_BASE_URL` 為 https（啟用 Secure cookie）、`BETTER_AUTH_SECRET` 已設定、反向代理會覆寫 `X-Forwarded-For` 才設 `TRUST_PROXY=true`。
 - [ ] 沒有對外公開任何資料庫、worker、artifact 或除錯用 port。

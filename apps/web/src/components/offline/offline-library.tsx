@@ -1,11 +1,8 @@
 'use client';
 
+import { useAccount } from '@/components/account/account-context';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  GUEST_NAMESPACE,
-  type OfflineInvalidReason,
-  type ParsedOfflineRecord,
-} from '@/lib/offline/offline-record';
+import { type OfflineInvalidReason, type ParsedOfflineRecord } from '@/lib/offline/offline-record';
 import {
   clearOfflineCharts,
   listOfflineCharts,
@@ -24,18 +21,20 @@ type State =
   { kind: 'loading' } | { kind: 'ready'; records: ParsedOfflineRecord[] } | { kind: 'unavailable' };
 
 export function OfflineLibrary() {
+  const { offlineNamespace: namespace, status } = useAccount();
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [confirmClear, setConfirmClear] = useState(false);
 
   const refresh = useCallback(() => {
-    listOfflineCharts(GUEST_NAMESPACE)
+    if (status !== 'ready') return;
+    listOfflineCharts(namespace)
       .then((records) => {
         setState({ kind: 'ready', records });
       })
       .catch(() => {
         setState({ kind: 'unavailable' });
       });
-  }, []);
+  }, [namespace, status]);
 
   useEffect(() => {
     refresh();
@@ -70,7 +69,7 @@ export function OfflineLibrary() {
               className="min-h-11 rounded-md border border-border px-3 font-medium text-accent"
               onClick={() => {
                 setConfirmClear(false);
-                clearOfflineCharts(GUEST_NAMESPACE).then(refresh, refresh);
+                clearOfflineCharts(namespace).then(refresh, refresh);
               }}
             >
               確定清除全部？
