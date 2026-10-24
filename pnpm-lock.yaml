@@ -83,6 +83,15 @@ importers:
         specifier: 4.23.15
         version: 4.23.15
 
+  packages/chordpro:
+    dependencies:
+      '@chordflow/chart-schema':
+        specifier: workspace:*
+        version: link:../chart-schema
+      '@chordflow/music-theory':
+        specifier: workspace:*
+        version: link:../music-theory
+
   packages/music-theory:
     devDependencies:
       fast-check:

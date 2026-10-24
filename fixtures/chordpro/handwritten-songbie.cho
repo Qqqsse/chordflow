@@ -1,0 +1,21 @@
+# Hand-written ChordPro in common real-world style (public-domain song).
+# 詞：李叔同（1880–1942）；曲：John P. Ordway（1851）；和弦：chordflow 自編
+{t: 送別}
+{st: 李叔同 詞}
+{artist: 李叔同}
+{key: C}
+{time: 4/4}
+{tempo: 66}
+{c: 輕柔地}
+
+[C] [F] [C] [G7]
+
+{sov}
+[C]長亭外　[F]古道[C]邊　芳草碧連[G]天
+[C]晚風拂柳笛[F]聲[C]殘　[G7]夕陽山外[C]山
+{eov}
+
+{start_of_verse: 第二段}
+[F]天之涯　[G]地之[C]角　[Am]知交半零[G]落
+[C]一壺濁酒盡[F]餘[C]歡　[G7]今宵別夢[C]寒
+{end_of_verse}
