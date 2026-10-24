@@ -13,7 +13,7 @@
 | M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
 | M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
 | M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（使用者看譜偏好與收藏 API 待做）  | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
-| M7 生成任務與 CPU mock worker   | 下一個                                     |                                                                         |
+| M7 生成任務與 CPU mock worker   | **完成**                                   | 見 `docs/generation-jobs.md`                                            |
 
 ## 目前已有的內容
 
@@ -38,8 +38,12 @@
   `/api/v1` 讀取與寫入路由、OpenAPI、伺服器端存取規則、better-auth 邀請制帳號（Argon2id）、
   ChordPro 匯入與交易式發布、`/search`、`/charts/[id]`、`/login`、`/invite`、`/admin`、`/admin/import`。
 - **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
-- **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
-  驗證 fixtures。尚無工作迴圈（M7）。
+- **生成任務（M7）：** migration `0003`（任務、轉換紀錄、artifact manifest、worker 在線狀態；觸發器照抄 TS 狀態機）、
+  `src/server/jobs/*` 協調器（權利檢查、冪等 key、相同請求去重、配額、租約、退避重試、交易式完成、審查）、
+  `/api/v1/generation-jobs*` 與 `/api/v1/worker/jobs/*`（`WORKER_TOKEN` bearer，可輪替）、
+  `/admin/generate`（送出與即時狀態）與 `/admin/jobs/[id]`（草稿審查：標記、建議、修改後發布、退回）。
+- **services/ai-worker：** Pydantic 契約（與 OpenAPI／fixtures 比對）、stdlib HTTP client、工作迴圈
+  （`run`／`--once`／`--drain`）、八階段 CPU mock 流程、測試用假審查器、本機 artifact store。只依賴 pydantic。
 - **Docker：** `compose.yaml`（postgres:17-alpine 含 volume、web 只綁 loopback、profile `worker`），
   `deploy/compose.public.yaml`（接入既有代理網路），web（standalone、非 root、healthcheck）與 worker 的
   Dockerfile。`compose.gpu-nvidia.yaml` 刻意延到 M8。
@@ -87,29 +91,41 @@
 | 8e2b4fd | test(e2e): database-mode account flows                                     |
 | eaaadb3 | feat(revisions): draft revisions, transactional publish and write API      |
 | 3dea180 | feat(admin): ChordPro import, preview and publish UI                       |
+| 4f7ddb3 | docs(handoff): record M6 completion; fix CI postgres health check          |
+| 84515e4 | feat(contracts): generation job and worker API contract v1                 |
+| 4e74005 | feat(jobs): durable generation jobs, leases and worker API                 |
+| 8de4c3f | feat(worker): Python worker client, mock processor chain and fake reviewer |
+| 703b4e5 | fix(auth): allow normal browsing under the auth rate limit                 |
+| 0909687 | feat(admin): generate demo chart, live job status and draft review UI      |
+| ce02303 | ci(security): allowlist synthetic worker lease tokens for gitleaks         |
 
 ## 驗證結果（本 session，本機）
 
-| 指令                                                                              | 結果                                                                                                                   |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install --frozen-lockfile`                                                  | 通過                                                                                                                   |
-| `pnpm format:check`                                                               | 通過                                                                                                                   |
-| `pnpm lint`                                                                       | 通過，0 個警告                                                                                                         |
-| `pnpm typecheck`                                                                  | 通過                                                                                                                   |
-| `TEST_DATABASE_URL=… pnpm test`                                                   | 28 個檔案、637 個測試通過（含 36 個 PostgreSQL 整合測試；M6 後）                                                       |
-| `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                      |
-| `TEST_DATABASE_URL=… CI=1 pnpm exec playwright test`                              | 43 個通過（demo 36 + 資料庫模式 7；M6 後）                                                                             |
-| `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 42 個通過                                                                                                              |
-| `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                  |
-| `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                   |
-| gitleaks v8.28.0 掃描 git 歷史                                                    | 無洩漏                                                                                                                 |
-| Docker 映像建置 + `docker compose up --wait`                                      | 通過：db 與 web healthy、`/api/v1/health` 200、`/demo` 正常；DB volume 經 `down`／`up` 後資料仍在；worker `check` 通過 |
+| 指令                                                                              | 結果                                                                                                                                          |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile`                                                  | 通過                                                                                                                                          |
+| `pnpm format:check`                                                               | 通過                                                                                                                                          |
+| `pnpm lint`                                                                       | 通過，0 個警告                                                                                                                                |
+| `pnpm typecheck`                                                                  | 通過                                                                                                                                          |
+| `TEST_DATABASE_URL=… pnpm test`                                                   | 34 個檔案、704 個測試通過（含 48 個 PostgreSQL 整合測試；M7 後）                                                                              |
+| `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                                             |
+| `TEST_DATABASE_URL=… CI=1 pnpm exec playwright test`                              | 45 個通過（demo 36 + 資料庫模式 9，其中一個啟動真正的 Python worker；M7 後）                                                                  |
+| `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 95 個通過（M7 後）                                                                                                                            |
+| `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                                         |
+| `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                                          |
+| gitleaks v8.28.0 掃描 git 歷史（含 `.gitleaks.toml`）                             | 44 個 commit 無洩漏；另以刻意放入的假金鑰確認 allowlist 不會放過其他秘密                                                                      |
+| Docker 映像建置 + `docker compose up --wait`                                      | 通過：db 與 web healthy、`/api/v1/health` 200、`/demo` 正常；DB volume 經 `down`／`up` 後資料仍在；worker `check` 通過                        |
+| M7 Docker smoke（獨立 compose project、資料庫模式、migrate、admin、worker 容器）  | 通過：送出 → worker 容器處理 → `needs_review`（4 個 artifact、信心值 null）→ 發布；停掉 worker 時顯示 `waiting_for_worker`，重啟後 5 秒內完成 |
 
 雲端沙盒中的 Docker 注意事項：daemon 預設沒有啟動（手動執行 `dockerd`）；建置時改用信任出口代理 CA 的
 沙盒專用基底映像（透過 `NODE_IMAGE`／`PYTHON_IMAGE` build arg 傳入——repo 內的 Dockerfile 未修改）；
 Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉取。CI 不需要這些變通即可建置映像。
 
 ## CI
+
+- Run 18–20（`4e74005`、`8de4c3f`、`0909687`）：web、worker、compose 三個 job 通過，**security job 失敗**——
+  gitleaks 的 generic-api-key 規則把 worker fixtures 中合成的 `lease_<32 hex>` 判成金鑰（10 筆，全是誤判）。
+  `ce02303` 加入只針對租約 token 格式的 allowlist；推送後需確認 CI 恢復綠燈。
 
 - Run 14（`70fd330`）因 `apps/web/e2e/search.spec.ts` 未格式化而在 `format:check` 失敗；下一個 commit 已修正，Run 15 綠燈。
   教訓：提交前一定跑 `pnpm format:check`，且不要用 `pnpm -s` 檢查 typecheck（會吞掉子專案錯誤輸出；請看 exit code）。
@@ -127,6 +143,12 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 - 同一份譜中 section／line／chord 的 id 共用一個命名空間（簡化 sync 與覆寫的引用）。
 - 和弦名稱在音樂上是否合法**不**由 schema 判斷；由 M2 的 parser 負責（schema 只擋掉不可能的文字）。
 - 任務狀態 `needs_review → cancelled` 代表草稿被退回；草稿修訂版本本身保留為 `rejected`。
+- AI 草稿修訂直接以 `needs_review` 狀態建立（`createRevision` 的 `initialStatus`）；人工修訂仍從 `draft` 開始。
+- 審查時可發布草稿本身或由它衍生（`parentRevisionId` 鏈）的修訂；衍生修訂發布後，AI 草稿保留為 `needs_review` 歷史。
+- Python 標準庫沒有 UAX #29 字形切分；worker 只在整行每個字形群集都是單一碼位時才放行中和弦，
+  其他情況只放行首並標記 `unaligned`（伺服器端仍會以 `Intl.Segmenter` 完整驗證）。
+- better-auth 一般端點限速由每分鐘 20 次調為 300 次（每次瀏覽都會讀 session，原設定會讓使用者看起來被登出）；
+  密碼登入維持每分鐘 10 次。
 - LICENSE：MIT，「Copyright (c) 2026 chordflow contributors」——擁有者可能想改成自己的名字。
 - 文件以繁體中文為主（擁有者要求）；`SPEC.md` 與 `docs/claude-code-kickoff.md` 為擁有者提供的原始文件，
   保持原樣。程式碼註解、識別字、JSON key 與 API 路徑維持英文。
@@ -137,8 +159,11 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **M7 生成任務與 CPU mock worker**：job 資料表／lease／狀態機（`jobs.ts` 已定義）、`POST /generation-jobs`（冪等）、
-   worker API（claim／heartbeat／complete／fail，獨立 token）、Python Pydantic client 與 mock processor、
-   artifact manifest、草稿審查 UI。
-2. M6 補完：使用者看譜偏好（UserChartPreference）與收藏 API、修訂退回（reject）流程、CSP 標頭。
-3. CI：快取 Playwright 瀏覽器；`docker compose build` 已涵蓋，可再加 compose 啟動 smoke test。
+1. **確認 CI 綠燈**（`ce02303` 之後的 run）。
+2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 主機與授權音訊；雲端 session 不做 CUDA 安裝或模型下載。
+   可先在雲端準備：授權音訊上傳的 SourceProvider 介面、`compose.gpu-nvidia.yaml` 草稿（不驗證就不合併）、
+   原曲 vs 分離音軌的評估 harness（用合成訊號）。
+3. M6／M7 補完：使用者看譜偏好與收藏 API、CSP 標頭、使用者端「重試」按鈕、worker 狀態頁、
+   web 端 artifact 位元組驗證（共用 volume 時）、多程序部署的限速共用儲存。
+4. M9（可在雲端進行的部分）：和弦位置／段落編輯器、審查差異比對、權利稽核紀錄。
+5. CI：快取 Playwright 瀏覽器（目前約佔 web job 的大部分時間）。

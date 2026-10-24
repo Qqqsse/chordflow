@@ -8,7 +8,7 @@ chordflow 先在擁有者自己的機器上私人運作。基本 stack 只用 CP
 | -------- | ------------------------------- | ---------------------------------- | ---------------------------------------- |
 | `db`     | `postgres:17-alpine`            | 只在內部網路                       | 持久化 named volume `db-data`            |
 | `web`    | `apps/web/Dockerfile`           | 主機 `127.0.0.1:${WEB_PORT:-3000}` | Next.js standalone、非 root、healthcheck |
-| `worker` | `services/ai-worker/Dockerfile` | 無                                 | profile `worker`；目前僅 CPU mock（M7）  |
+| `worker` | `services/ai-worker/Dockerfile` | 無                                 | profile `worker`；CPU mock 處理流程      |
 
 規劃中的疊加設定：`deploy/compose.gpu-nvidia.yaml`（M8，獨立且鎖定版本的 CUDA 映像），以及未來的 ROCm profile。
 在能於擁有者硬體上驗證之前，刻意不提供。
@@ -53,11 +53,19 @@ migration 是明確的操作步驟，web 啟動時**不會**自動執行。`migr
 （含開發工具），只在 `tools` profile 下存在。開發機上也可以直接執行
 `DATABASE_URL=... pnpm --filter @chordflow/web db:migrate`。
 
-Worker 設定檢查（驗證設定後即結束；工作迴圈在 M7 實作）：
+### CPU mock worker（選用）
+
+worker 只在資料庫模式有意義。`.env` 中的 `WORKER_TOKEN` 由 web（驗證）與 worker（送出）共用，至少 32 字元：
 
 ```sh
-docker compose --profile worker run --rm worker
+openssl rand -base64 48            # 填入 .env 的 WORKER_TOKEN
+docker compose up -d web           # web 需讀到新的 WORKER_TOKEN
+docker compose --profile worker run --rm worker chordflow-worker check   # 只驗證設定
+docker compose --profile worker up -d worker
 ```
+
+之後在 `/admin/generate` 送出歌詞即可看到任務被處理。worker 產出的 artifacts 存在 named volume
+`worker-artifacts`。沒有 worker 時任務會安全地排隊，畫面顯示「等待 worker」。詳見 `docs/generation-jobs.md`。
 
 ## 主機說明
 

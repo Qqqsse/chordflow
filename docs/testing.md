@@ -35,6 +35,10 @@ python -m venv .venv
 .venv/bin/python -m pytest
 ```
 
+資料庫模式的 Playwright（`e2e-db/generation.spec.ts`）會啟動真正的 Python worker：
+預設使用 `services/ai-worker/.venv/bin/python`，沒有時使用 `python3`（需已安裝 pydantic），
+也可用 `WORKER_PYTHON` 指定。CI 在 web job 中以 `pip install ./services/ai-worker` 安裝。
+
 ## PostgreSQL 整合測試
 
 `apps/web/src/server/catalog/pg-repository.integration.test.ts` 只在設定 `TEST_DATABASE_URL` 時執行，
@@ -54,3 +58,6 @@ TEST_DATABASE_URL=postgres://chordflow:testpw@127.0.0.1:55432/chordflow_test pnp
 `services/ai-worker/tests/test_contract_fixtures.py` 以 `packages/chart-schema/json-schema/` 中產生的
 JSON Schema 驗證與 TS 測試相同的 fixtures：合法 fixtures 必須通過；標記為 `structural` 的無效案例必須失敗；
 標記為 `semantic` 的無效案例必須通過 JSON Schema（它們只會被語意驗證器擋下）。
+
+worker 契約另有 `fixtures/contracts/worker/`：Pydantic 與 Zod 驗證同一批 fixtures，
+`model` 層的無效案例（跨欄位規則）只會被兩邊的模型擋下。見 `docs/generation-jobs.md`。

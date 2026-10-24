@@ -60,7 +60,27 @@
 - **修訂不可變**：既有修訂永遠不會被改寫；編輯就是新增修訂。發布新版本後，舊的已發布修訂仍保留為歷史。
 - 請求大小上限：匯入 256 KB、修訂 512 KB、其他 4–32 KB；超過回 `413 PAYLOAD_TOO_LARGE`。
 
-尚未實作：生成任務與 worker 路由（M7）、使用者看譜偏好與收藏的 API。
+### 生成任務（只在資料庫模式；詳見 `docs/generation-jobs.md`）
+
+| 路由                                | 身分               | 說明                                                                         |
+| ----------------------------------- | ------------------ | ---------------------------------------------------------------------------- |
+| `POST /generation-jobs`             | 會員（配額、限速） | 權利檢查後排隊；同 key 或相同內容的未完成任務回 200 `reused: true`，否則 201 |
+| `GET /generation-jobs`              | 會員               | 自己最近的任務（管理員看全部）                                               |
+| `GET /generation-jobs/{id}`         | 擁有者或管理員     | 使用者狀態、有限的進度、型別化錯誤、草稿 id；管理員另有內部狀態與轉換紀錄    |
+| `GET /generation-jobs/{id}/result`  | 擁有者或管理員     | 草稿修訂、品質報告、處理器與 artifact manifest；尚未完成回 404               |
+| `POST /generation-jobs/{id}/cancel` | 擁有者或管理員     | 取消尚未產生草稿的任務；可重複呼叫                                           |
+| `POST /generation-jobs/{id}/review` | 管理員             | `publish`（草稿或衍生修訂）或 `reject`                                       |
+
+### Worker API（`Authorization: Bearer <WORKER_TOKEN>`；不使用 cookie）
+
+| 路由                               | 說明                                                              |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `POST /worker/jobs/claim`          | 回收過期租約後，以交易租用下一個任務；佇列空時 `{ job: null }`    |
+| `POST /worker/jobs/{id}/heartbeat` | 延長租約並回報階段與進度；租約不屬於此 worker 時 `409 LEASE_LOST` |
+| `POST /worker/jobs/{id}/complete`  | 驗證草稿與 manifest 後建立待審查修訂；重送相同內容回傳相同結果    |
+| `POST /worker/jobs/{id}/fail`      | 型別化錯誤；可重試錯誤以指數退避重新排隊                          |
+
+尚未實作：使用者看譜偏好與收藏的 API。
 
 ## 搜尋
 

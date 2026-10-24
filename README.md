@@ -10,18 +10,18 @@
 
 ## 目錄結構
 
-| 路徑                       | 用途                                                  |
-| -------------------------- | ----------------------------------------------------- |
-| `apps/web`                 | Next.js App Router 應用（UI 與 `/api/v1` BFF）        |
-| `packages/chart-schema`    | Zod schema、TS 型別、JSON Schema 匯出（M1）           |
-| `packages/music-theory`    | 純函式和弦解析／移調／移調夾／級數（M2）              |
-| `packages/chordpro`        | 有界限的 ChordPro 匯入／匯出（M3）                    |
-| `packages/guitar-voicings` | 經驗證的吉他指法與 SVG 幾何（M5）                     |
-| `packages/ui`              | 選用的共用呈現元件                                    |
-| `services/ai-worker`       | Python CPU 契約執行器；GPU adapter 之後再加（M7／M8） |
-| `fixtures/`                | 合成（虛構）的和弦譜、API 契約與 AI 時間軸測試資料    |
-| `deploy/`                  | 選用的 Compose 疊加設定（GPU、公開反向代理）          |
-| `docs/`                    | 架構、契約、部署、測試、Agent 交接文件                |
+| 路徑                       | 用途                                                            |
+| -------------------------- | --------------------------------------------------------------- |
+| `apps/web`                 | Next.js App Router 應用（UI 與 `/api/v1` BFF）                  |
+| `packages/chart-schema`    | Zod schema、TS 型別、JSON Schema 匯出（M1）                     |
+| `packages/music-theory`    | 純函式和弦解析／移調／移調夾／級數（M2）                        |
+| `packages/chordpro`        | 有界限的 ChordPro 匯入／匯出（M3）                              |
+| `packages/guitar-voicings` | 經驗證的吉他指法與 SVG 幾何（M5）                               |
+| `packages/ui`              | 選用的共用呈現元件                                              |
+| `services/ai-worker`       | Python worker：CPU mock 處理流程與 worker API client；GPU 在 M8 |
+| `fixtures/`                | 合成（虛構）的和弦譜、API 契約與 AI 時間軸測試資料              |
+| `deploy/`                  | 選用的 Compose 疊加設定（GPU、公開反向代理）                    |
+| `docs/`                    | 架構、契約、部署、測試、Agent 交接文件                          |
 
 ## 快速開始（開發）
 

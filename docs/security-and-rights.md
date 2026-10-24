@@ -11,7 +11,8 @@
 - **Session**：存在資料庫，HTTP-only、SameSite=Lax cookie，`APP_BASE_URL` 為 https 時加上 Secure；14 天到期。
 - **CSRF**：better-auth 端點檢查 Origin 是否為信任來源；我們自己的寫入 API（例如建立／接受邀請）
   要求 `Origin` 等於 `APP_BASE_URL`，否則回 `403 CSRF_REJECTED`。
-- **速率限制**：better-auth 內建（每分鐘 20 次；密碼登入每分鐘 10 次）；接受邀請每 15 分鐘 10 次。
+- **速率限制**：better-auth 內建（一般端點每分鐘 300 次，因為每次瀏覽頁面都會讀取 session；密碼登入每分鐘 10 次）；
+  接受邀請每 15 分鐘 10 次；提交生成任務每分鐘 20 次。
   只有在 `TRUST_PROXY=true`（反向代理會覆寫 `X-Forwarded-For`）時才依 client IP 計算。單一程序記憶體計數，
   多程序部署需改用共用儲存。
 - **授權全在伺服器端**：見 `docs/api-contract.md` 的存取規則表。看不到與不存在都回 404。
@@ -27,6 +28,16 @@
   其他主機、http、內部 IP（含 `169.254.169.254`）、帶帳密或非預設 port 的網址一律拒絕。
 - 公開網址不等於可以分析音訊的授權：音訊分析需要 `analysis_permitted` 與 `audio_analysis` 權限。
 - 不提供 `yt-dlp` 或任何未授權的下載路徑。
+- 生成任務在排隊前就檢查權利：參考歌詞必須宣告可用的歌詞權利；來源分析必須有明確的分析授權。
+  CPU mock worker 不會取得任何音訊。
+
+## Worker 憑證
+
+- worker API 只接受 `Authorization: Bearer <WORKER_TOKEN>`（至少 32 字元，以摘要做常數時間比較），
+  不接受使用者 session；未設定時回 503。輪替：把舊 token 放進 `WORKER_TOKEN_PREVIOUS`、重啟 web、
+  把 worker 換成新 token，最後清空 `WORKER_TOKEN_PREVIOUS`。
+- 每個 worker 回報都必須帶對 worker id 與租約 token；worker 不需要對外 port，只需連到 web。
+- worker 回報的錯誤訊息會先移除網址與絕對路徑再存檔與顯示；worker 紀錄不含 token、歌詞或網址。
 
 ## 內容權利
 
