@@ -20,6 +20,8 @@ export interface CatalogRepository {
   getRecording(id: string): Promise<Recording | null>;
   listRecordingsForWork(workId: string): Promise<Recording[]>;
   getArrangement(id: string): Promise<Arrangement | null>;
+  /** Owner of a user-created arrangement (null for catalog/editorial content). */
+  getArrangementOwnerId(id: string): Promise<string | null>;
   listArrangementsForWork(workId: string): Promise<Arrangement[]>;
   listCompatibilities(filter: {
     arrangementId?: string;
@@ -32,6 +34,11 @@ export interface CatalogRepository {
   getPublishedRevision(arrangementId: string): Promise<ChartRevision | null>;
   getRecordingSync(recordingId: string, chartRevisionId: string): Promise<RecordingSync | null>;
   getSource(id: string): Promise<SourceReference | null>;
+  findSourceByPlatformId(
+    platform: string,
+    platformSourceId: string,
+  ): Promise<SourceReference | null>;
+  listRecordingsForSource(sourceId: string): Promise<Recording[]>;
   /**
    * Works whose normalized title, aliases or artist names contain the
    * normalized query (adapters may add fuzzy matches after exact ones).

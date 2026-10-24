@@ -53,6 +53,19 @@ function toRevision(row: RevisionRow): ChartRevision {
   };
 }
 
+function toSource(row: typeof t.sourceReferences.$inferSelect): SourceReference {
+  return {
+    id: row.id,
+    platform: row.platform as SourceReference['platform'],
+    platformSourceId: row.platformSourceId,
+    url: row.url,
+    metadata: row.metadata,
+    permission: row.permission as SourceReference['permission'],
+    permittedUses: row.permittedUses as SourceReference['permittedUses'],
+    acquiredAt: iso(row.acquiredAt),
+  };
+}
+
 export function createPgCatalog(db: Database): CatalogRepository {
   const loadWork = async (id: string): Promise<Work | null> => {
     const [row] = await db.select().from(t.works).where(eq(t.works.id, id));
@@ -137,6 +150,13 @@ export function createPgCatalog(db: Database): CatalogRepository {
       const [row] = await db.select().from(t.arrangements).where(eq(t.arrangements.id, id));
       return row ? toArrangement(row) : null;
     },
+    async getArrangementOwnerId(id) {
+      const [row] = await db
+        .select({ owner: t.arrangements.ownerUserId })
+        .from(t.arrangements)
+        .where(eq(t.arrangements.id, id));
+      return row?.owner ?? null;
+    },
     async listArrangementsForWork(workId) {
       const rows = await db
         .select()
@@ -217,19 +237,30 @@ export function createPgCatalog(db: Database): CatalogRepository {
         );
       return row ? row.document : null;
     },
-    async getSource(id): Promise<SourceReference | null> {
+    async getSource(id) {
       const [row] = await db.select().from(t.sourceReferences).where(eq(t.sourceReferences.id, id));
-      if (!row) return null;
-      return {
-        id: row.id,
-        platform: row.platform as SourceReference['platform'],
-        platformSourceId: row.platformSourceId,
-        url: row.url,
-        metadata: row.metadata,
-        permission: row.permission as SourceReference['permission'],
-        permittedUses: row.permittedUses as SourceReference['permittedUses'],
-        acquiredAt: iso(row.acquiredAt),
-      };
+      return row ? toSource(row) : null;
+    },
+    async findSourceByPlatformId(platform, platformSourceId) {
+      const [row] = await db
+        .select()
+        .from(t.sourceReferences)
+        .where(
+          and(
+            eq(t.sourceReferences.platform, platform),
+            eq(t.sourceReferences.platformSourceId, platformSourceId),
+          ),
+        );
+      return row ? toSource(row) : null;
+    },
+    async listRecordingsForSource(sourceId) {
+      const rows = await db
+        .select({ recording: t.recordings })
+        .from(t.recordingSources)
+        .innerJoin(t.recordings, eq(t.recordings.id, t.recordingSources.recordingId))
+        .where(eq(t.recordingSources.sourceId, sourceId))
+        .orderBy(asc(t.recordings.id));
+      return Promise.all(rows.map((r) => loadRecording(r.recording)));
     },
     async searchWorks(query, page) {
       if (query === '') return { works: [], hasMore: false };

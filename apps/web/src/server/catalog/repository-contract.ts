@@ -78,6 +78,16 @@ export function describeCatalogRepositoryContract(
       ]);
     });
 
+    it('finds sources by platform id and the recordings that use them', async () => {
+      const repo = getRepo();
+      const source = await repo.findSourceByPlatformId('youtube', 'DEMO0000001');
+      expect(source?.id).toBe('src_demo_video_001');
+      expect((await repo.listRecordingsForSource('src_demo_video_001')).map((r) => r.id)).toEqual([
+        'rec_demo_003',
+      ]);
+      expect(await repo.findSourceByPlatformId('youtube', 'XXXXXXXXXXX')).toBeNull();
+    });
+
     it('returns copies so callers cannot mutate stored revisions', async () => {
       const repo = getRepo();
       const first = await repo.getRevisionById('rev_demo_001');

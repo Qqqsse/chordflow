@@ -194,6 +194,7 @@ export function createMemoryCatalog(
     listRecordingsForWork: (workId) =>
       Promise.resolve(copy([...recordings.values()].filter((r) => r.workId === workId))),
     getArrangement: (id) => get(arrangements, id),
+    getArrangementOwnerId: () => Promise.resolve(null),
     listArrangementsForWork: (workId) =>
       Promise.resolve(
         copy([...arrangements.values()].filter((a: Arrangement) => a.workId === workId)),
@@ -221,6 +222,18 @@ export function createMemoryCatalog(
     getRecordingSync: (recordingId, chartRevisionId) =>
       get(syncs, `${recordingId}|${chartRevisionId}`),
     getSource: (id) => get(sources, id),
+    findSourceByPlatformId: (platform, platformSourceId) =>
+      Promise.resolve(
+        copy(
+          [...sources.values()].find(
+            (src) => src.platform === platform && src.platformSourceId === platformSourceId,
+          ) ?? null,
+        ),
+      ),
+    listRecordingsForSource: (sourceId) =>
+      Promise.resolve(
+        copy([...recordings.values()].filter((r) => r.sourceReferenceIds.includes(sourceId))),
+      ),
     searchWorks: (query, page) => {
       const matches = [...works.values()]
         .map((work) => ({ work, at: (workSearchText.get(work.id) ?? '').indexOf(query) }))

@@ -1,3 +1,4 @@
+export * from './api';
 export * from './artifacts';
 export * from './catalog';
 export * from './chart-document';
@@ -5,5 +6,6 @@ export * from './domain';
 export * from './graphemes';
 export * from './issues';
 export * from './jobs';
+export * from './openapi';
 export * from './primitives';
 export * from './recording-sync';

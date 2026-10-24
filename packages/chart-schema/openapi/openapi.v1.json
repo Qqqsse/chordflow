@@ -1,0 +1,2759 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "chordflow API",
+    "version": "1.0.0",
+    "description": "Envelope: success `{ data, meta: { requestId, schemaVersion } }`, error `{ error: { code, message, details, requestId } }`. Hidden and missing resources both return 404."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness (no secrets)",
+        "parameters": [
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Configuration invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Readiness (database reachability in database mode)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search works, recordings and arrangements; supported source URLs are resolved without fetching",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_QUERY",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/works/{id}": {
+      "get": {
+        "summary": "Work with recordings and visible arrangements",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Work id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WORK_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recordings/{id}": {
+      "get": {
+        "summary": "Recording with sources and arrangement mappings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Recording id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordingResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "RECORDING_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recordings/{id}/sync": {
+      "get": {
+        "summary": "Recording-specific timing for one chart revision",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Recording id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "revisionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordingSyncResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_QUERY",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "SYNC_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arrangements/{id}": {
+      "get": {
+        "summary": "Arrangement summary, rights, visible revisions and mappings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Arrangement id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrangementResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ARRANGEMENT_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arrangements/{id}/revisions/{rev}": {
+      "get": {
+        "summary": "Canonical Chart Document of one revision",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Arrangement id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "rev",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,6}$"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "in": "header",
+            "required": false,
+            "description": "Optional client request id ([A-Za-z0-9._-]{1,64}); echoed back, otherwise generated.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartRevisionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CHART_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/__schema0"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "requestId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "ok"
+              },
+              "service": {
+                "type": "string",
+                "const": "web"
+              },
+              "dataMode": {
+                "type": "string",
+                "enum": [
+                  "demo",
+                  "database"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "service",
+              "dataMode"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "not_ready"
+                ]
+              },
+              "checks": {
+                "type": "object",
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "enum": [
+                      "ok",
+                      "unavailable",
+                      "not_configured"
+                    ]
+                  }
+                },
+                "required": [
+                  "database"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "status",
+              "checks"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "youtube",
+                          "spotify",
+                          "apple_music",
+                          "musicbrainz",
+                          "user_upload",
+                          "other"
+                        ]
+                      },
+                      "platformSourceId": {
+                        "type": "string"
+                      },
+                      "matchedSourceId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "platformSourceId",
+                      "matchedSourceId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "work": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "titleAliases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "language": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "credits": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "composer",
+                                  "lyricist",
+                                  "arranger",
+                                  "original_artist"
+                                ]
+                              },
+                              "artist": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "role",
+                              "artist"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "titleAliases",
+                        "language",
+                        "credits"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "recordings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "workId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "title": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "studio",
+                              "live",
+                              "cover",
+                              "acoustic",
+                              "unknown"
+                            ]
+                          },
+                          "performers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "mappings": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "arrangementId": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                "recordingId": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                "provenance": {
+                                  "type": "string",
+                                  "enum": [
+                                    "exact_audio_match",
+                                    "human_verified",
+                                    "suggested",
+                                    "unknown"
+                                  ]
+                                },
+                                "verified": {
+                                  "type": "boolean"
+                                },
+                                "recordedKey": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "transposeSemitones": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "arrangementId",
+                                "recordingId",
+                                "provenance",
+                                "verified",
+                                "recordedKey",
+                                "transposeSemitones"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "workId",
+                          "title",
+                          "kind",
+                          "performers",
+                          "mappings"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "arrangements": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "workId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "variant": {
+                            "type": "string",
+                            "enum": [
+                              "original",
+                              "simplified",
+                              "capo_friendly",
+                              "other"
+                            ]
+                          },
+                          "visibility": {
+                            "type": "string",
+                            "enum": [
+                              "private",
+                              "shared",
+                              "public"
+                            ]
+                          },
+                          "publishedRevisionId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "hasPublishedChart": {
+                            "type": "boolean"
+                          },
+                          "attribution": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "workId",
+                          "name",
+                          "variant",
+                          "visibility",
+                          "publishedRevisionId",
+                          "hasPublishedChart",
+                          "attribution"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "work",
+                    "recordings",
+                    "arrangements"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "query",
+              "source",
+              "items",
+              "nextCursor"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "WorkResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "work": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "titleAliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "credits": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "composer",
+                            "lyricist",
+                            "arranger",
+                            "original_artist"
+                          ]
+                        },
+                        "artist": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "artist"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "titleAliases",
+                  "language",
+                  "credits"
+                ],
+                "additionalProperties": false
+              },
+              "recordings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "workId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "studio",
+                        "live",
+                        "cover",
+                        "acoustic",
+                        "unknown"
+                      ]
+                    },
+                    "performers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "mappings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "arrangementId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "recordingId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "provenance": {
+                            "type": "string",
+                            "enum": [
+                              "exact_audio_match",
+                              "human_verified",
+                              "suggested",
+                              "unknown"
+                            ]
+                          },
+                          "verified": {
+                            "type": "boolean"
+                          },
+                          "recordedKey": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "transposeSemitones": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "arrangementId",
+                          "recordingId",
+                          "provenance",
+                          "verified",
+                          "recordedKey",
+                          "transposeSemitones"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "workId",
+                    "title",
+                    "kind",
+                    "performers",
+                    "mappings"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "arrangements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "workId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "variant": {
+                      "type": "string",
+                      "enum": [
+                        "original",
+                        "simplified",
+                        "capo_friendly",
+                        "other"
+                      ]
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "private",
+                        "shared",
+                        "public"
+                      ]
+                    },
+                    "publishedRevisionId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hasPublishedChart": {
+                      "type": "boolean"
+                    },
+                    "attribution": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "workId",
+                    "name",
+                    "variant",
+                    "visibility",
+                    "publishedRevisionId",
+                    "hasPublishedChart",
+                    "attribution"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "work",
+              "recordings",
+              "arrangements"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "RecordingResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "recording": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "workId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "studio",
+                      "live",
+                      "cover",
+                      "acoustic",
+                      "unknown"
+                    ]
+                  },
+                  "performers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "mappings": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "arrangementId": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "recordingId": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "provenance": {
+                          "type": "string",
+                          "enum": [
+                            "exact_audio_match",
+                            "human_verified",
+                            "suggested",
+                            "unknown"
+                          ]
+                        },
+                        "verified": {
+                          "type": "boolean"
+                        },
+                        "recordedKey": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "transposeSemitones": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "arrangementId",
+                        "recordingId",
+                        "provenance",
+                        "verified",
+                        "recordedKey",
+                        "transposeSemitones"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "workId",
+                  "title",
+                  "kind",
+                  "performers",
+                  "mappings"
+                ],
+                "additionalProperties": false
+              },
+              "work": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "titleAliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "credits": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "composer",
+                            "lyricist",
+                            "arranger",
+                            "original_artist"
+                          ]
+                        },
+                        "artist": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "artist"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "titleAliases",
+                  "language",
+                  "credits"
+                ],
+                "additionalProperties": false
+              },
+              "durationMs": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "youtube",
+                        "spotify",
+                        "apple_music",
+                        "musicbrainz",
+                        "user_upload",
+                        "other"
+                      ]
+                    },
+                    "platformSourceId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 256
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2048,
+                          "format": "uri"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "permission": {
+                      "type": "string",
+                      "enum": [
+                        "unknown",
+                        "discovery_only",
+                        "analysis_permitted",
+                        "denied"
+                      ]
+                    },
+                    "permittedUses": {
+                      "maxItems": 5,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "metadata",
+                          "embed_playback",
+                          "audio_analysis",
+                          "lyrics_reference",
+                          "redistribution"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "platform",
+                    "platformSourceId",
+                    "url",
+                    "permission",
+                    "permittedUses"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "arrangements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "workId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "variant": {
+                      "type": "string",
+                      "enum": [
+                        "original",
+                        "simplified",
+                        "capo_friendly",
+                        "other"
+                      ]
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "private",
+                        "shared",
+                        "public"
+                      ]
+                    },
+                    "publishedRevisionId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hasPublishedChart": {
+                      "type": "boolean"
+                    },
+                    "attribution": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "workId",
+                    "name",
+                    "variant",
+                    "visibility",
+                    "publishedRevisionId",
+                    "hasPublishedChart",
+                    "attribution"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "recording",
+              "work",
+              "durationMs",
+              "sources",
+              "arrangements"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ArrangementResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "arrangement": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "workId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "variant": {
+                    "type": "string",
+                    "enum": [
+                      "original",
+                      "simplified",
+                      "capo_friendly",
+                      "other"
+                    ]
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "private",
+                      "shared",
+                      "public"
+                    ]
+                  },
+                  "publishedRevisionId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "hasPublishedChart": {
+                    "type": "boolean"
+                  },
+                  "attribution": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "workId",
+                  "name",
+                  "variant",
+                  "visibility",
+                  "publishedRevisionId",
+                  "hasPublishedChart",
+                  "attribution"
+                ],
+                "additionalProperties": false
+              },
+              "rights": {
+                "type": "object",
+                "properties": {
+                  "lyrics": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "chart": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "audio": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "attribution": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lyrics",
+                  "chart",
+                  "audio",
+                  "attribution",
+                  "notes"
+                ],
+                "additionalProperties": false
+              },
+              "work": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "titleAliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "credits": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "composer",
+                            "lyricist",
+                            "arranger",
+                            "original_artist"
+                          ]
+                        },
+                        "artist": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "artist"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "titleAliases",
+                  "language",
+                  "credits"
+                ],
+                "additionalProperties": false
+              },
+              "revisions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "needs_review",
+                        "published",
+                        "rejected"
+                      ]
+                    },
+                    "origin": {
+                      "type": "string",
+                      "enum": [
+                        "human",
+                        "chordpro_import",
+                        "ai_draft"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "revision",
+                    "status",
+                    "origin",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "mappings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "arrangementId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "recordingId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "provenance": {
+                      "type": "string",
+                      "enum": [
+                        "exact_audio_match",
+                        "human_verified",
+                        "suggested",
+                        "unknown"
+                      ]
+                    },
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "recordedKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "transposeSemitones": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "arrangementId",
+                    "recordingId",
+                    "provenance",
+                    "verified",
+                    "recordedKey",
+                    "transposeSemitones"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "arrangement",
+              "rights",
+              "work",
+              "revisions",
+              "mappings"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ChartRevisionResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "arrangementId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "needs_review",
+                  "published",
+                  "rejected"
+                ]
+              },
+              "origin": {
+                "type": "string",
+                "enum": [
+                  "human",
+                  "chordpro_import",
+                  "ai_draft"
+                ]
+              },
+              "parentRevisionId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "document": {
+                "type": "object",
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                  },
+                  "chartRevisionId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "arrangementId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "language": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "concertKey": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-G](#|b)?m?$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "timeSignature": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^([1-9]|[1-3]\\d)\\/(1|2|4|8|16|32)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "defaultBpm": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 20,
+                        "maximum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "instrument": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "guitar"
+                      },
+                      "tuning": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 6,
+                        "maxItems": 6
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "tuning"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "sections": {
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "intro",
+                            "verse",
+                            "pre_chorus",
+                            "chorus",
+                            "bridge",
+                            "instrumental",
+                            "interlude",
+                            "outro",
+                            "tag",
+                            "other"
+                          ]
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "lines": {
+                          "maxItems": 400,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                              },
+                              "text": {
+                                "type": "string",
+                                "maxLength": 1000
+                              },
+                              "chords": {
+                                "maxItems": 64,
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                    },
+                                    "symbol": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                                    },
+                                    "anchor": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "graphemeOffset": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 9007199254740991
+                                            }
+                                          },
+                                          "required": [
+                                            "graphemeOffset"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "symbol",
+                                    "anchor"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "text",
+                              "chords"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "voicingPolicy": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "recommended",
+                          "explicit"
+                        ]
+                      },
+                      "defaultDifficulty": {
+                        "type": "string",
+                        "enum": [
+                          "easy",
+                          "intermediate",
+                          "advanced"
+                        ]
+                      },
+                      "symbolDefaults": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                        },
+                        "additionalProperties": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        }
+                      },
+                      "occurrenceOverrides": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "additionalProperties": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "defaultDifficulty",
+                      "occurrenceOverrides"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "importMetadata": {
+                    "type": "object",
+                    "properties": {
+                      "format": {
+                        "type": "string",
+                        "enum": [
+                          "native",
+                          "chordpro",
+                          "ai_draft"
+                        ]
+                      },
+                      "unhandledDirectives": {
+                        "maxItems": 500,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "line": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64
+                            },
+                            "value": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 1000
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "line",
+                            "name",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "format",
+                      "unhandledDirectives"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "extensions": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "pattern": "^x-[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)*$"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema0"
+                    }
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "chartRevisionId",
+                  "arrangementId",
+                  "revision",
+                  "language",
+                  "title",
+                  "concertKey",
+                  "timeSignature",
+                  "defaultBpm",
+                  "instrument",
+                  "sections",
+                  "voicingPolicy",
+                  "importMetadata"
+                ],
+                "additionalProperties": false
+              },
+              "createdBy": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "id",
+              "arrangementId",
+              "revision",
+              "status",
+              "origin",
+              "parentRevisionId",
+              "document",
+              "createdBy",
+              "createdAt"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "RecordingSyncResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              },
+              "recordingId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "chartRevisionId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "timebase": {
+                "type": "string",
+                "const": "recording_start_ms"
+              },
+              "offsetMs": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "recordingDurationMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "alignedChords": {
+                "maxItems": 10000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "chordOccurrenceId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "startMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "endMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "high_confidence",
+                        "uncertain"
+                      ]
+                    },
+                    "confidence": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "model": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "calibrated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "model",
+                        "calibrated"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "chordOccurrenceId",
+                    "startMs",
+                    "endMs",
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "alignedLyrics": {
+                "maxItems": 20000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lineId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "fromGrapheme": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "toGrapheme": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    "startMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "endMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "high_confidence",
+                        "uncertain"
+                      ]
+                    },
+                    "confidence": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "model": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "calibrated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "model",
+                        "calibrated"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "lineId",
+                    "fromGrapheme",
+                    "toGrapheme",
+                    "startMs",
+                    "endMs",
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "unmatchedIntervals": {
+                "maxItems": 10000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "startMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "endMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": [
+                        "instrumental_or_unknown",
+                        "ad_lib",
+                        "backing_vocals",
+                        "low_confidence",
+                        "not_in_reference"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "startMs",
+                    "endMs",
+                    "reason"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "unaligned": {
+                "type": "object",
+                "properties": {
+                  "chordOccurrenceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    }
+                  },
+                  "lineIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    }
+                  }
+                },
+                "required": [
+                  "chordOccurrenceIds",
+                  "lineIds"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "recordingId",
+              "chartRevisionId",
+              "timebase",
+              "offsetMs",
+              "alignedChords",
+              "alignedLyrics",
+              "unmatchedIntervals"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
