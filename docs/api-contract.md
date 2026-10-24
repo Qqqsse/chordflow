@@ -50,6 +50,7 @@
 | `POST /chordpro/import`                 | 會員           | 解析 ChordPro 並回傳預覽與行號訊息，**不儲存**；錯誤時 422 仍附 issues   |
 | `POST /arrangements`                    | 管理員         | 建立編曲（作品不存在時一併建立作品與歌手）；權利須允許可見度             |
 | `PATCH /arrangements/{id}`              | 管理員         | 設定可見度與各素材權利；`unknown` 權利只能 `private`                     |
+| `GET /arrangements/{id}/audit`          | 管理員         | 可見度、各素材權利與發布的變更紀錄（只能新增，不能修改或刪除）           |
 | `POST /arrangements/{id}/revisions`     | 管理員或擁有者 | 由文件或 ChordPro 建立草稿；伺服器指派 id、修訂編號與 schema 版本        |
 | `POST /arrangements/{id}/publish`       | 管理員         | 交易式發布：鎖定編曲列、檢查權利與文件一致性、更新狀態與指標；可重複呼叫 |
 | `POST /invitations`、`GET /invitations` | 管理員         | 建立（token 只回傳一次）與列出邀請                                       |
@@ -92,7 +93,7 @@
 | `GET`／`PUT /me/preferences/{id}`  | 讀取／儲存看譜設定（UserChartPreference v1，`ViewerPreferencesSchema`）；不會改動和弦譜 |
 | `POST /me/recent/{id}`             | 記錄開啟；每位使用者只保留最新 20 筆（204）                                             |
 
-API 契約版本 1.2.0（1.1.0 新增個人譜庫，1.2.0 新增任務重試與 worker 狀態；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
+API 契約版本 1.3.0（1.1.0 個人譜庫；1.2.0 任務重試與 worker 狀態；1.3.0 權利稽核紀錄；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
 
 ## 搜尋
 

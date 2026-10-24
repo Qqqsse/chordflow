@@ -11,7 +11,7 @@
 - **Session**：存在資料庫，HTTP-only、SameSite=Lax cookie，`APP_BASE_URL` 為 https 時加上 Secure；14 天到期。
 - **CSRF**：better-auth 端點檢查 Origin 是否為信任來源；我們自己的寫入 API（例如建立／接受邀請）
   要求 `Origin` 等於 `APP_BASE_URL`，否則回 `403 CSRF_REJECTED`。
-- **速率限制**：better-auth 內建（一般端點每分鐘 300 次，因為每次瀏覽頁面都會讀取 session；密碼登入每分鐘 10 次）；
+- **速率限制**：better-auth 內建（一般端點每分鐘 300 次，因為每次瀏覽頁面都會讀取 session；密碼登入每分鐘 10 次，可用 `AUTH_SIGN_IN_PER_MINUTE` 調整）；
   接受邀請每 15 分鐘 10 次；提交生成任務每分鐘 20 次。
   只有在 `TRUST_PROXY=true`（反向代理會覆寫 `X-Forwarded-For`）時才依 client IP 計算。單一程序記憶體計數，
   多程序部署需改用共用儲存。
@@ -45,6 +45,9 @@
 - 可見度（private／shared／public）與再散布權利是兩回事；`shared`／`public` 必須歌詞與譜都具備可再散布的權利，
   `unknown` 一律不公開（fail closed）。
 - fixtures 只含虛構內容與公有領域歌曲（來源見 `fixtures/README.md`）。
+- **權利稽核紀錄**：建立編曲、變更可見度或權利、發布修訂，都會在同一個交易中寫入 `arrangement_audit_events`
+  （操作者、時間、變更前後的可見度與權利）。資料庫觸發器禁止修改或刪除紀錄；唯一例外是刪除帳號時把操作者設為空值。
+  管理員可在譜頁的「權利紀錄」檢視。
 
 ## 其他
 
