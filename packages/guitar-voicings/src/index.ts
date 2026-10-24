@@ -1,3 +1,4 @@
+export * from './diagram';
 export * from './library';
 export * from './recommend';
 export * from './tuning';
