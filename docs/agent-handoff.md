@@ -2,14 +2,15 @@
 
 給下一個 session 的持久上下文（SPEC §17）。每個任務結束時更新。
 
-## 進度（2026-10-23）
+## 進度（2026-10-24）
 
-| Milestone                   | 狀態                           | 說明                                              |
-| --------------------------- | ------------------------------ | ------------------------------------------------- |
-| M0 基礎建設                 | **完成**                       | Monorepo、工具鏈、Docker 基礎、CI 綠燈            |
-| M1 和弦譜 schema 與領域模型 | **完成——等待擁有者審查／凍結** | `03754f1` CI 綠燈（run 3）；凍結後 M2–M6 才能使用 |
-| M2 樂理                     | 下一個                         | `packages/music-theory`（尚空）                   |
-| M3–M7                       | 尚未開始                       |                                                   |
+| Milestone                   | 狀態                                       | 說明                                               |
+| --------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| M0 基礎建設                 | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈             |
+| M1 和弦譜 schema 與領域模型 | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                       |
+| M2 樂理                     | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md` |
+| M3 ChordPro                 | 下一個                                     | `packages/chordpro`（尚空）                        |
+| M4–M7                       | 尚未開始                                   |                                                    |
 
 ## 目前已有的內容
 
@@ -22,6 +23,9 @@
   介面 + 經驗證的記憶體實作（`getDemoCatalog()`）。
 - **packages/chart-schema：** v1 契約——見 `docs/schema-decisions.md`。JSON Schema 在 `json-schema/`
   （用 `pnpm --filter @chordflow/chart-schema generate:json-schema` 重新產生；有測試偵測不一致）。
+- **packages/music-theory：** 和弦 parser（型別化錯誤）、依調拼寫、移調、移調夾、羅馬數字／Nashville、
+  `transposeChartDisplay` 整譜顯示轉換、`changeCapo` 兩種模式。無執行期相依（未使用 Tonal.js）。
+- **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
 - **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
   驗證 fixtures。尚無工作迴圈（M7）。
 - **Docker：** `compose.yaml`（postgres:17-alpine 含 volume、web 只綁 loopback、profile `worker`），
@@ -43,6 +47,12 @@
 | 20369b8 | feat(web): in-memory catalog repository and validated demo charts |
 | 03754f1 | docs: architecture overview and agent handoff for M0–M1           |
 | 3836414 | docs(handoff): record green CI for M0–M1                          |
+| 2b4334d | docs: switch project docs to Traditional Chinese                  |
+| a368f8f | test(fixtures): add public-domain songs 送別 and Amazing Grace    |
+| 42a3a6d | feat(theory): spelled pitches, keys and chord parser              |
+| f9f2410 | feat(theory): key-aware transposition and capo semantics          |
+| 787f7de | feat(theory): roman numeral and nashville number rendering        |
+| 5efe366 | feat(theory): pure chart display transformation and capo modes    |
 
 ## 驗證結果（本 session，本機）
 
@@ -86,13 +96,10 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 待擁有者決定（不阻擋進度）
 
-1. 審查並凍結 M1 契約（`docs/schema-decisions.md`），之後才平行開 M2–M6 session。
-2. `LICENSE` 中的著作權人名稱。
+1. `LICENSE` 中的著作權人名稱。
 
 ## 下一個最有價值的工作
 
-1. **M2 `packages/music-theory`**（測試先行）：和弦 AST parser（不支援時回傳型別化錯誤）、依調性決定拼寫、
-   移調、移調夾 `concertToShape`／`shapeToConcert`、羅馬數字／Nashville 級數；涵蓋 SPEC §5 表格所有案例並加上
-   property tests。Tonal.js（MIT）需先完成授權與版本稽核再考慮使用。
-2. **M3 `packages/chordpro`**（M1 凍結後可平行進行）。
-3. **M4 看譜器**：以完整的 segment renderer 與控制項取代 M0 的 `ChartPreview`。
+1. **M3 `packages/chordpro`**：自訂 ChordPro 子集匯入／匯出、錯誤含行號、保留未知指令、語意往返測試。
+2. **M4 看譜器**：以 `transposeChartDisplay` 驅動移調／移調夾／級數控制，取代 M0 的 `ChartPreview`。
+3. **M5 指法與 SVG**：之後才能做以指法難度為依據的移調夾建議。
