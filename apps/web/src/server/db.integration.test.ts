@@ -9,6 +9,7 @@ import { seedCatalog } from './catalog/seed';
 import { openDatabase, type DatabaseHandle } from './db/client';
 import { runMigrations } from './db/migrate';
 import { jobsIntegrationSuite } from './jobs/jobs.integration';
+import { libraryIntegrationSuite } from './library/library.integration';
 
 /**
  * PostgreSQL integration tests, in one file so suites never race on the same
@@ -43,4 +44,5 @@ describe.skipIf(!url)('PostgreSQL integration', () => {
   authIntegrationSuite(getHandle);
   editorIntegrationSuite(getHandle);
   jobsIntegrationSuite(getHandle);
+  libraryIntegrationSuite(getHandle);
 });

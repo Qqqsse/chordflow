@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { API_VERSION } from '@chordflow/chart-schema';
 import { GET } from './route';
 
 afterEach(() => {
@@ -14,7 +15,7 @@ describe('GET /api/v1/health', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       data: { status: 'ok', service: 'web', dataMode: 'demo' },
-      meta: { requestId: 'req_t', schemaVersion: '1.0.0' },
+      meta: { requestId: 'req_t', schemaVersion: API_VERSION },
     });
   });
 

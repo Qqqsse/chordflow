@@ -120,6 +120,24 @@ export const favorites = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.arrangementId] })],
 );
 
+/** Recently opened charts per user; the service keeps only the newest few per user. */
+export const recentViews = pgTable(
+  'recent_views',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    arrangementId: text('arrangement_id')
+      .notNull()
+      .references(() => arrangements.id, { onDelete: 'cascade' }),
+    viewedAt: ts('viewed_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.arrangementId] }),
+    index('recent_views_user_time').on(t.userId, t.viewedAt),
+  ],
+);
+
 /** Per-user viewer preferences for one arrangement (never mutates the chart). */
 export const userChartPreferences = pgTable(
   'user_chart_preferences',
