@@ -2,3 +2,5 @@
 *.png binary
 *.jpg binary
 *.ico binary
+# Keep CRLF fixtures byte-exact so line-ending tests stay meaningful.
+fixtures/chordpro/crlf-*.cho -text

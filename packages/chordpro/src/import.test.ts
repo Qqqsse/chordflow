@@ -255,7 +255,10 @@ describe('importChordPro: line endings and real-world files', () => {
   });
 
   it('imports the CRLF Amazing Grace fixture', () => {
-    const r = ok(readText('chordpro/crlf-amazing-grace.cho'));
+    const source = readText('chordpro/crlf-amazing-grace.cho');
+    // .gitattributes keeps this fixture byte-exact; fail loudly if it was normalized to LF.
+    expect(source).toContain('\r\n');
+    const r = ok(source);
     expect(r.document.sections[0]).toMatchObject({ kind: 'verse', label: 'Verse 1' });
     expect(r.document.sections[0]?.lines).toHaveLength(4);
   });
