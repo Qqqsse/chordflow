@@ -4,13 +4,14 @@
 
 ## 進度（2026-10-24）
 
-| Milestone                   | 狀態                                       | 說明                                               |
-| --------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| M0 基礎建設                 | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈             |
-| M1 和弦譜 schema 與領域模型 | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                       |
-| M2 樂理                     | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md` |
-| M3 ChordPro                 | 下一個                                     | `packages/chordpro`（尚空）                        |
-| M4–M7                       | 尚未開始                                   |                                                    |
+| Milestone                   | 狀態                                       | 說明                                                                    |
+| --------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| M0 基礎建設                 | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈                                  |
+| M1 和弦譜 schema 與領域模型 | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
+| M2 樂理                     | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
+| M3 ChordPro                 | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
+| M4 看譜器                   | 下一個                                     |                                                                         |
+| M5–M7                       | 尚未開始                                   |                                                                         |
 
 ## 目前已有的內容
 
@@ -25,6 +26,8 @@
   （用 `pnpm --filter @chordflow/chart-schema generate:json-schema` 重新產生；有測試偵測不一致）。
 - **packages/music-theory：** 和弦 parser（型別化錯誤）、依調拼寫、移調、移調夾、羅馬數字／Nashville、
   `transposeChartDisplay` 整譜顯示轉換、`changeCapo` 兩種模式。無執行期相依（未使用 Tonal.js）。
+- **packages/chordpro：** ChordPro 子集匯入（預覽、行號錯誤、保留未知指令、capo 解讀必須明確選擇）與匯出
+  （明確段落標記、跳脫、刻意遺失的資訊已列出）。
 - **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
 - **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
   驗證 fixtures。尚無工作迴圈（M7）。
@@ -53,6 +56,11 @@
 | f9f2410 | feat(theory): key-aware transposition and capo semantics          |
 | 787f7de | feat(theory): roman numeral and nashville number rendering        |
 | 5efe366 | feat(theory): pure chart display transformation and capo modes    |
+| 7e0bcc0 | docs(handoff): record M2 completion and M1 freeze                 |
+| 03374d4 | feat(chordpro): bounded ChordPro importer                         |
+| 155f51d | feat(chordpro): readable exporter with semantic round trip        |
+| 59b39ae | docs(chordpro): supported subset, capo choice and export losses   |
+| 98bbdbd | test(chordpro): keep the CRLF fixture byte-exact                  |
 
 ## 驗證結果（本 session，本機）
 
@@ -62,7 +70,7 @@
 | `pnpm format:check`                                                               | 通過                                                                                                                   |
 | `pnpm lint`                                                                       | 通過，0 個警告                                                                                                         |
 | `pnpm typecheck`                                                                  | 通過                                                                                                                   |
-| `pnpm test`                                                                       | 11 個檔案、143 個測試通過                                                                                              |
+| `pnpm test`                                                                       | 17 個檔案、403 個測試通過（M3 後）                                                                                     |
 | `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                      |
 | `CI=1 pnpm exec playwright test`                                                  | 6 個通過（Chromium）                                                                                                   |
 | `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 42 個通過                                                                                                              |
@@ -100,6 +108,6 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **M3 `packages/chordpro`**：自訂 ChordPro 子集匯入／匯出、錯誤含行號、保留未知指令、語意往返測試。
-2. **M4 看譜器**：以 `transposeChartDisplay` 驅動移調／移調夾／級數控制，取代 M0 的 `ChartPreview`。
-3. **M5 指法與 SVG**：之後才能做以指法難度為依據的移調夾建議。
+1. **M4 看譜器**：以 `transposeChartDisplay` 驅動移調／移調夾／級數控制，取代 M0 的 `ChartPreview`；Playwright 互動與視覺測試。
+2. **M5 指法與 SVG、播放模式、PWA 離線**。
+3. **M6 PostgreSQL、搜尋、帳號、修訂**（同時接上 `POST /api/v1/chordpro/import`）。
