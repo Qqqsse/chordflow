@@ -8,14 +8,17 @@
 > 規則：每開始一項工作，先在這裡把狀態改成「進行中」並寫下計畫，commit 並推送到
 > `claude/beautiful-maxwell-h4wqaz`，再寫程式。完成並合併到 `main` 後改成「完成」。
 > 若 session 中斷：切到該分支，`git log origin/main..HEAD` 看已提交的部分，依下表「接手方式」繼續。
+>
+> **目前狀態：雲端可做的佇列已全部完成並合併。** 下一步需要擁有者先決定 `docs/audio-sources.md` 文末四項，
+> 之後才能實作音訊上傳；GPU 推論（M8）只能在擁有者的硬體上進行。
 
 | #   | 工作                                         | 狀態                                | 計畫與接手方式                                                                                                                                                                                                                                                                                          |
 | --- | -------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | M7 補完：使用者重試失敗任務、worker 狀態面板 | **完成**（PR #3 已合併，`a535525`） | 重試＝新任務（`retry_of_job_id`，migration 0005），原任務不變；`POST /generation-jobs/{id}/retry`、`GET /workers`；API 1.2.0                                                                                                                                                                            |
 | 2   | M9：審查差異比對                             | **完成**（PR #4 已合併，`1363c4d`） | `diffCharts`（`packages/chart-schema/src/chart-diff.ts`）依 id 或內容（LCS）對齊段落與行，和弦依位置再依名稱比對；`/admin/jobs/[id]` 顯示最新衍生修訂與草稿的差異（`review-diff.tsx`、`diff-labels.ts`）                                                                                                |
 | 3   | M9：權利稽核紀錄                             | **完成**（PR #5 已合併，`c67127c`） | `arrangement_audit_events`（migration 0006，觸發器禁止修改／刪除，只允許刪帳號時把操作者設為 NULL）；`editor.ts` 三個寫入函式在同一交易記錄並明確帶入操作者；`GET /arrangements/{id}/audit`、`/admin/arrangements/[id]/audit`；API 1.3.0。另：`AUTH_SIGN_IN_PER_MINUTE`（預設 10）讓 e2e 可調高登入限速 |
-| 4   | M9：和弦位置／段落編輯器                     | **完成**（待 PR 合併）              | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                             |
-| 5   | M8 雲端準備                                  | **完成**（待 PR 合併）              | 設計文件 `docs/audio-sources.md`（ADR-003 提案）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除。實作前需擁有者決定文件末四項                                                                                                            |
+| 4   | M9：和弦位置／段落編輯器                     | **完成**（PR #6 已合併，`73d309d`） | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                             |
+| 5   | M8 雲端準備                                  | **完成**（PR #6 已合併，`73d309d`） | 設計文件 `docs/audio-sources.md`（ADR-003 提案）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除。實作前需擁有者決定文件末四項                                                                                                            |
 
 ## 進度（2026-10-24）
 
