@@ -93,3 +93,21 @@ describe('helpers', () => {
     ]);
   });
 });
+
+describe('reading preferences', () => {
+  it('switches reading mode and clamps scroll speed', () => {
+    const pages = viewerReducer(s(), { type: 'setReadingMode', readingMode: 'pages' });
+    expect(pages.readingMode).toBe('pages');
+    expect(viewerReducer(s(), { type: 'setScrollSpeed', scrollSpeed: 999 }).scrollSpeed).toBe(120);
+    expect(viewerReducer(s(), { type: 'setScrollSpeed', scrollSpeed: 0 }).scrollSpeed).toBe(5);
+  });
+
+  it('keeps reading preferences on a musical reset', () => {
+    const custom = s({ readingMode: 'pages', scrollSpeed: 60, transposeSemitones: 3 });
+    expect(viewerReducer(custom, { type: 'reset' })).toMatchObject({
+      readingMode: 'pages',
+      scrollSpeed: 60,
+      transposeSemitones: 0,
+    });
+  });
+});

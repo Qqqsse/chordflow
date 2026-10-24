@@ -5,6 +5,9 @@ import { transposeChartDisplay } from '@chordflow/music-theory';
 import { useEffect, useMemo, useReducer } from 'react';
 import { ChordSheet } from './chord-sheet';
 import { ViewerControls } from './viewer-controls';
+import { PagedSheet } from './paged-sheet';
+import { PlayerBar } from './player-bar';
+import { useAutoscroll } from './use-autoscroll';
 import { VoicingStrip } from './voicing-strip';
 import { DEFAULT_VIEWER_STATE, viewerReducer, type ViewerAction } from './viewer-state';
 
@@ -16,8 +19,13 @@ export const VIEWER_SHORTCUTS: Readonly<Record<string, ViewerAction>> = {
   '0': { type: 'resetTranspose' },
 };
 
+/** Autoscroll toggle key (handled separately because it is not a reducer action). */
+export const AUTOSCROLL_KEY = 'p';
+
 export function ChartViewer({ chart }: { chart: ChartDocument }) {
   const [state, dispatch] = useReducer(viewerReducer, DEFAULT_VIEWER_STATE);
+  const autoscroll = useAutoscroll(state.scrollSpeed);
+  const { toggle: toggleAutoscroll } = autoscroll;
   const notation = chart.concertKey === null ? 'letters' : state.notation;
   const display = useMemo(
     () =>
@@ -40,6 +48,11 @@ export function ChartViewer({ chart }: { chart: ChartDocument }) {
       ) {
         return;
       }
+      if (event.key === AUTOSCROLL_KEY) {
+        event.preventDefault();
+        toggleAutoscroll();
+        return;
+      }
       const action = VIEWER_SHORTCUTS[event.key];
       if (action) {
         event.preventDefault();
@@ -50,13 +63,17 @@ export function ChartViewer({ chart }: { chart: ChartDocument }) {
     return () => {
       window.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [toggleAutoscroll]);
+
+  const sheet = <ChordSheet chart={chart} display={display} fontSize={state.fontSize} />;
 
   return (
     <div className="space-y-6">
       <ViewerControls state={{ ...state, notation }} dispatch={dispatch} display={display} />
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-ink-muted">快捷鍵：+／− 移調、0 回原調。</p>
+        <p className="text-xs text-ink-muted">
+          快捷鍵：+／− 移調、0 回原調、P 開始／暫停捲動；分頁模式用 ←／→ 翻頁。
+        </p>
         <button
           type="button"
           className="min-h-11 rounded-md border border-border px-3 text-sm"
@@ -71,7 +88,16 @@ export function ChartViewer({ chart }: { chart: ChartDocument }) {
       {state.showDiagrams && (
         <VoicingStrip chart={chart} display={display} state={state} dispatch={dispatch} />
       )}
-      <ChordSheet chart={chart} display={display} fontSize={state.fontSize} />
+      <PlayerBar state={state} dispatch={dispatch} autoscroll={autoscroll} />
+      {state.readingMode === 'pages' ? (
+        <PagedSheet
+          layoutKey={`${String(state.fontSize)}|${state.notation}|${String(state.transposeSemitones)}|${String(state.capoFret)}|${state.show}`}
+        >
+          {sheet}
+        </PagedSheet>
+      ) : (
+        sheet
+      )}
     </div>
   );
 }

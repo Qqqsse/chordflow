@@ -133,3 +133,31 @@ body {
   fill: currentColor;
   font-size: 8px;
 }
+
+/* ---- reading modes ---- */
+.player-bar {
+  position: sticky;
+  bottom: 0.5rem;
+  z-index: 10;
+  background: var(--color-surface);
+}
+
+.paged-viewport {
+  height: calc(100dvh - 9rem);
+  min-height: 16rem;
+  overflow: hidden;
+}
+
+.paged-track {
+  height: 100%;
+  column-fill: auto;
+}
+
+.paged-viewport .sheet-line,
+.paged-viewport .sheet-chords-only {
+  break-inside: avoid;
+}
+
+.paged-viewport .sheet-section-label {
+  break-after: avoid;
+}

@@ -19,7 +19,15 @@ export interface ViewerState {
   /** Viewer's own voicing choice per shape symbol; never written to the chart. */
   voicingChoices: Readonly<Record<string, string>>;
   showDiagrams: boolean;
+  readingMode: ReadingMode;
+  /** Autoscroll speed in CSS pixels per second. */
+  scrollSpeed: number;
 }
+
+export type ReadingMode = 'continuous' | 'pages';
+
+export const SCROLL_SPEED_MIN = 5;
+export const SCROLL_SPEED_MAX = 120;
 
 export const TRANSPOSE_MIN = -11;
 export const TRANSPOSE_MAX = 11;
@@ -38,6 +46,8 @@ export const DEFAULT_VIEWER_STATE: ViewerState = {
   fontSize: 20,
   voicingChoices: {},
   showDiagrams: true,
+  readingMode: 'continuous',
+  scrollSpeed: 25,
 };
 
 export type ViewerAction =
@@ -50,6 +60,8 @@ export type ViewerAction =
   | { type: 'fontSize'; delta: number }
   | { type: 'chooseVoicing'; symbol: string; voicingId: string }
   | { type: 'toggleDiagrams' }
+  | { type: 'setReadingMode'; readingMode: ReadingMode }
+  | { type: 'setScrollSpeed'; scrollSpeed: number }
   | { type: 'reset' };
 
 /** Keeps a semitone offset within −11…+11 (an octave is the same key). */
@@ -98,11 +110,21 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
       };
     case 'toggleDiagrams':
       return { ...state, showDiagrams: !state.showDiagrams };
+    case 'setReadingMode':
+      return { ...state, readingMode: action.readingMode };
+    case 'setScrollSpeed':
+      return {
+        ...state,
+        scrollSpeed: clamp(Math.round(action.scrollSpeed), SCROLL_SPEED_MIN, SCROLL_SPEED_MAX),
+      };
     case 'reset':
+      // Reading preferences (font, diagrams, mode, speed) survive a musical reset.
       return {
         ...DEFAULT_VIEWER_STATE,
         fontSize: state.fontSize,
         showDiagrams: state.showDiagrams,
+        readingMode: state.readingMode,
+        scrollSpeed: state.scrollSpeed,
       };
   }
 }
