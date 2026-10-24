@@ -1,5 +1,5 @@
 import { parseChartDocument } from '@chordflow/chart-schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { beforeAll, describe, expect, it } from 'vitest';
 import chart from '../../../../../fixtures/charts/pd-songbie.chart.json';
 import { authUsers } from '../db/auth-schema';
@@ -12,6 +12,7 @@ import {
   publishRevision,
   updateArrangementSettings,
 } from './editor';
+import { listAudit } from './audit';
 import { createPgCatalog } from './pg-repository';
 import { normalizeSearchText } from './search-text';
 
@@ -102,10 +103,12 @@ export function editorIntegrationSuite(getHandle: () => DatabaseHandle): void {
         'PUBLISH_REJECTED',
       );
       await expectEditorError(
-        updateArrangementSettings(handle.db, arrangementId, {
-          visibility: 'shared',
-          rights: unknownRights,
-        }),
+        updateArrangementSettings(
+          handle.db,
+          arrangementId,
+          { visibility: 'shared', rights: unknownRights },
+          userId,
+        ),
         'PUBLISH_REJECTED',
       );
     });
@@ -182,17 +185,17 @@ export function editorIntegrationSuite(getHandle: () => DatabaseHandle): void {
       const revisions = await repo.listRevisions(arrangementId);
       const [r1, r2] = revisions;
       if (!r1 || !r2) throw new Error('missing revisions');
-      expect(await publishRevision(handle.db, arrangementId, r1.id)).toEqual({
+      expect(await publishRevision(handle.db, arrangementId, r1.id, userId)).toEqual({
         publishedRevisionId: r1.id,
         changed: true,
       });
       expect((await repo.getPublishedRevision(arrangementId))?.id).toBe(r1.id);
-      await publishRevision(handle.db, arrangementId, r2.id);
+      await publishRevision(handle.db, arrangementId, r2.id, userId);
       expect((await repo.getPublishedRevision(arrangementId))?.document.title).toBe(
         '新歌（第二版）',
       );
       expect((await repo.getRevisionById(r1.id))?.status).toBe('published');
-      expect(await publishRevision(handle.db, arrangementId, r2.id)).toEqual({
+      expect(await publishRevision(handle.db, arrangementId, r2.id, userId)).toEqual({
         publishedRevisionId: r2.id,
         changed: false,
       });
@@ -211,14 +214,99 @@ export function editorIntegrationSuite(getHandle: () => DatabaseHandle): void {
         .set({ status: 'rejected' })
         .where(eq(t.chartRevisions.id, draft.id));
       await expectEditorError(
-        publishRevision(handle.db, arrangementId, draft.id),
+        publishRevision(handle.db, arrangementId, draft.id, userId),
         'PUBLISH_REJECTED',
       );
       await expectEditorError(
-        publishRevision(handle.db, arrangementId, 'rev_demo_001'),
+        publishRevision(handle.db, arrangementId, 'rev_demo_001', userId),
         'NOT_FOUND',
       );
-      await expectEditorError(publishRevision(handle.db, 'arr_missing', draft.id), 'NOT_FOUND');
+      await expectEditorError(
+        publishRevision(handle.db, 'arr_missing', draft.id, userId),
+        'NOT_FOUND',
+      );
+    });
+
+    it('records an append-only audit trail of rights, visibility and publication', async () => {
+      const { arrangementId: id } = await createArrangement(
+        handle.db,
+        {
+          work: { title: '稽核測試曲', titleAliases: [], language: 'zh-TW', artistName: null },
+          name: '原調',
+          variant: 'original',
+          visibility: 'private',
+          rights: unknownRights,
+        },
+        userId,
+      );
+      const licensed = { ...synthetic, attribution: '自創測試' };
+      await updateArrangementSettings(
+        handle.db,
+        id,
+        { visibility: 'public', rights: licensed },
+        userId,
+      );
+      // Saving the same settings again is not a change.
+      await updateArrangementSettings(
+        handle.db,
+        id,
+        { visibility: 'public', rights: licensed },
+        userId,
+      );
+      const revision = await createRevision(handle.db, {
+        arrangementId: id,
+        document: content,
+        origin: 'human',
+        parentRevisionId: null,
+        createdBy: userId,
+      });
+      await publishRevision(handle.db, id, revision.id, null);
+      await publishRevision(handle.db, id, revision.id, null); // idempotent: not logged twice
+
+      const events = await listAudit(handle.db, id);
+      expect(events.map((e) => e.action)).toEqual([
+        'created',
+        'settings_changed',
+        'revision_published',
+      ]);
+      const [created, changed, published] = events;
+      expect(created).toMatchObject({ before: null, after: { visibility: 'private' } });
+      expect(created?.actor?.id).toBe(userId);
+      expect(changed).toMatchObject({
+        before: { visibility: 'private', rights: { lyrics: 'unknown' } },
+        after: {
+          visibility: 'public',
+          rights: { lyrics: 'public_domain', attribution: '自創測試' },
+        },
+      });
+      expect(published).toMatchObject({
+        actor: null,
+        before: { publishedRevisionId: null },
+        after: { publishedRevisionId: revision.id },
+        details: { revisionId: revision.id, revision: '1' },
+      });
+
+      // A rejected change leaves no audit entry.
+      await expectEditorError(
+        updateArrangementSettings(
+          handle.db,
+          id,
+          { visibility: 'public', rights: unknownRights },
+          userId,
+        ),
+        'PUBLISH_REJECTED',
+      );
+      expect(await listAudit(handle.db, id)).toHaveLength(3);
+
+      // History cannot be rewritten.
+      await expect(
+        handle.db.execute(
+          sql`update arrangement_audit_events set action = 'created' where arrangement_id = ${id}`,
+        ),
+      ).rejects.toThrow();
+      await expect(
+        handle.db.execute(sql`delete from arrangement_audit_events where arrangement_id = ${id}`),
+      ).rejects.toThrow();
     });
   });
 }

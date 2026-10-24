@@ -157,6 +157,7 @@ Docker Compose 的完整步驟見 `docs/local-deployment.md`。
 | `WORKER_LEASE_SECONDS`、`WORKER_ARTIFACT_DIR` | worker 租約長度、artifact 目錄                                         |
 | `WORKER_LLM_MAX_CALLS`                        | 每個任務的審查器呼叫上限（目前只有假審查器）                           |
 | `WORKER_STAGE_DELAY_SECONDS`                  | 每階段延遲，只在 e2e 用來觀察進度                                      |
+| `AUTH_SIGN_IN_PER_MINUTE`                     | 密碼登入每分鐘次數上限（預設 10；e2e 設為 100）                        |
 | `TEST_DATABASE_URL`                           | 啟用 PostgreSQL 整合測試與資料庫模式 Playwright（**會清空該資料庫**）  |
 | `CHORDFLOW_ALLOW_DESTRUCTIVE_RESET=yes`       | `db:reset-test` 的安全閥                                               |
 | `GITLEAKS_IMAGE`                              | `pnpm secrets:check` 使用的映像（沙盒可改用 mirror.gcr.io）            |
@@ -235,7 +236,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
    - `compose.gpu-nvidia.yaml` 草稿（未驗證前不合併）。
    - 用合成訊號建立的評估 harness。
 3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
-4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器、權利稽核紀錄（審查差異比對已完成）、
+4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器（審查差異比對、權利稽核紀錄已完成）、
    審查器的結構化建議介面（Vertex 等付費 provider 必須是 opt-in，且有預算上限）。
 
 ## 12. 文件索引

@@ -355,7 +355,7 @@ export async function reviewJob(
         'Only the draft or a revision derived from it can be published from this job',
       );
     }
-    await publishRevision(tx, arrangementId, review.revisionId).catch(toApiProblem);
+    await publishRevision(tx, arrangementId, review.revisionId, admin.userId).catch(toApiProblem);
     await transition(tx, row, 'published', 'admin', { code: null });
     return review.revisionId;
   });

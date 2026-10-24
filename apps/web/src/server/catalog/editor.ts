@@ -14,6 +14,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { Database } from '../db/client';
 import * as t from '../db/schema';
+import { recordAudit, rightsSnapshot } from './audit';
 import { createPgCatalog } from './pg-repository';
 import { buildWorkSearchText } from './search-text';
 
@@ -55,6 +56,7 @@ export async function createArrangement(
   db: Database,
   input: NewArrangement,
   ownerUserId: string,
+  audit: { details?: Record<string, string> } = {},
 ): Promise<{ workId: string; arrangementId: string }> {
   assertVisibilityAllowed(input.visibility, input.rights);
   return db.transaction(async (tx) => {
@@ -104,6 +106,17 @@ export async function createArrangement(
       rightsAttribution: input.rights.attribution,
       rightsNotes: input.rights.notes,
     });
+    const after = await rightsSnapshot(tx, arrangementId);
+    if (after !== null) {
+      await recordAudit(tx, {
+        arrangementId,
+        actorUserId: ownerUserId,
+        action: 'created',
+        before: null,
+        after,
+        ...(audit.details === undefined ? {} : { details: audit.details }),
+      });
+    }
     return { workId, arrangementId };
   });
 }
@@ -114,22 +127,42 @@ export async function updateArrangementSettings(
   db: Database,
   arrangementId: string,
   input: z.infer<typeof ArrangementSettingsSchema>,
+  /** Who made the change (null for scripts); recorded in the audit log. */
+  actorUserId: string | null,
 ): Promise<void> {
   assertVisibilityAllowed(input.visibility, input.rights);
-  const updated = await db
-    .update(t.arrangements)
-    .set({
-      visibility: input.visibility,
-      rightsLyrics: input.rights.lyrics,
-      rightsChart: input.rights.chart,
-      rightsAudio: input.rights.audio,
-      rightsAttribution: input.rights.attribution,
-      rightsNotes: input.rights.notes,
-      updatedAt: sql`now()`,
-    })
-    .where(eq(t.arrangements.id, arrangementId))
-    .returning({ id: t.arrangements.id });
-  if (updated.length === 0) throw new EditorError('NOT_FOUND', 'Arrangement was not found');
+  await db.transaction(async (tx) => {
+    const [locked] = await tx
+      .select({ id: t.arrangements.id })
+      .from(t.arrangements)
+      .where(eq(t.arrangements.id, arrangementId))
+      .for('update');
+    if (!locked) throw new EditorError('NOT_FOUND', 'Arrangement was not found');
+    const before = await rightsSnapshot(tx, arrangementId);
+    await tx
+      .update(t.arrangements)
+      .set({
+        visibility: input.visibility,
+        rightsLyrics: input.rights.lyrics,
+        rightsChart: input.rights.chart,
+        rightsAudio: input.rights.audio,
+        rightsAttribution: input.rights.attribution,
+        rightsNotes: input.rights.notes,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(t.arrangements.id, arrangementId));
+    const after = await rightsSnapshot(tx, arrangementId);
+    // Saving identical settings is not a change and is not logged.
+    if (after !== null && JSON.stringify(before) !== JSON.stringify(after)) {
+      await recordAudit(tx, {
+        arrangementId,
+        actorUserId,
+        action: 'settings_changed',
+        before,
+        after,
+      });
+    }
+  });
 }
 
 export interface NewRevisionInput {
@@ -205,7 +238,13 @@ export async function createRevision(db: Database, input: NewRevisionInput) {
 }
 
 /** Publishes a revision: status → published and pointer moved, atomically. Idempotent. */
-export async function publishRevision(db: Database, arrangementId: string, revisionId: string) {
+export async function publishRevision(
+  db: Database,
+  arrangementId: string,
+  revisionId: string,
+  /** Who published (null for scripts); recorded in the audit log. */
+  actorUserId: string | null,
+) {
   return db.transaction(async (tx) => {
     const [locked] = await tx
       .select({ id: t.arrangements.id, pointer: t.arrangements.publishedRevisionId })
@@ -234,10 +273,22 @@ export async function publishRevision(db: Database, arrangementId: string, revis
         .set({ status: 'published' })
         .where(eq(t.chartRevisions.id, revisionId));
     }
+    const before = await rightsSnapshot(tx, arrangementId);
     await tx
       .update(t.arrangements)
       .set({ publishedRevisionId: revisionId, updatedAt: sql`now()` })
       .where(eq(t.arrangements.id, arrangementId));
+    const after = await rightsSnapshot(tx, arrangementId);
+    if (after !== null) {
+      await recordAudit(tx, {
+        arrangementId,
+        actorUserId,
+        action: 'revision_published',
+        before,
+        after,
+        details: { revisionId, revision: String(revision.revision) },
+      });
+    }
     return { publishedRevisionId: revisionId, changed: true };
   });
 }

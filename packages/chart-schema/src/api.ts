@@ -17,8 +17,8 @@ import { RecordingSyncSchema } from './recording-sync';
  * `data` schemas are shared with tests and published as OpenAPI/JSON Schema.
  */
 
-/** 1.1.0: personal library routes (`/me/*`); 1.2.0: job retry and worker status. Both additive. */
-export const API_VERSION = '1.2.0';
+/** 1.1.0: personal library (`/me/*`); 1.2.0: job retry, worker status; 1.3.0: rights audit. All additive. */
+export const API_VERSION = '1.3.0';
 
 export const ApiMetaSchema = z.strictObject({
   requestId: z.string().min(1).max(100),
@@ -291,4 +291,29 @@ export const InvitationAcceptRequestSchema = z.strictObject({
   email: z.string(),
   name: z.string(),
   password: z.string(),
+});
+
+// --- rights audit (admin) ------------------------------------------------------
+
+export const RightsSnapshotSchema = z.strictObject({
+  visibility: ArrangementSchema.shape.visibility,
+  rights: ArrangementSchema.shape.rights,
+  publishedRevisionId: OpaqueIdSchema.nullable(),
+});
+
+export const AuditEventSchema = z.strictObject({
+  id: z.int().min(1),
+  action: z.enum(['created', 'settings_changed', 'revision_published']),
+  /** `null` for scripts, or when the account was deleted. */
+  actor: z.strictObject({ id: OpaqueIdSchema, name: z.string() }).nullable(),
+  before: RightsSnapshotSchema.nullable(),
+  after: RightsSnapshotSchema,
+  details: z.record(z.string(), z.string()),
+  at: UtcTimestampSchema,
+});
+export type AuditEvent = z.infer<typeof AuditEventSchema>;
+
+export const ArrangementAuditDataSchema = z.strictObject({
+  arrangementId: OpaqueIdSchema,
+  events: z.array(AuditEventSchema),
 });

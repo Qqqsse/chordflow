@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "chordflow API",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Envelope: success `{ data, meta: { requestId, schemaVersion } }`, error `{ error: { code, message, details, requestId } }`. Hidden and missing resources both return 404."
   },
   "servers": [
@@ -1926,6 +1926,65 @@
           },
           "503": {
             "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arrangements/{id}/audit": {
+      "get": {
+        "summary": "Append-only history of visibility, rights and publication changes (admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Arrangement id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrangementAuditResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ARRANGEMENT_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
@@ -10221,6 +10280,327 @@
             "required": [
               "favorites",
               "recent"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ArrangementAuditResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "arrangementId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "created",
+                        "settings_changed",
+                        "revision_published"
+                      ]
+                    },
+                    "actor": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "before": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "visibility": {
+                              "type": "string",
+                              "enum": [
+                                "private",
+                                "shared",
+                                "public"
+                              ]
+                            },
+                            "rights": {
+                              "type": "object",
+                              "properties": {
+                                "lyrics": {
+                                  "type": "string",
+                                  "enum": [
+                                    "unknown",
+                                    "synthetic",
+                                    "owner_original",
+                                    "licensed",
+                                    "permission_granted",
+                                    "public_domain",
+                                    "not_permitted"
+                                  ]
+                                },
+                                "chart": {
+                                  "type": "string",
+                                  "enum": [
+                                    "unknown",
+                                    "synthetic",
+                                    "owner_original",
+                                    "licensed",
+                                    "permission_granted",
+                                    "public_domain",
+                                    "not_permitted"
+                                  ]
+                                },
+                                "audio": {
+                                  "type": "string",
+                                  "enum": [
+                                    "unknown",
+                                    "synthetic",
+                                    "owner_original",
+                                    "licensed",
+                                    "permission_granted",
+                                    "public_domain",
+                                    "not_permitted"
+                                  ]
+                                },
+                                "attribution": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "maxLength": 500
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "notes": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "maxLength": 2000
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "lyrics",
+                                "chart",
+                                "audio",
+                                "attribution",
+                                "notes"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "publishedRevisionId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "visibility",
+                            "rights",
+                            "publishedRevisionId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "after": {
+                      "type": "object",
+                      "properties": {
+                        "visibility": {
+                          "type": "string",
+                          "enum": [
+                            "private",
+                            "shared",
+                            "public"
+                          ]
+                        },
+                        "rights": {
+                          "type": "object",
+                          "properties": {
+                            "lyrics": {
+                              "type": "string",
+                              "enum": [
+                                "unknown",
+                                "synthetic",
+                                "owner_original",
+                                "licensed",
+                                "permission_granted",
+                                "public_domain",
+                                "not_permitted"
+                              ]
+                            },
+                            "chart": {
+                              "type": "string",
+                              "enum": [
+                                "unknown",
+                                "synthetic",
+                                "owner_original",
+                                "licensed",
+                                "permission_granted",
+                                "public_domain",
+                                "not_permitted"
+                              ]
+                            },
+                            "audio": {
+                              "type": "string",
+                              "enum": [
+                                "unknown",
+                                "synthetic",
+                                "owner_original",
+                                "licensed",
+                                "permission_granted",
+                                "public_domain",
+                                "not_permitted"
+                              ]
+                            },
+                            "attribution": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 500
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "notes": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 2000
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "lyrics",
+                            "chart",
+                            "audio",
+                            "attribution",
+                            "notes"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "publishedRevisionId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "visibility",
+                        "rights",
+                        "publishedRevisionId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "details": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "action",
+                    "actor",
+                    "before",
+                    "after",
+                    "details",
+                    "at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "arrangementId",
+              "events"
             ],
             "additionalProperties": false
           },

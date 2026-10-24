@@ -102,7 +102,12 @@ export function libraryIntegrationSuite(getHandle: () => DatabaseHandle): void {
       const id = await newArrangement(admin.userId, '之後改為私人', 'public');
       await setFavorite(db, member, id, true);
       await recordView(db, member, id);
-      await updateArrangementSettings(db, id, { visibility: 'private', rights: synthetic });
+      await updateArrangementSettings(
+        db,
+        id,
+        { visibility: 'private', rights: synthetic },
+        admin.userId,
+      );
       const library = await getLibrary(db, member);
       expect(library.favorites.map((f) => f.arrangement.id)).not.toContain(id);
       expect(library.recent.map((r) => r.arrangement.id)).not.toContain(id);

@@ -29,6 +29,8 @@ const dbEnv = {
   ADMIN_NAME: E2E_ADMIN.name,
   ADMIN_PASSWORD: E2E_ADMIN.password,
   WORKER_TOKEN: E2E_WORKER_TOKEN,
+  // The database-mode specs sign in more than the production limit (10/min) allows.
+  AUTH_SIGN_IN_PER_MINUTE: '100',
 };
 
 export default defineConfig({

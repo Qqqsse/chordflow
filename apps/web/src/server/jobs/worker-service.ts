@@ -289,7 +289,9 @@ export async function completeJob(
     const running = row.state === 'leased' ? await transition(tx, row, 'running', 'worker') : row;
     let created: { arrangementId: string };
     try {
-      created = await createArrangement(tx, row.request.target, row.createdBy);
+      created = await createArrangement(tx, row.request.target, row.createdBy, {
+        details: { via: 'generation_job', jobId },
+      });
     } catch (error) {
       if (!(error instanceof EditorError)) throw error;
       return reject([{ code: 'UNKNOWN_REFERENCE', path: ['target'], message: error.message }]);

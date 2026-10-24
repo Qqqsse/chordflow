@@ -15,6 +15,20 @@ import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, hashPassword, verifyPassword 
 export interface AuthConfig {
   baseURL: string;
   secret: string;
+  /** Password sign-in attempts per minute per client (brute-force guard). */
+  signInPerMinute: number;
+}
+
+export const DEFAULT_SIGN_IN_PER_MINUTE = 10;
+
+/** AUTH_SIGN_IN_PER_MINUTE: 1–1000, default 10. Anything else is a configuration error. */
+export function parseSignInLimit(value: string | undefined): number {
+  if (value === undefined || value.trim() === '') return DEFAULT_SIGN_IN_PER_MINUTE;
+  const limit = Number(value);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 1000) {
+    throw new Error('AUTH_SIGN_IN_PER_MINUTE must be an integer between 1 and 1000');
+  }
+  return limit;
 }
 
 export function readAuthConfig(env: Readonly<Record<string, string | undefined>>): AuthConfig {
@@ -22,7 +36,7 @@ export function readAuthConfig(env: Readonly<Record<string, string | undefined>>
   const secret = env.BETTER_AUTH_SECRET ?? '';
   if (!/^https?:\/\//.test(baseURL)) throw new Error('APP_BASE_URL must be an http(s) URL');
   if (secret.length < 32) throw new Error('BETTER_AUTH_SECRET must be at least 32 characters');
-  return { baseURL, secret };
+  return { baseURL, secret, signInPerMinute: parseSignInLimit(env.AUTH_SIGN_IN_PER_MINUTE) };
 }
 
 export function createAuth(db: Database, config: AuthConfig) {
@@ -62,8 +76,8 @@ export function createAuth(db: Database, config: AuthConfig) {
       window: 60,
       max: 300,
       storage: 'memory',
-      // Brute-force guard for password sign-in: 10 attempts per minute per client.
-      customRules: { '/sign-in/email': { window: 60, max: 10 } },
+      // Brute-force guard for password sign-in (default 10 attempts per minute per client).
+      customRules: { '/sign-in/email': { window: 60, max: config.signInPerMinute } },
     },
     advanced: {
       useSecureCookies: config.baseURL.startsWith('https://'),
