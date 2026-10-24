@@ -387,10 +387,10 @@
     "mode": "recommended",
     "defaultDifficulty": "easy",
     "symbolDefaults": {
-      "Cadd9": "v_cadd9_x32033"
+      "Cadd9": "v_x32033"
     },
     "occurrenceOverrides": {
-      "fz_c033": "v_c_x35553"
+      "fz_c033": "v_x35553"
     }
   },
   "importMetadata": {

@@ -1,0 +1,17 @@
+{
+  "name": "@chordflow/guitar-voicings",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Validated guitar voicings, deterministic recommendation and chord-diagram geometry.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chordflow/music-theory": "workspace:*"
+  }
+}

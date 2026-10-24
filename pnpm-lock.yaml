@@ -95,6 +95,12 @@ importers:
         specifier: workspace:*
         version: link:../music-theory
 
+  packages/guitar-voicings:
+    dependencies:
+      '@chordflow/music-theory':
+        specifier: workspace:*
+        version: link:../music-theory
+
   packages/music-theory:
     devDependencies:
       fast-check:

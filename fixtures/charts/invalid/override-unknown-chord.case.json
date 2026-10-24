@@ -65,7 +65,7 @@
       "mode": "recommended",
       "defaultDifficulty": "easy",
       "occurrenceOverrides": {
-        "ch_missing": "v_c_x32010"
+        "ch_missing": "v_x32010"
       }
     },
     "importMetadata": {
