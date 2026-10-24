@@ -1,9 +1,12 @@
+import { API_VERSION } from '@chordflow/chart-schema';
+
 /**
  * Single response envelope shared by every `/api/v1` route (SPEC §10).
  * Success: `{ data, meta }`. Error: `{ error: { code, message, details, requestId } }`.
  */
 
-export const API_SCHEMA_VERSION = '1.0.0';
+/** Envelope `meta.schemaVersion`: the REST contract version from @chordflow/chart-schema. */
+export const API_SCHEMA_VERSION = API_VERSION;
 
 export const REQUEST_ID_HEADER = 'x-request-id';
 

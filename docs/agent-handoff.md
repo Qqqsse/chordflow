@@ -13,7 +13,7 @@
 | M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
 | M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001，已接受）                               |
 | M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
-| M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（使用者看譜偏好與收藏 API 待做）  | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
+| M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（含個人譜庫與 CSP）               | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
 | M7 生成任務與 CPU mock worker   | **完成**                                   | 見 `docs/generation-jobs.md`                                            |
 
 ## 目前已有的內容
@@ -99,6 +99,13 @@
 | 703b4e5 | fix(auth): allow normal browsing under the auth rate limit                 |
 | 0909687 | feat(admin): generate demo chart, live job status and draft review UI      |
 | ce02303 | ci(security): allowlist synthetic worker lease tokens for gitleaks         |
+| 67a999a | docs: generation jobs and worker guide; record M7 in handoff               |
+| c1a5d0c | docs: agent onboarding guide; add local secret scan to the quality gate    |
+| 5b45b6f | chore: set copyright holder, accept ADR-001, document main branch flow     |
+| 0408581 | Merge pull request #1（`main` 首次合併）                                   |
+| b87196f | feat(library): favorites, recent charts and saved viewer preferences API   |
+| 4cc48d9 | feat(library): favorite toggle, saved viewer settings and library page     |
+| 388d218 | feat(security): same-origin Content-Security-Policy                        |
 
 ## 驗證結果（本 session，本機）
 
@@ -108,9 +115,9 @@
 | `pnpm format:check`                                                               | 通過                                                                                                                                          |
 | `pnpm lint`                                                                       | 通過，0 個警告                                                                                                                                |
 | `pnpm typecheck`                                                                  | 通過                                                                                                                                          |
-| `TEST_DATABASE_URL=… pnpm test`                                                   | 34 個檔案、704 個測試通過（含 48 個 PostgreSQL 整合測試；M7 後）                                                                              |
+| `TEST_DATABASE_URL=… pnpm test`                                                   | 37 個檔案、730 個測試通過（含 53 個 PostgreSQL 整合測試；個人譜庫與 CSP 後）                                                                  |
 | `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                                             |
-| `TEST_DATABASE_URL=… CI=1 pnpm exec playwright test`                              | 45 個通過（demo 36 + 資料庫模式 9，其中一個啟動真正的 Python worker；M7 後）                                                                  |
+| `TEST_DATABASE_URL=… CI=1 pnpm exec playwright test`                              | 50 個通過（demo 38 + 資料庫模式 12，其中一個啟動真正的 Python worker）                                                                        |
 | `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 95 個通過（M7 後）                                                                                                                            |
 | `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                                         |
 | `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                                          |
@@ -134,8 +141,8 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 - Run 3（`03754f1`，https://github.com/Qqqsse/chordflow/actions/runs/40014177668）：4 個 job 全部通過
   （web、worker、compose build、security）。
-- `playwright install --with-deps chromium` 佔了 web job 約 13 分鐘中的約 12 分鐘。可考慮以 Playwright 版本為 key
-  快取 `~/.cache/ms-playwright`，或改用官方 Playwright 容器映像。
+- `playwright install --with-deps chromium` 早期佔了 web job 約 12 分鐘；近期 run（例如 run 21）只需約 25 秒，
+  因此不再加快取。
 
 ## 值得知道的決策
 
@@ -153,7 +160,11 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
   密碼登入維持每分鐘 10 次。
 - LICENSE：MIT，「Copyright (c) 2026 Chen-Wei, Liu」（擁有者 2026-10-24 指定）。
 - ADR-001 已由擁有者接受（2026-10-24）。
-- `main` 於 2026-10-24 由 `c1a5d0c` 建立為穩定分支；之後經 PR 合併。
+- `main` 於 2026-10-24 由 `c1a5d0c` 建立為穩定分支；之後經 PR 合併（PR #1 已合併，`0408581`）。
+  免費方案不強制分支保護，規則寫在 `AGENTS.md`。
+- 個人譜庫：看譜設定只在登入時於瀏覽器端讀寫（伺服器渲染的 HTML 不含個人資料）；載入完成前讀者已調整的設定不會被覆蓋；
+  儲存的資料不符合契約時忽略（回到預設），不猜測。
+- CSP 允許 inline script／style，理由與緩解見 ADR-002（提案，`docs/security-and-rights.md`）。
 - 文件以繁體中文為主（擁有者要求）；`SPEC.md` 與 `docs/claude-code-kickoff.md` 為擁有者提供的原始文件，
   保持原樣。程式碼註解、識別字、JSON key 與 API 路徑維持英文。
 
@@ -167,7 +178,6 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 主機與授權音訊；雲端 session 不做 CUDA 安裝或模型下載。
    可先在雲端準備：授權音訊上傳的 SourceProvider 介面、`compose.gpu-nvidia.yaml` 草稿（不驗證就不合併）、
    原曲 vs 分離音軌的評估 harness（用合成訊號）。
-3. M6／M7 補完：使用者看譜偏好與收藏 API、CSP 標頭、使用者端「重試」按鈕、worker 狀態頁、
-   web 端 artifact 位元組驗證（共用 volume 時）、多程序部署的限速共用儲存。
+3. M7 補完：使用者端「重試」按鈕、worker 狀態頁、web 端 artifact 位元組驗證（共用 volume 時）、
+   多程序部署的限速共用儲存。
 4. M9（可在雲端進行的部分）：和弦位置／段落編輯器、審查差異比對、權利稽核紀錄。
-5. CI：快取 Playwright 瀏覽器（目前約佔 web job 的大部分時間）。

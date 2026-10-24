@@ -2,14 +2,19 @@
 
 import type { ChartDocument } from '@chordflow/chart-schema';
 import { transposeChartDisplay } from '@chordflow/music-theory';
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { ChordSheet } from './chord-sheet';
 import { ViewerControls } from './viewer-controls';
 import { PagedSheet } from './paged-sheet';
 import { PlayerBar } from './player-bar';
 import { useAutoscroll } from './use-autoscroll';
 import { VoicingStrip } from './voicing-strip';
-import { DEFAULT_VIEWER_STATE, viewerReducer, type ViewerAction } from './viewer-state';
+import {
+  DEFAULT_VIEWER_STATE,
+  viewerReducer,
+  type ViewerAction,
+  type ViewerState,
+} from './viewer-state';
 
 /** Keyboard shortcuts; ignored while typing in a form field. */
 export const VIEWER_SHORTCUTS: Readonly<Record<string, ViewerAction>> = {
@@ -22,8 +27,24 @@ export const VIEWER_SHORTCUTS: Readonly<Record<string, ViewerAction>> = {
 /** Autoscroll toggle key (handled separately because it is not a reducer action). */
 export const AUTOSCROLL_KEY = 'p';
 
-export function ChartViewer({ chart }: { chart: ChartDocument }) {
-  const [state, dispatch] = useReducer(viewerReducer, DEFAULT_VIEWER_STATE);
+export function ChartViewer({
+  chart,
+  initialState = DEFAULT_VIEWER_STATE,
+  onStateChange,
+}: {
+  chart: ChartDocument;
+  /** e.g. the signed-in reader's saved preferences. */
+  initialState?: ViewerState;
+  /** Called after each change made by the reader (not for the initial state). */
+  onStateChange?: (state: ViewerState) => void;
+}) {
+  const [state, dispatch] = useReducer(viewerReducer, initialState);
+  const reported = useRef(state);
+  useEffect(() => {
+    if (reported.current === state) return;
+    reported.current = state;
+    onStateChange?.(state);
+  }, [state, onStateChange]);
   const autoscroll = useAutoscroll(state.scrollSpeed);
   const { toggle: toggleAutoscroll } = autoscroll;
   const notation = chart.concertKey === null ? 'letters' : state.notation;

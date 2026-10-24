@@ -80,7 +80,17 @@
 | `POST /worker/jobs/{id}/complete`  | 驗證草稿與 manifest 後建立待審查修訂；重送相同內容回傳相同結果    |
 | `POST /worker/jobs/{id}/fail`      | 型別化錯誤；可重試錯誤以指數退避重新排隊                          |
 
-尚未實作：使用者看譜偏好與收藏的 API。
+### 個人譜庫（只在資料庫模式；需登入；寫入需同源）
+
+| 路由                               | 說明                                                                                    |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| `GET /me/library`                  | 收藏與最近開啟（最多 20 筆）；只列出目前仍看得到的編曲                                  |
+| `GET /me/favorites/{id}`           | 是否已收藏                                                                              |
+| `PUT`／`DELETE /me/favorites/{id}` | 加入／移除收藏；可重複呼叫；加入時編曲必須看得到（否則 404）                            |
+| `GET`／`PUT /me/preferences/{id}`  | 讀取／儲存看譜設定（UserChartPreference v1，`ViewerPreferencesSchema`）；不會改動和弦譜 |
+| `POST /me/recent/{id}`             | 記錄開啟；每位使用者只保留最新 20 筆（204）                                             |
+
+API 契約版本 1.1.0（新增個人譜庫路由，向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
 
 ## 搜尋
 

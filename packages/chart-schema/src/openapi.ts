@@ -41,6 +41,12 @@ import {
   WorkerHeartbeatDataSchema,
   WorkerHeartbeatRequestSchema,
 } from './generation';
+import {
+  FavoriteDataSchema,
+  LibraryDataSchema,
+  ViewerPreferencesDataSchema,
+  ViewerPreferencesSchema,
+} from './library';
 
 /*
  * OpenAPI 3.1 document for the `/api/v1` contract (SPEC §10), generated from
@@ -94,6 +100,10 @@ const COMPONENTS = {
   WorkerCompleteResponse: envelopeOf(WorkerCompleteDataSchema),
   WorkerFailRequest: WorkerFailRequestSchema,
   WorkerFailResponse: envelopeOf(WorkerFailDataSchema),
+  LibraryResponse: envelopeOf(LibraryDataSchema),
+  FavoriteResponse: envelopeOf(FavoriteDataSchema),
+  ViewerPreferences: ViewerPreferencesSchema,
+  ViewerPreferencesResponse: envelopeOf(ViewerPreferencesDataSchema),
 } as const;
 
 const ref = (name: keyof typeof COMPONENTS) => ({ $ref: `#/components/schemas/${name}` });
@@ -441,6 +451,70 @@ export function buildOpenApi(): Json {
             409: errorResponse('LEASE_LOST'),
           },
         }),
+      },
+      '/me/library': {
+        get: {
+          summary:
+            'Favorites and recently opened charts of the signed-in user (still-visible only)',
+          responses: {
+            200: okResponse('LibraryResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            404: errorResponse('Not available in demo mode'),
+          },
+        },
+      },
+      '/me/favorites/{id}': {
+        get: {
+          summary: 'Whether the signed-in user has favorited this arrangement',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: { 200: okResponse('FavoriteResponse'), 401: errorResponse('UNAUTHENTICATED') },
+        },
+        put: {
+          summary: 'Add a visible arrangement to favorites; idempotent',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: {
+            200: okResponse('FavoriteResponse'),
+            ...WRITE_ERRORS,
+            404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
+        delete: {
+          summary: 'Remove from favorites; idempotent',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: { 200: okResponse('FavoriteResponse'), ...WRITE_ERRORS },
+        },
+      },
+      '/me/preferences/{id}': {
+        get: {
+          summary: 'Saved viewer preferences for one arrangement (null when none)',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: {
+            200: okResponse('ViewerPreferencesResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
+        put: {
+          summary: 'Save viewer preferences (UserChartPreference v1); never changes the chart',
+          parameters: [idParam('id', 'Arrangement id')],
+          requestBody: jsonBody('ViewerPreferences'),
+          responses: {
+            200: okResponse('ViewerPreferencesResponse'),
+            ...WRITE_ERRORS,
+            404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
+      },
+      '/me/recent/{id}': {
+        post: {
+          summary: 'Record that the signed-in user opened this arrangement (keeps the newest 20)',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: {
+            204: { description: 'Recorded' },
+            ...WRITE_ERRORS,
+            404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
       },
     },
     components: {

@@ -2,7 +2,7 @@
 
 import type { GenerationJobView } from '@chordflow/chart-schema';
 import { useCallback, useEffect, useState } from 'react';
-import { getJson, postJson } from './http';
+import { getJson, postJson } from '@/lib/api/client';
 import { JOB_ERROR_LABEL, JOB_STATUS_LABEL, LIVE_STATUSES, STAGE_LABEL } from './labels';
 
 const POLL_MS = 1500;

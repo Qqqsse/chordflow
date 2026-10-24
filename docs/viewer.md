@@ -33,7 +33,8 @@
 - **保持音高**：聲音不變，按法跟著移調夾改變（預設）。
 - **保持按法**：按法不變，聲音跟著移調夾改變。
 
-調性未知時級數按鈕停用，並顯示說明文字。目前 ViewerState 不會被保存；使用者偏好（UserChartPreference）在 M6 接上。
+調性未知時級數按鈕停用，並顯示說明文字。登入的讀者在曲庫譜頁（`/charts/[id]`）的 ViewerState 會儲存為
+UserChartPreference v1（`viewer-preferences.ts`），下次開啟時還原；demo 頁與未登入時不保存。
 
 ## 快捷鍵
 

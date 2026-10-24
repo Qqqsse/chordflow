@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ROLE_LABEL, VARIANT_LABEL } from '@/components/catalog/labels';
 import { SaveOfflineButton } from '@/components/offline/save-offline-button';
-import { ChartViewer } from '@/components/viewer/chart-viewer';
+import { AccountChartViewer } from '@/components/library/account-chart-viewer';
 import { ApiProblem } from '@/lib/api/handler';
 import { getPrincipalFromHeaders } from '@/server/auth/principal';
 import { getCatalog } from '@/server/catalog';
@@ -61,7 +61,7 @@ export default async function ChartPage({ params }: Props) {
         chart={chart}
         meta={{ arrangementName: arrangement.name, credits: creditLine === '' ? null : creditLine }}
       />
-      <ChartViewer chart={chart} />
+      <AccountChartViewer chart={chart} arrangementId={arrangement.id} />
     </article>
   );
 }

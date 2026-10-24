@@ -7,6 +7,7 @@ export * from './generation';
 export * from './graphemes';
 export * from './issues';
 export * from './jobs';
+export * from './library';
 export * from './openapi';
 export * from './primitives';
 export * from './recording-sync';
