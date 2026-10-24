@@ -968,9 +968,827 @@
           }
         }
       }
+    },
+    "/generation-jobs": {
+      "post": {
+        "summary": "Submit a generation job (members, quota-limited); same idempotency key or equivalent active request returns the existing job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationJobCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing job reused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobCreatedResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobCreatedResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN or CSRF_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not available in demo mode, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "IDEMPOTENCY_CONFLICT (key reused with a different request)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED or SOURCE_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "QUOTA_EXCEEDED or RATE_LIMITED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Recent jobs: own jobs, or all jobs for administrators",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN or CSRF_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not available in demo mode, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generation-jobs/{id}": {
+      "get": {
+        "summary": "Job status, limited progress, typed error and draft ids (owner/admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "JOB_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generation-jobs/{id}/result": {
+      "get": {
+        "summary": "Draft revision, quality report and artifact manifest (owner/admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobResultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "JOB_NOT_FOUND or RESULT_NOT_AVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generation-jobs/{id}/cancel": {
+      "post": {
+        "summary": "Cancel a job that has not produced a draft yet (owner/admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN or CSRF_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not available in demo mode, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "JOB_STATE_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generation-jobs/{id}/review": {
+      "post": {
+        "summary": "Publish the draft (or a revision derived from it) or reject it (admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationJobReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobReviewResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN or CSRF_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not available in demo mode, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "JOB_STATE_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "PUBLISH_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worker/jobs/claim": {
+      "post": {
+        "summary": "Atomically lease the next eligible job (expired leases are requeued first)",
+        "security": [
+          {
+            "workerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerClaimRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerClaimResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (missing or wrong worker token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worker/jobs/{id}/heartbeat": {
+      "post": {
+        "summary": "Renew the lease and report progress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "security": [
+          {
+            "workerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerHeartbeatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerHeartbeatResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (missing or wrong worker token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "LEASE_LOST (expired, reassigned or job cancelled)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worker/jobs/{id}/complete": {
+      "post": {
+        "summary": "Submit the draft, quality report and artifact manifest; repeating the same completion returns the same outcome",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "security": [
+          {
+            "workerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerCompleteResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (missing or wrong worker token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "LEASE_LOST",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "ARTIFACT_VALIDATION_FAILED (job fails terminally)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worker/jobs/{id}/fail": {
+      "post": {
+        "summary": "Report a typed failure; retryable failures are requeued with backoff",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "security": [
+          {
+            "workerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerFailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerFailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (missing or wrong worker token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "LEASE_LOST",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "workerToken": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
       "Error": {
         "type": "object",
@@ -4534,6 +5352,3897 @@
           "email",
           "name",
           "password"
+        ],
+        "additionalProperties": false
+      },
+      "GenerationJobCreateRequest": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{8,100}$"
+          },
+          "input": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "reference_lyrics"
+                  },
+                  "lyrics": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000
+                  },
+                  "language": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                  },
+                  "concertKey": {
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-G](#|b)?m?$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "seed": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  }
+                },
+                "required": [
+                  "kind",
+                  "lyrics",
+                  "language",
+                  "concertKey",
+                  "seed"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "source_reference"
+                  },
+                  "sourceReferenceId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "sourceReferenceId"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "options": {
+            "default": {
+              "processor": "mock",
+              "llmReview": "disabled"
+            },
+            "type": "object",
+            "properties": {
+              "processor": {
+                "default": "mock",
+                "type": "string",
+                "enum": [
+                  "mock"
+                ]
+              },
+              "llmReview": {
+                "default": "disabled",
+                "type": "string",
+                "enum": [
+                  "disabled",
+                  "fake"
+                ]
+              }
+            },
+            "required": [
+              "processor",
+              "llmReview"
+            ],
+            "additionalProperties": false
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "work": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "titleAliases": {
+                        "default": [],
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        }
+                      },
+                      "language": {
+                        "default": null,
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 35
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "artistName": {
+                        "default": null,
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "titleAliases",
+                      "language",
+                      "artistName"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "variant": {
+                "default": "original",
+                "type": "string",
+                "enum": [
+                  "original",
+                  "simplified",
+                  "capo_friendly",
+                  "other"
+                ]
+              },
+              "visibility": {
+                "default": "private",
+                "type": "string",
+                "enum": [
+                  "private",
+                  "shared",
+                  "public"
+                ]
+              },
+              "rights": {
+                "type": "object",
+                "properties": {
+                  "lyrics": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "chart": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "audio": {
+                    "type": "string",
+                    "enum": [
+                      "unknown",
+                      "synthetic",
+                      "owner_original",
+                      "licensed",
+                      "permission_granted",
+                      "public_domain",
+                      "not_permitted"
+                    ]
+                  },
+                  "attribution": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "lyrics",
+                  "chart",
+                  "audio",
+                  "attribution",
+                  "notes"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "work",
+              "name",
+              "variant",
+              "visibility",
+              "rights"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "idempotencyKey",
+          "input",
+          "options",
+          "target"
+        ],
+        "additionalProperties": false
+      },
+      "GenerationJobCreatedResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "not_available",
+                      "queued",
+                      "waiting_for_worker",
+                      "processing",
+                      "needs_review",
+                      "completed",
+                      "failed",
+                      "cancelled"
+                    ]
+                  },
+                  "internalState": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "created",
+                          "validated",
+                          "queued",
+                          "leased",
+                          "running",
+                          "failed_retryable",
+                          "draft_ready",
+                          "needs_review",
+                          "published",
+                          "failed_terminal",
+                          "cancelled"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "inputKind": {
+                    "type": "string",
+                    "enum": [
+                      "reference_lyrics",
+                      "source_reference"
+                    ]
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "processor": {
+                        "default": "mock",
+                        "type": "string",
+                        "enum": [
+                          "mock"
+                        ]
+                      },
+                      "llmReview": {
+                        "default": "disabled",
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "processor",
+                      "llmReview"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "progress": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "stage": {
+                            "type": "string",
+                            "enum": [
+                              "resolve_source",
+                              "decode_and_probe_audio",
+                              "chord_recognition",
+                              "lyric_alignment",
+                              "fusion",
+                              "rule_validator",
+                              "llm_reviewer",
+                              "draft_producer"
+                            ]
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "stage",
+                          "fraction"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "attempt": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxAttempts": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "SOURCE_NOT_AUTHORIZED",
+                              "SOURCE_UNSUPPORTED",
+                              "AUDIO_NOT_AVAILABLE",
+                              "AUDIO_INVALID",
+                              "AUDIO_TOO_LONG",
+                              "ALIGNMENT_LOW_CONFIDENCE",
+                              "MODEL_UNAVAILABLE",
+                              "ARTIFACT_VALIDATION_FAILED",
+                              "LEASE_EXPIRED",
+                              "RETRY_LIMIT_EXCEEDED",
+                              "LLM_BUDGET_EXCEEDED",
+                              "INTERNAL_ERROR"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "retryable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "draft": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "arrangementId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "revisionId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          }
+                        },
+                        "required": [
+                          "arrangementId",
+                          "revisionId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status",
+                  "internalState",
+                  "title",
+                  "inputKind",
+                  "options",
+                  "progress",
+                  "attempt",
+                  "maxAttempts",
+                  "error",
+                  "draft",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              "reused": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "job",
+              "reused"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "GenerationJobResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "not_available",
+                      "queued",
+                      "waiting_for_worker",
+                      "processing",
+                      "needs_review",
+                      "completed",
+                      "failed",
+                      "cancelled"
+                    ]
+                  },
+                  "internalState": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "created",
+                          "validated",
+                          "queued",
+                          "leased",
+                          "running",
+                          "failed_retryable",
+                          "draft_ready",
+                          "needs_review",
+                          "published",
+                          "failed_terminal",
+                          "cancelled"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "inputKind": {
+                    "type": "string",
+                    "enum": [
+                      "reference_lyrics",
+                      "source_reference"
+                    ]
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "processor": {
+                        "default": "mock",
+                        "type": "string",
+                        "enum": [
+                          "mock"
+                        ]
+                      },
+                      "llmReview": {
+                        "default": "disabled",
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "processor",
+                      "llmReview"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "progress": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "stage": {
+                            "type": "string",
+                            "enum": [
+                              "resolve_source",
+                              "decode_and_probe_audio",
+                              "chord_recognition",
+                              "lyric_alignment",
+                              "fusion",
+                              "rule_validator",
+                              "llm_reviewer",
+                              "draft_producer"
+                            ]
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "stage",
+                          "fraction"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "attempt": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxAttempts": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "SOURCE_NOT_AUTHORIZED",
+                              "SOURCE_UNSUPPORTED",
+                              "AUDIO_NOT_AVAILABLE",
+                              "AUDIO_INVALID",
+                              "AUDIO_TOO_LONG",
+                              "ALIGNMENT_LOW_CONFIDENCE",
+                              "MODEL_UNAVAILABLE",
+                              "ARTIFACT_VALIDATION_FAILED",
+                              "LEASE_EXPIRED",
+                              "RETRY_LIMIT_EXCEEDED",
+                              "LLM_BUDGET_EXCEEDED",
+                              "INTERNAL_ERROR"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "retryable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "draft": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "arrangementId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "revisionId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          }
+                        },
+                        "required": [
+                          "arrangementId",
+                          "revisionId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status",
+                  "internalState",
+                  "title",
+                  "inputKind",
+                  "options",
+                  "progress",
+                  "attempt",
+                  "maxAttempts",
+                  "error",
+                  "draft",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "created",
+                            "validated",
+                            "queued",
+                            "leased",
+                            "running",
+                            "failed_retryable",
+                            "draft_ready",
+                            "needs_review",
+                            "published",
+                            "failed_terminal",
+                            "cancelled"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": [
+                        "created",
+                        "validated",
+                        "queued",
+                        "leased",
+                        "running",
+                        "failed_retryable",
+                        "draft_ready",
+                        "needs_review",
+                        "published",
+                        "failed_terminal",
+                        "cancelled"
+                      ]
+                    },
+                    "attempt": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "actor": {
+                      "type": "string",
+                      "enum": [
+                        "user",
+                        "worker",
+                        "system",
+                        "admin"
+                      ]
+                    },
+                    "code": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "attempt",
+                    "actor",
+                    "code",
+                    "at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "job",
+              "events"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "GenerationJobListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "not_available",
+                        "queued",
+                        "waiting_for_worker",
+                        "processing",
+                        "needs_review",
+                        "completed",
+                        "failed",
+                        "cancelled"
+                      ]
+                    },
+                    "internalState": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "created",
+                            "validated",
+                            "queued",
+                            "leased",
+                            "running",
+                            "failed_retryable",
+                            "draft_ready",
+                            "needs_review",
+                            "published",
+                            "failed_terminal",
+                            "cancelled"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "inputKind": {
+                      "type": "string",
+                      "enum": [
+                        "reference_lyrics",
+                        "source_reference"
+                      ]
+                    },
+                    "options": {
+                      "type": "object",
+                      "properties": {
+                        "processor": {
+                          "default": "mock",
+                          "type": "string",
+                          "enum": [
+                            "mock"
+                          ]
+                        },
+                        "llmReview": {
+                          "default": "disabled",
+                          "type": "string",
+                          "enum": [
+                            "disabled",
+                            "fake"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "processor",
+                        "llmReview"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "progress": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "stage": {
+                              "type": "string",
+                              "enum": [
+                                "resolve_source",
+                                "decode_and_probe_audio",
+                                "chord_recognition",
+                                "lyric_alignment",
+                                "fusion",
+                                "rule_validator",
+                                "llm_reviewer",
+                                "draft_producer"
+                              ]
+                            },
+                            "fraction": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "stage",
+                            "fraction"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "attempt": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "maxAttempts": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string",
+                              "enum": [
+                                "SOURCE_NOT_AUTHORIZED",
+                                "SOURCE_UNSUPPORTED",
+                                "AUDIO_NOT_AVAILABLE",
+                                "AUDIO_INVALID",
+                                "AUDIO_TOO_LONG",
+                                "ALIGNMENT_LOW_CONFIDENCE",
+                                "MODEL_UNAVAILABLE",
+                                "ARTIFACT_VALIDATION_FAILED",
+                                "LEASE_EXPIRED",
+                                "RETRY_LIMIT_EXCEEDED",
+                                "LLM_BUDGET_EXCEEDED",
+                                "INTERNAL_ERROR"
+                              ]
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "retryable": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message",
+                            "retryable"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "draft": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "arrangementId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "revisionId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            }
+                          },
+                          "required": [
+                            "arrangementId",
+                            "revisionId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "internalState",
+                    "title",
+                    "inputKind",
+                    "options",
+                    "progress",
+                    "attempt",
+                    "maxAttempts",
+                    "error",
+                    "draft",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "items"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "GenerationJobResultResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "not_available",
+                      "queued",
+                      "waiting_for_worker",
+                      "processing",
+                      "needs_review",
+                      "completed",
+                      "failed",
+                      "cancelled"
+                    ]
+                  },
+                  "internalState": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "created",
+                          "validated",
+                          "queued",
+                          "leased",
+                          "running",
+                          "failed_retryable",
+                          "draft_ready",
+                          "needs_review",
+                          "published",
+                          "failed_terminal",
+                          "cancelled"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "inputKind": {
+                    "type": "string",
+                    "enum": [
+                      "reference_lyrics",
+                      "source_reference"
+                    ]
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "processor": {
+                        "default": "mock",
+                        "type": "string",
+                        "enum": [
+                          "mock"
+                        ]
+                      },
+                      "llmReview": {
+                        "default": "disabled",
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "processor",
+                      "llmReview"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "progress": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "stage": {
+                            "type": "string",
+                            "enum": [
+                              "resolve_source",
+                              "decode_and_probe_audio",
+                              "chord_recognition",
+                              "lyric_alignment",
+                              "fusion",
+                              "rule_validator",
+                              "llm_reviewer",
+                              "draft_producer"
+                            ]
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "stage",
+                          "fraction"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "attempt": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxAttempts": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "SOURCE_NOT_AUTHORIZED",
+                              "SOURCE_UNSUPPORTED",
+                              "AUDIO_NOT_AVAILABLE",
+                              "AUDIO_INVALID",
+                              "AUDIO_TOO_LONG",
+                              "ALIGNMENT_LOW_CONFIDENCE",
+                              "MODEL_UNAVAILABLE",
+                              "ARTIFACT_VALIDATION_FAILED",
+                              "LEASE_EXPIRED",
+                              "RETRY_LIMIT_EXCEEDED",
+                              "LLM_BUDGET_EXCEEDED",
+                              "INTERNAL_ERROR"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "retryable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "draft": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "arrangementId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "revisionId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          }
+                        },
+                        "required": [
+                          "arrangementId",
+                          "revisionId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status",
+                  "internalState",
+                  "title",
+                  "inputKind",
+                  "options",
+                  "progress",
+                  "attempt",
+                  "maxAttempts",
+                  "error",
+                  "draft",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "created",
+                            "validated",
+                            "queued",
+                            "leased",
+                            "running",
+                            "failed_retryable",
+                            "draft_ready",
+                            "needs_review",
+                            "published",
+                            "failed_terminal",
+                            "cancelled"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": [
+                        "created",
+                        "validated",
+                        "queued",
+                        "leased",
+                        "running",
+                        "failed_retryable",
+                        "draft_ready",
+                        "needs_review",
+                        "published",
+                        "failed_terminal",
+                        "cancelled"
+                      ]
+                    },
+                    "attempt": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "actor": {
+                      "type": "string",
+                      "enum": [
+                        "user",
+                        "worker",
+                        "system",
+                        "admin"
+                      ]
+                    },
+                    "code": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "attempt",
+                    "actor",
+                    "code",
+                    "at"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "revision": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "arrangementId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "needs_review",
+                      "published",
+                      "rejected"
+                    ]
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "human",
+                      "chordpro_import",
+                      "ai_draft"
+                    ]
+                  },
+                  "parentRevisionId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                      },
+                      "chartRevisionId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      "arrangementId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "language": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "concertKey": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?m?$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "timeSignature": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^([1-9]|[1-3]\\d)\\/(1|2|4|8|16|32)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "defaultBpm": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 20,
+                            "maximum": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "instrument": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "guitar"
+                          },
+                          "tuning": {
+                            "type": "array",
+                            "prefixItems": [
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^[A-G](#|b)?-?\\d$"
+                              }
+                            ],
+                            "items": false,
+                            "minItems": 6,
+                            "maxItems": 6
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "tuning"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "sections": {
+                        "minItems": 1,
+                        "maxItems": 200,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "intro",
+                                "verse",
+                                "pre_chorus",
+                                "chorus",
+                                "bridge",
+                                "instrumental",
+                                "interlude",
+                                "outro",
+                                "tag",
+                                "other"
+                              ]
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "lines": {
+                              "maxItems": 400,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                  },
+                                  "text": {
+                                    "type": "string",
+                                    "maxLength": 1000
+                                  },
+                                  "chords": {
+                                    "maxItems": 64,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                        },
+                                        "symbol": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 32,
+                                          "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                                        },
+                                        "anchor": {
+                                          "anyOf": [
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "graphemeOffset": {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 9007199254740991
+                                                }
+                                              },
+                                              "required": [
+                                                "graphemeOffset"
+                                              ],
+                                              "additionalProperties": false
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "symbol",
+                                        "anchor"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "text",
+                                  "chords"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "lines"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "voicingPolicy": {
+                        "type": "object",
+                        "properties": {
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "recommended",
+                              "explicit"
+                            ]
+                          },
+                          "defaultDifficulty": {
+                            "type": "string",
+                            "enum": [
+                              "easy",
+                              "intermediate",
+                              "advanced"
+                            ]
+                          },
+                          "symbolDefaults": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                            },
+                            "additionalProperties": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            }
+                          },
+                          "occurrenceOverrides": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "additionalProperties": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            }
+                          }
+                        },
+                        "required": [
+                          "mode",
+                          "defaultDifficulty",
+                          "occurrenceOverrides"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "importMetadata": {
+                        "type": "object",
+                        "properties": {
+                          "format": {
+                            "type": "string",
+                            "enum": [
+                              "native",
+                              "chordpro",
+                              "ai_draft"
+                            ]
+                          },
+                          "unhandledDirectives": {
+                            "maxItems": 500,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "line": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 9007199254740991
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "maxLength": 1000
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "line",
+                                "name",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "format",
+                          "unhandledDirectives"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "extensions": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "pattern": "^x-[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)*$"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/$defs/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "schemaVersion",
+                      "chartRevisionId",
+                      "arrangementId",
+                      "revision",
+                      "language",
+                      "title",
+                      "concertKey",
+                      "timeSignature",
+                      "defaultBpm",
+                      "instrument",
+                      "sections",
+                      "voicingPolicy",
+                      "importMetadata"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "createdBy": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "arrangementId",
+                  "revision",
+                  "status",
+                  "origin",
+                  "parentRevisionId",
+                  "document",
+                  "createdBy",
+                  "createdAt"
+                ],
+                "additionalProperties": false
+              },
+              "quality": {
+                "type": "object",
+                "properties": {
+                  "analysis": {
+                    "type": "string",
+                    "enum": [
+                      "synthetic_mock",
+                      "audio"
+                    ]
+                  },
+                  "overallConfidence": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "spans": {
+                    "maxItems": 2000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "object",
+                          "properties": {
+                            "sectionId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "lineId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "chordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "sectionId",
+                            "lineId",
+                            "chordId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "unaligned",
+                            "low_confidence",
+                            "non_diatonic",
+                            "ambiguous_section",
+                            "synthetic_output"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "processor",
+                            "rule_validator",
+                            "llm_reviewer"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "reason",
+                        "message",
+                        "source"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "suggestions": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "object",
+                          "properties": {
+                            "sectionId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "lineId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "chordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "sectionId",
+                            "lineId",
+                            "chordId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "replace_chord",
+                            "note"
+                          ]
+                        },
+                        "proposedSymbol": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "evidence": {
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "fake"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "kind",
+                        "proposedSymbol",
+                        "rationale",
+                        "evidence",
+                        "provider"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "stages": {
+                    "maxItems": 16,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "stage": {
+                          "type": "string",
+                          "enum": [
+                            "resolve_source",
+                            "decode_and_probe_audio",
+                            "chord_recognition",
+                            "lyric_alignment",
+                            "fusion",
+                            "rule_validator",
+                            "llm_reviewer",
+                            "draft_producer"
+                          ]
+                        },
+                        "processorId": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                        },
+                        "processorVersion": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9._+-]+$"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "skipped"
+                          ]
+                        },
+                        "note": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "stage",
+                        "processorId",
+                        "processorVersion",
+                        "status",
+                        "note"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "llm": {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      },
+                      "calls": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "maxCalls": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "budgetExceeded": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "provider",
+                      "calls",
+                      "maxCalls",
+                      "budgetExceeded"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "analysis",
+                  "overallConfidence",
+                  "spans",
+                  "suggestions",
+                  "stages",
+                  "llm"
+                ],
+                "additionalProperties": false
+              },
+              "processor": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[A-Za-z0-9._+-]+$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "version"
+                ],
+                "additionalProperties": false
+              },
+              "artifacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "source_metadata",
+                        "audio_preprocess",
+                        "separated_stems",
+                        "chord_timeline",
+                        "asr_transcript",
+                        "aligned_lyrics",
+                        "fusion_draft"
+                      ]
+                    },
+                    "cacheKey": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1024
+                    },
+                    "storagePath": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 512,
+                      "pattern": "^(?!\\/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$"
+                    },
+                    "contentDigest": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "byteSize": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "mediaType": {
+                      "type": "string",
+                      "pattern": "^[a-z]+\\/[a-z0-9.+-]+$"
+                    },
+                    "parentArtifactIds": {
+                      "maxItems": 32,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "cacheKey",
+                    "storagePath",
+                    "contentDigest",
+                    "byteSize",
+                    "mediaType",
+                    "parentArtifactIds"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "job",
+              "events",
+              "revision",
+              "quality",
+              "processor",
+              "artifacts"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "GenerationJobReviewRequest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "publish"
+              },
+              "revisionId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              }
+            },
+            "required": [
+              "action",
+              "revisionId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "reject"
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "GenerationJobReviewResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "not_available",
+                      "queued",
+                      "waiting_for_worker",
+                      "processing",
+                      "needs_review",
+                      "completed",
+                      "failed",
+                      "cancelled"
+                    ]
+                  },
+                  "internalState": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "created",
+                          "validated",
+                          "queued",
+                          "leased",
+                          "running",
+                          "failed_retryable",
+                          "draft_ready",
+                          "needs_review",
+                          "published",
+                          "failed_terminal",
+                          "cancelled"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "inputKind": {
+                    "type": "string",
+                    "enum": [
+                      "reference_lyrics",
+                      "source_reference"
+                    ]
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "processor": {
+                        "default": "mock",
+                        "type": "string",
+                        "enum": [
+                          "mock"
+                        ]
+                      },
+                      "llmReview": {
+                        "default": "disabled",
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "processor",
+                      "llmReview"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "progress": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "stage": {
+                            "type": "string",
+                            "enum": [
+                              "resolve_source",
+                              "decode_and_probe_audio",
+                              "chord_recognition",
+                              "lyric_alignment",
+                              "fusion",
+                              "rule_validator",
+                              "llm_reviewer",
+                              "draft_producer"
+                            ]
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "stage",
+                          "fraction"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "attempt": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "maxAttempts": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "SOURCE_NOT_AUTHORIZED",
+                              "SOURCE_UNSUPPORTED",
+                              "AUDIO_NOT_AVAILABLE",
+                              "AUDIO_INVALID",
+                              "AUDIO_TOO_LONG",
+                              "ALIGNMENT_LOW_CONFIDENCE",
+                              "MODEL_UNAVAILABLE",
+                              "ARTIFACT_VALIDATION_FAILED",
+                              "LEASE_EXPIRED",
+                              "RETRY_LIMIT_EXCEEDED",
+                              "LLM_BUDGET_EXCEEDED",
+                              "INTERNAL_ERROR"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message",
+                          "retryable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "draft": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "arrangementId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          },
+                          "revisionId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                          }
+                        },
+                        "required": [
+                          "arrangementId",
+                          "revisionId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status",
+                  "internalState",
+                  "title",
+                  "inputKind",
+                  "options",
+                  "progress",
+                  "attempt",
+                  "maxAttempts",
+                  "error",
+                  "draft",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              "publishedRevisionId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "job",
+              "publishedRevisionId"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerClaimRequest": {
+        "type": "object",
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+          },
+          "workerVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9._+-]+$"
+          },
+          "processors": {
+            "minItems": 1,
+            "maxItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mock"
+              ]
+            }
+          },
+          "leaseSeconds": {
+            "default": 60,
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 600
+          }
+        },
+        "required": [
+          "workerId",
+          "workerVersion",
+          "processors",
+          "leaseSeconds"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerClaimResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      "contractVersion": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                      },
+                      "attempt": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "maxAttempts": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "leaseToken": {
+                        "type": "string",
+                        "pattern": "^lease_[0-9a-f]{32}$"
+                      },
+                      "leaseExpiresAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "input": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "reference_lyrics"
+                              },
+                              "lyrics": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 5000
+                              },
+                              "language": {
+                                "type": "string",
+                                "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                              },
+                              "concertKey": {
+                                "default": null,
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^[A-G](#|b)?m?$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "seed": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 2147483647
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "lyrics",
+                              "language",
+                              "concertKey",
+                              "seed"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "source_reference"
+                              },
+                              "sourceReferenceId": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "sourceReferenceId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "options": {
+                        "type": "object",
+                        "properties": {
+                          "processor": {
+                            "default": "mock",
+                            "type": "string",
+                            "enum": [
+                              "mock"
+                            ]
+                          },
+                          "llmReview": {
+                            "default": "disabled",
+                            "type": "string",
+                            "enum": [
+                              "disabled",
+                              "fake"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "processor",
+                          "llmReview"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "contractVersion",
+                      "attempt",
+                      "maxAttempts",
+                      "leaseToken",
+                      "leaseExpiresAt",
+                      "title",
+                      "input",
+                      "options"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "job"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerHeartbeatRequest": {
+        "type": "object",
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+          },
+          "leaseToken": {
+            "type": "string",
+            "pattern": "^lease_[0-9a-f]{32}$"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "resolve_source",
+                  "decode_and_probe_audio",
+                  "chord_recognition",
+                  "lyric_alignment",
+                  "fusion",
+                  "rule_validator",
+                  "llm_reviewer",
+                  "draft_producer"
+                ]
+              },
+              "fraction": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "stage",
+              "fraction"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "workerId",
+          "leaseToken",
+          "progress"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerHeartbeatResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "leaseExpiresAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "leaseExpiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerCompleteRequest": {
+        "type": "object",
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+          },
+          "leaseToken": {
+            "type": "string",
+            "pattern": "^lease_[0-9a-f]{32}$"
+          },
+          "processor": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[A-Za-z0-9._+-]+$"
+              }
+            },
+            "required": [
+              "id",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "draft": {
+            "type": "object",
+            "properties": {
+              "document": {
+                "type": "object",
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                  },
+                  "language": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "concertKey": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-G](#|b)?m?$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "timeSignature": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^([1-9]|[1-3]\\d)\\/(1|2|4|8|16|32)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "defaultBpm": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 20,
+                        "maximum": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "instrument": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "guitar"
+                      },
+                      "tuning": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[A-G](#|b)?-?\\d$"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 6,
+                        "maxItems": 6
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "tuning"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "sections": {
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "intro",
+                            "verse",
+                            "pre_chorus",
+                            "chorus",
+                            "bridge",
+                            "instrumental",
+                            "interlude",
+                            "outro",
+                            "tag",
+                            "other"
+                          ]
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "lines": {
+                          "maxItems": 400,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                              },
+                              "text": {
+                                "type": "string",
+                                "maxLength": 1000
+                              },
+                              "chords": {
+                                "maxItems": 64,
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                    },
+                                    "symbol": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                                    },
+                                    "anchor": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "graphemeOffset": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 9007199254740991
+                                            }
+                                          },
+                                          "required": [
+                                            "graphemeOffset"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "symbol",
+                                    "anchor"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "text",
+                              "chords"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "voicingPolicy": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "recommended",
+                          "explicit"
+                        ]
+                      },
+                      "defaultDifficulty": {
+                        "type": "string",
+                        "enum": [
+                          "easy",
+                          "intermediate",
+                          "advanced"
+                        ]
+                      },
+                      "symbolDefaults": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                        },
+                        "additionalProperties": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        }
+                      },
+                      "occurrenceOverrides": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        "additionalProperties": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "defaultDifficulty",
+                      "occurrenceOverrides"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "importMetadata": {
+                    "type": "object",
+                    "properties": {
+                      "format": {
+                        "type": "string",
+                        "enum": [
+                          "native",
+                          "chordpro",
+                          "ai_draft"
+                        ]
+                      },
+                      "unhandledDirectives": {
+                        "maxItems": 500,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "line": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64
+                            },
+                            "value": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 1000
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "line",
+                            "name",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "format",
+                      "unhandledDirectives"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "extensions": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "pattern": "^x-[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)*$"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema0"
+                    }
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "language",
+                  "title",
+                  "concertKey",
+                  "timeSignature",
+                  "defaultBpm",
+                  "instrument",
+                  "sections",
+                  "voicingPolicy",
+                  "importMetadata"
+                ],
+                "additionalProperties": false
+              },
+              "quality": {
+                "type": "object",
+                "properties": {
+                  "analysis": {
+                    "type": "string",
+                    "enum": [
+                      "synthetic_mock",
+                      "audio"
+                    ]
+                  },
+                  "overallConfidence": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "spans": {
+                    "maxItems": 2000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "object",
+                          "properties": {
+                            "sectionId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "lineId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "chordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "sectionId",
+                            "lineId",
+                            "chordId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "unaligned",
+                            "low_confidence",
+                            "non_diatonic",
+                            "ambiguous_section",
+                            "synthetic_output"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "processor",
+                            "rule_validator",
+                            "llm_reviewer"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "reason",
+                        "message",
+                        "source"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "suggestions": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "object",
+                          "properties": {
+                            "sectionId": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                            },
+                            "lineId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "chordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "sectionId",
+                            "lineId",
+                            "chordId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "replace_chord",
+                            "note"
+                          ]
+                        },
+                        "proposedSymbol": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "pattern": "^[^\\s[\\]{}<>\"'`\\\\]+$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "evidence": {
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "fake"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "kind",
+                        "proposedSymbol",
+                        "rationale",
+                        "evidence",
+                        "provider"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "stages": {
+                    "maxItems": 16,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "stage": {
+                          "type": "string",
+                          "enum": [
+                            "resolve_source",
+                            "decode_and_probe_audio",
+                            "chord_recognition",
+                            "lyric_alignment",
+                            "fusion",
+                            "rule_validator",
+                            "llm_reviewer",
+                            "draft_producer"
+                          ]
+                        },
+                        "processorId": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                        },
+                        "processorVersion": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9._+-]+$"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "skipped"
+                          ]
+                        },
+                        "note": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "stage",
+                        "processorId",
+                        "processorVersion",
+                        "status",
+                        "note"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "llm": {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "disabled",
+                          "fake"
+                        ]
+                      },
+                      "calls": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "maxCalls": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "budgetExceeded": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "provider",
+                      "calls",
+                      "maxCalls",
+                      "budgetExceeded"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "analysis",
+                  "overallConfidence",
+                  "spans",
+                  "suggestions",
+                  "stages",
+                  "llm"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "document",
+              "quality"
+            ],
+            "additionalProperties": false
+          },
+          "artifacts": {
+            "minItems": 1,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "source_metadata",
+                    "audio_preprocess",
+                    "separated_stems",
+                    "chord_timeline",
+                    "asr_transcript",
+                    "aligned_lyrics",
+                    "fusion_draft"
+                  ]
+                },
+                "cacheKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1024
+                },
+                "storagePath": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512,
+                  "pattern": "^(?!\\/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$"
+                },
+                "contentDigest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "byteSize": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "mediaType": {
+                  "type": "string",
+                  "pattern": "^[a-z]+\\/[a-z0-9.+-]+$"
+                },
+                "parentArtifactIds": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "cacheKey",
+                "storagePath",
+                "contentDigest",
+                "byteSize",
+                "mediaType",
+                "parentArtifactIds"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "workerId",
+          "leaseToken",
+          "processor",
+          "draft",
+          "artifacts"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "WorkerCompleteResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "jobId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "arrangementId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "revisionId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+              },
+              "replayed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "jobId",
+              "arrangementId",
+              "revisionId",
+              "replayed"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerFailRequest": {
+        "type": "object",
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+          },
+          "leaseToken": {
+            "type": "string",
+            "pattern": "^lease_[0-9a-f]{32}$"
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "SOURCE_NOT_AUTHORIZED",
+                  "SOURCE_UNSUPPORTED",
+                  "AUDIO_NOT_AVAILABLE",
+                  "AUDIO_INVALID",
+                  "AUDIO_TOO_LONG",
+                  "ALIGNMENT_LOW_CONFIDENCE",
+                  "MODEL_UNAVAILABLE",
+                  "ARTIFACT_VALIDATION_FAILED",
+                  "LEASE_EXPIRED",
+                  "RETRY_LIMIT_EXCEEDED",
+                  "LLM_BUDGET_EXCEEDED",
+                  "INTERNAL_ERROR"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "workerId",
+          "leaseToken",
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerFailResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "failed_terminal"
+                ]
+              },
+              "nextAttemptAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "replayed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "state",
+              "nextAttemptAt",
+              "replayed"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ],
         "additionalProperties": false
       }

@@ -24,6 +24,23 @@ import {
   WorkDetailSchema,
   envelopeOf,
 } from './api';
+import {
+  GenerationJobCreateRequestSchema,
+  GenerationJobCreatedDataSchema,
+  GenerationJobDataSchema,
+  GenerationJobListDataSchema,
+  GenerationJobResultDataSchema,
+  GenerationJobReviewDataSchema,
+  GenerationJobReviewRequestSchema,
+  WorkerClaimDataSchema,
+  WorkerClaimRequestSchema,
+  WorkerCompleteDataSchema,
+  WorkerCompleteRequestSchema,
+  WorkerFailDataSchema,
+  WorkerFailRequestSchema,
+  WorkerHeartbeatDataSchema,
+  WorkerHeartbeatRequestSchema,
+} from './generation';
 
 /*
  * OpenAPI 3.1 document for the `/api/v1` contract (SPEC §10), generated from
@@ -62,6 +79,21 @@ const COMPONENTS = {
   InvitationCreateRequest: InvitationCreateRequestSchema,
   InvitationCreatedResponse: envelopeOf(InvitationCreatedDataSchema),
   InvitationAcceptRequest: InvitationAcceptRequestSchema,
+  GenerationJobCreateRequest: GenerationJobCreateRequestSchema,
+  GenerationJobCreatedResponse: envelopeOf(GenerationJobCreatedDataSchema),
+  GenerationJobResponse: envelopeOf(GenerationJobDataSchema),
+  GenerationJobListResponse: envelopeOf(GenerationJobListDataSchema),
+  GenerationJobResultResponse: envelopeOf(GenerationJobResultDataSchema),
+  GenerationJobReviewRequest: GenerationJobReviewRequestSchema,
+  GenerationJobReviewResponse: envelopeOf(GenerationJobReviewDataSchema),
+  WorkerClaimRequest: WorkerClaimRequestSchema,
+  WorkerClaimResponse: envelopeOf(WorkerClaimDataSchema),
+  WorkerHeartbeatRequest: WorkerHeartbeatRequestSchema,
+  WorkerHeartbeatResponse: envelopeOf(WorkerHeartbeatDataSchema),
+  WorkerCompleteRequest: WorkerCompleteRequestSchema,
+  WorkerCompleteResponse: envelopeOf(WorkerCompleteDataSchema),
+  WorkerFailRequest: WorkerFailRequestSchema,
+  WorkerFailResponse: envelopeOf(WorkerFailDataSchema),
 } as const;
 
 const ref = (name: keyof typeof COMPONENTS) => ({ $ref: `#/components/schemas/${name}` });
@@ -97,6 +129,21 @@ const WRITE_ERRORS = {
   413: errorResponse('PAYLOAD_TOO_LARGE'),
   422: errorResponse('VALIDATION_FAILED'),
 };
+
+/** Worker routes use a bearer token (WORKER_TOKEN), never a user session. */
+const WORKER_ERRORS = {
+  401: errorResponse('UNAUTHENTICATED (missing or wrong worker token)'),
+  413: errorResponse('PAYLOAD_TOO_LARGE'),
+  422: errorResponse('VALIDATION_FAILED'),
+  503: errorResponse('SERVICE_UNAVAILABLE (worker API not configured)'),
+};
+const workerSecurity = [{ workerToken: [] }];
+
+const jobPath = (summary: string, extra: Record<string, unknown>) => ({
+  summary,
+  parameters: [idParam('id', 'Generation job id')],
+  ...extra,
+});
 
 const requestIdHeader = {
   name: 'x-request-id',
@@ -293,8 +340,111 @@ export function buildOpenApi(): Json {
           },
         },
       },
+      '/generation-jobs': {
+        post: {
+          summary:
+            'Submit a generation job (members, quota-limited); same idempotency key or equivalent active request returns the existing job',
+          requestBody: jsonBody('GenerationJobCreateRequest'),
+          responses: {
+            200: okResponse('GenerationJobCreatedResponse', 'Existing job reused'),
+            201: okResponse('GenerationJobCreatedResponse', 'Created'),
+            ...WRITE_ERRORS,
+            409: errorResponse('IDEMPOTENCY_CONFLICT (key reused with a different request)'),
+            422: errorResponse('VALIDATION_FAILED or SOURCE_NOT_AUTHORIZED'),
+            429: errorResponse('QUOTA_EXCEEDED or RATE_LIMITED'),
+          },
+        },
+        get: {
+          summary: 'Recent jobs: own jobs, or all jobs for administrators',
+          responses: { 200: okResponse('GenerationJobListResponse'), ...WRITE_ERRORS },
+        },
+      },
+      '/generation-jobs/{id}': {
+        get: jobPath('Job status, limited progress, typed error and draft ids (owner/admin)', {
+          responses: {
+            200: okResponse('GenerationJobResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            404: errorResponse('JOB_NOT_FOUND'),
+          },
+        }),
+      },
+      '/generation-jobs/{id}/result': {
+        get: jobPath('Draft revision, quality report and artifact manifest (owner/admin)', {
+          responses: {
+            200: okResponse('GenerationJobResultResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            404: errorResponse('JOB_NOT_FOUND or RESULT_NOT_AVAILABLE'),
+          },
+        }),
+      },
+      '/generation-jobs/{id}/cancel': {
+        post: jobPath('Cancel a job that has not produced a draft yet (owner/admin)', {
+          responses: {
+            200: okResponse('GenerationJobResponse'),
+            ...WRITE_ERRORS,
+            409: errorResponse('JOB_STATE_CONFLICT'),
+          },
+        }),
+      },
+      '/generation-jobs/{id}/review': {
+        post: jobPath('Publish the draft (or a revision derived from it) or reject it (admin)', {
+          requestBody: jsonBody('GenerationJobReviewRequest'),
+          responses: {
+            200: okResponse('GenerationJobReviewResponse'),
+            ...WRITE_ERRORS,
+            409: errorResponse('JOB_STATE_CONFLICT'),
+            422: errorResponse('PUBLISH_REJECTED'),
+          },
+        }),
+      },
+      '/worker/jobs/claim': {
+        post: {
+          summary: 'Atomically lease the next eligible job (expired leases are requeued first)',
+          security: workerSecurity,
+          requestBody: jsonBody('WorkerClaimRequest'),
+          responses: { 200: okResponse('WorkerClaimResponse'), ...WORKER_ERRORS },
+        },
+      },
+      '/worker/jobs/{id}/heartbeat': {
+        post: jobPath('Renew the lease and report progress', {
+          security: workerSecurity,
+          requestBody: jsonBody('WorkerHeartbeatRequest'),
+          responses: {
+            200: okResponse('WorkerHeartbeatResponse'),
+            ...WORKER_ERRORS,
+            409: errorResponse('LEASE_LOST (expired, reassigned or job cancelled)'),
+          },
+        }),
+      },
+      '/worker/jobs/{id}/complete': {
+        post: jobPath(
+          'Submit the draft, quality report and artifact manifest; repeating the same completion returns the same outcome',
+          {
+            security: workerSecurity,
+            requestBody: jsonBody('WorkerCompleteRequest'),
+            responses: {
+              200: okResponse('WorkerCompleteResponse'),
+              ...WORKER_ERRORS,
+              409: errorResponse('LEASE_LOST'),
+              422: errorResponse('ARTIFACT_VALIDATION_FAILED (job fails terminally)'),
+            },
+          },
+        ),
+      },
+      '/worker/jobs/{id}/fail': {
+        post: jobPath('Report a typed failure; retryable failures are requeued with backoff', {
+          security: workerSecurity,
+          requestBody: jsonBody('WorkerFailRequest'),
+          responses: {
+            200: okResponse('WorkerFailResponse'),
+            ...WORKER_ERRORS,
+            409: errorResponse('LEASE_LOST'),
+          },
+        }),
+      },
     },
     components: {
+      securitySchemes: { workerToken: { type: 'http', scheme: 'bearer' } },
       schemas: Object.fromEntries(Object.entries(COMPONENTS).map(([name, s]) => [name, schema(s)])),
     },
   };

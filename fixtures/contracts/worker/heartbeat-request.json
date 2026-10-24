@@ -1,0 +1,8 @@
+{
+  "workerId": "cpu-mock-1",
+  "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+  "progress": {
+    "stage": "chord_recognition",
+    "fraction": 0.375
+  }
+}

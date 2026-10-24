@@ -1,0 +1,13 @@
+{
+  "schema": "WorkerHeartbeatRequest",
+  "layer": "structural",
+  "description": "fraction is 0..1",
+  "payload": {
+    "workerId": "cpu-mock-1",
+    "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+    "progress": {
+      "stage": "fusion",
+      "fraction": 1.5
+    }
+  }
+}

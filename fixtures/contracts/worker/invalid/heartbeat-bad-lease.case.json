@@ -1,0 +1,13 @@
+{
+  "schema": "WorkerHeartbeatRequest",
+  "layer": "structural",
+  "description": "lease tokens have a fixed format",
+  "payload": {
+    "workerId": "cpu-mock-1",
+    "leaseToken": "abc",
+    "progress": {
+      "stage": "fusion",
+      "fraction": 0.5
+    }
+  }
+}

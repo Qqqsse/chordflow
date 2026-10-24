@@ -1,0 +1,14 @@
+{
+  "schema": "WorkerFailRequest",
+  "layer": "structural",
+  "description": "error codes are a closed set",
+  "payload": {
+    "workerId": "cpu-mock-1",
+    "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+    "error": {
+      "code": "OOPS",
+      "message": "x",
+      "retryable": true
+    }
+  }
+}

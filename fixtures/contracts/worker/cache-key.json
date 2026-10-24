@@ -1,0 +1,11 @@
+{
+  "parts": {
+    "kind": "chord_timeline",
+    "inputFingerprint": "sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20",
+    "processorId": "mock.chords",
+    "processorVersion": "0.1.0",
+    "configHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "schemaVersion": "1.0.0"
+  },
+  "key": "chord_timeline|v1.0.0|mock.chords@0.1.0|sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a|sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20"
+}

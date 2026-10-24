@@ -1,0 +1,6 @@
+{
+  "workerId": "cpu-mock-1",
+  "workerVersion": "0.1.0",
+  "processors": ["mock"],
+  "leaseSeconds": 60
+}

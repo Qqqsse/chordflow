@@ -1,0 +1,22 @@
+{
+  "job": {
+    "id": "job_fixture_001",
+    "contractVersion": "1.0.0",
+    "attempt": 1,
+    "maxAttempts": 3,
+    "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+    "leaseExpiresAt": "2026-10-24T12:01:00.000Z",
+    "title": "晨光小路（自創測試曲）",
+    "input": {
+      "kind": "reference_lyrics",
+      "lyrics": "清晨的風吹過小路\n陽光落在你的肩膀\n\n一起唱 一起走\n把今天唱成歌",
+      "language": "zh-TW",
+      "concertKey": "C",
+      "seed": 7
+    },
+    "options": {
+      "processor": "mock",
+      "llmReview": "fake"
+    }
+  }
+}

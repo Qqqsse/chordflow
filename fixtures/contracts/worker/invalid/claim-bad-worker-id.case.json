@@ -1,0 +1,10 @@
+{
+  "schema": "WorkerClaimRequest",
+  "layer": "structural",
+  "description": "worker ids are lowercase slugs",
+  "payload": {
+    "workerId": "Worker 1",
+    "workerVersion": "0.1.0",
+    "processors": ["mock"]
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "schema": "WorkerCompleteRequest",
+  "layer": "model",
+  "description": "synthetic drafts must not report a confidence",
+  "payload": {
+    "workerId": "cpu-mock-1",
+    "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+    "processor": {
+      "id": "mock",
+      "version": "0.1.0"
+    },
+    "draft": {
+      "document": {
+        "schemaVersion": "1.0.0",
+        "language": "zh-TW",
+        "title": "晨光小路（自創測試曲）",
+        "concertKey": "C",
+        "timeSignature": "4/4",
+        "defaultBpm": null,
+        "instrument": {
+          "type": "guitar",
+          "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+        },
+        "sections": [
+          {
+            "id": "sec_1",
+            "kind": "verse",
+            "lines": [
+              {
+                "id": "line_1_1",
+                "text": "清晨的風吹過小路",
+                "chords": [
+                  {
+                    "id": "ch_1_1_1",
+                    "symbol": "C",
+                    "anchor": {
+                      "graphemeOffset": 0
+                    }
+                  },
+                  {
+                    "id": "ch_1_1_2",
+                    "symbol": "G",
+                    "anchor": {
+                      "graphemeOffset": 5
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "line_1_2",
+                "text": "陽光落在你的肩膀",
+                "chords": [
+                  {
+                    "id": "ch_1_2_1",
+                    "symbol": "Am",
+                    "anchor": {
+                      "graphemeOffset": 0
+                    }
+                  },
+                  {
+                    "id": "ch_1_2_2",
+                    "symbol": "D",
+                    "anchor": {
+                      "graphemeOffset": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "sec_2",
+            "kind": "chorus",
+            "lines": [
+              {
+                "id": "line_2_1",
+                "text": "一起唱 一起走",
+                "chords": [
+                  {
+                    "id": "ch_2_1_1",
+                    "symbol": "F",
+                    "anchor": {
+                      "graphemeOffset": 0
+                    }
+                  },
+                  {
+                    "id": "ch_2_1_2",
+                    "symbol": "G",
+                    "anchor": {
+                      "graphemeOffset": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "line_2_2",
+                "text": "把今天唱成歌",
+                "chords": [
+                  {
+                    "id": "ch_2_2_1",
+                    "symbol": "C",
+                    "anchor": {
+                      "graphemeOffset": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "voicingPolicy": {
+          "mode": "recommended",
+          "defaultDifficulty": "easy",
+          "occurrenceOverrides": {}
+        },
+        "importMetadata": {
+          "format": "ai_draft",
+          "unhandledDirectives": []
+        }
+      },
+      "quality": {
+        "analysis": "synthetic_mock",
+        "overallConfidence": 0.93,
+        "spans": [
+          {
+            "target": {
+              "sectionId": "sec_1",
+              "lineId": null,
+              "chordId": null
+            },
+            "reason": "synthetic_output",
+            "message": "合成測試輸出：和弦未經音訊分析",
+            "source": "processor"
+          },
+          {
+            "target": {
+              "sectionId": "sec_1",
+              "lineId": "line_1_2",
+              "chordId": "ch_1_2_2"
+            },
+            "reason": "non_diatonic",
+            "message": "D 不在 C 大調的順階和弦內",
+            "source": "rule_validator"
+          }
+        ],
+        "suggestions": [
+          {
+            "target": {
+              "sectionId": "sec_1",
+              "lineId": "line_1_2",
+              "chordId": "ch_1_2_2"
+            },
+            "kind": "replace_chord",
+            "proposedSymbol": "Dm",
+            "rationale": "規則檢查標記為非順階；可考慮改為 ii 級（Dm）。僅供審查參考，不會自動套用。",
+            "evidence": ["rule_validator: non_diatonic", "concertKey: C"],
+            "provider": "fake"
+          }
+        ],
+        "stages": [
+          {
+            "stage": "resolve_source",
+            "processorId": "mock.source",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "decode_and_probe_audio",
+            "processorId": "mock.audio",
+            "processorVersion": "0.1.0",
+            "status": "skipped",
+            "note": "no audio input"
+          },
+          {
+            "stage": "chord_recognition",
+            "processorId": "mock.chords",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "lyric_alignment",
+            "processorId": "mock.lyrics",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "fusion",
+            "processorId": "mock.fusion",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "rule_validator",
+            "processorId": "rules",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "llm_reviewer",
+            "processorId": "llm.fake",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          },
+          {
+            "stage": "draft_producer",
+            "processorId": "mock.draft",
+            "processorVersion": "0.1.0",
+            "status": "ok",
+            "note": null
+          }
+        ],
+        "llm": {
+          "provider": "fake",
+          "calls": 1,
+          "maxCalls": 4,
+          "budgetExceeded": false
+        }
+      }
+    },
+    "artifacts": [
+      {
+        "id": "art_fixture_1",
+        "kind": "source_metadata",
+        "cacheKey": "source_metadata|v1.0.0|mock.source@0.1.0|sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a|sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20",
+        "storagePath": "jobs/job_fixture_001/1/source_metadata.json",
+        "contentDigest": "sha256:c554ddb2201394472d8fffb1077cd16e63eb59c89b5d28f1d626f494301ce466",
+        "byteSize": 100,
+        "mediaType": "application/json",
+        "parentArtifactIds": []
+      },
+      {
+        "id": "art_fixture_2",
+        "kind": "chord_timeline",
+        "cacheKey": "chord_timeline|v1.0.0|mock.chords@0.1.0|sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a|sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20",
+        "storagePath": "jobs/job_fixture_001/1/chord_timeline.json",
+        "contentDigest": "sha256:846bab7fb16560f2204946f643daf0a03dedf09abd99d230f0f1c83a041f8b3e",
+        "byteSize": 101,
+        "mediaType": "application/json",
+        "parentArtifactIds": []
+      },
+      {
+        "id": "art_fixture_3",
+        "kind": "aligned_lyrics",
+        "cacheKey": "aligned_lyrics|v1.0.0|mock.lyrics@0.1.0|sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a|sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20",
+        "storagePath": "jobs/job_fixture_001/1/aligned_lyrics.json",
+        "contentDigest": "sha256:43438d1f41e4f472f0ff51b174335231a8fd8f082a7294d5e2cdf302a71c8c64",
+        "byteSize": 102,
+        "mediaType": "application/json",
+        "parentArtifactIds": []
+      },
+      {
+        "id": "art_fixture_4",
+        "kind": "fusion_draft",
+        "cacheKey": "fusion_draft|v1.0.0|mock.fusion@0.1.0|sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a|sha256:c96c6d5be8d08a12e7b5cdc1b207fa6b2430974c86803d8891675e76fd992c20",
+        "storagePath": "jobs/job_fixture_001/1/fusion_draft.json",
+        "contentDigest": "sha256:7764c7ce8c98c66bd7a5ce9fc7604922c40d30378d4b4c4b56cf3e853aeb60ae",
+        "byteSize": 103,
+        "mediaType": "application/json",
+        "parentArtifactIds": ["art_fixture_1", "art_fixture_2", "art_fixture_3"]
+      }
+    ]
+  }
+}

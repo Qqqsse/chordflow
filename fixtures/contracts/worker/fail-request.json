@@ -1,0 +1,9 @@
+{
+  "workerId": "cpu-mock-1",
+  "leaseToken": "lease_37eb897df0d1aa1ffe027b837c2a735f",
+  "error": {
+    "code": "AUDIO_NOT_AVAILABLE",
+    "message": "沒有可分析的授權音訊",
+    "retryable": false
+  }
+}
