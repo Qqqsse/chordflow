@@ -235,7 +235,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
    - `compose.gpu-nvidia.yaml` 草稿（未驗證前不合併）。
    - 用合成訊號建立的評估 harness。
 3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
-4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器、審查差異比對、權利稽核紀錄、
+4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器、權利稽核紀錄（審查差異比對已完成）、
    審查器的結構化建議介面（Vertex 等付費 provider 必須是 opt-in，且有預算上限）。
 
 ## 12. 文件索引
