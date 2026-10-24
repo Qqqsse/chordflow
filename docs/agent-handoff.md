@@ -10,8 +10,9 @@
 | M1 和弦譜 schema 與領域模型 | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
 | M2 樂理                     | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
 | M3 ChordPro                 | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
-| M4 看譜器                   | 下一個                                     |                                                                         |
-| M5–M7                       | 尚未開始                                   |                                                                         |
+| M4 看譜器                   | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
+| M5 指法／播放模式／PWA      | 下一個                                     |                                                                         |
+| M6–M7                       | 尚未開始                                   |                                                                         |
 
 ## 目前已有的內容
 
@@ -28,6 +29,8 @@
   `transposeChartDisplay` 整譜顯示轉換、`changeCapo` 兩種模式。無執行期相依（未使用 Tonal.js）。
 - **packages/chordpro：** ChordPro 子集匯入（預覽、行號錯誤、保留未知指令、capo 解讀必須明確選擇）與匯出
   （明確段落標記、跳脫、刻意遺失的資訊已列出）。
+- **看譜器（apps/web `components/viewer`）：** 和弦區塊排版、移調／移調夾（兩種模式）／按法或實際音／
+  羅馬級數與 Nashville／字級、快捷鍵；`/demo/[arrangementId]` 使用。
 - **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
 - **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
   驗證 fixtures。尚無工作迴圈（M7）。
@@ -61,6 +64,9 @@
 | 155f51d | feat(chordpro): readable exporter with semantic round trip        |
 | 59b39ae | docs(chordpro): supported subset, capo choice and export losses   |
 | 98bbdbd | test(chordpro): keep the CRLF fixture byte-exact                  |
+| d08b4aa | docs(handoff): record M3 completion                               |
+| 667b27e | feat(viewer): chord sheet layout core and viewer controls         |
+| 6b3f22e | test(viewer): interaction and layout geometry e2e                 |
 
 ## 驗證結果（本 session，本機）
 
@@ -70,9 +76,9 @@
 | `pnpm format:check`                                                               | 通過                                                                                                                   |
 | `pnpm lint`                                                                       | 通過，0 個警告                                                                                                         |
 | `pnpm typecheck`                                                                  | 通過                                                                                                                   |
-| `pnpm test`                                                                       | 17 個檔案、403 個測試通過（M3 後）                                                                                     |
+| `pnpm test`                                                                       | 20 個檔案、420 個測試通過（M4 後）                                                                                     |
 | `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                      |
-| `CI=1 pnpm exec playwright test`                                                  | 6 個通過（Chromium）                                                                                                   |
+| `CI=1 pnpm exec playwright test`                                                  | 18 個通過（Chromium，M4 後）                                                                                           |
 | `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 42 個通過                                                                                                              |
 | `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                  |
 | `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                   |
@@ -108,6 +114,7 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **M4 看譜器**：以 `transposeChartDisplay` 驅動移調／移調夾／級數控制，取代 M0 的 `ChartPreview`；Playwright 互動與視覺測試。
-2. **M5 指法與 SVG、播放模式、PWA 離線**。
-3. **M6 PostgreSQL、搜尋、帳號、修訂**（同時接上 `POST /api/v1/chordpro/import`）。
+1. **M5**：`packages/guitar-voicings`（精選指法、驗證、推薦排序）、SVG 指法圖、連續捲動／分頁模式、
+   IndexedDB 離線儲存與 service worker。
+2. **M6 PostgreSQL、搜尋、帳號、修訂**（同時接上 `POST /api/v1/chordpro/import` 與使用者偏好保存）。
+3. **M7 生成任務與 CPU mock worker**。
