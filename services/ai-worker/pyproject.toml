@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chordflow-ai-worker"
-version = "0.0.0"
+version = "0.1.0"
 description = "CPU contract runner for chordflow generation jobs (GPU adapters are optional, later)."
 license = "MIT"
 requires-python = ">=3.12"

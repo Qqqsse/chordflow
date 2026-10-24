@@ -48,3 +48,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local worker artifact store (WORKER_ARTIFACT_DIR default)
+services/ai-worker/artifacts/

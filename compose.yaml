@@ -83,15 +83,21 @@ services:
     build:
       context: services/ai-worker
     image: chordflow-worker:local
-    # Until the M7 job loop exists the worker only validates its configuration and exits.
-    restart: 'no'
+    # CPU mock processor chain; pulls jobs from web over the internal network (no published port).
+    restart: unless-stopped
     environment:
       WORKER_API_BASE_URL: ${WORKER_API_BASE_URL:-http://web:3000}
+      # Required (>= 32 chars); the worker exits with a configuration error without it.
       WORKER_TOKEN: ${WORKER_TOKEN:-}
+      WORKER_ID: ${WORKER_ID:-cpu-mock-1}
       WORKER_PROCESSOR_MODE: ${WORKER_PROCESSOR_MODE:-mock}
+      WORKER_LLM_MAX_CALLS: ${WORKER_LLM_MAX_CALLS:-4}
+    volumes:
+      - worker-artifacts:/var/lib/chordflow/artifacts
     depends_on:
       web:
         condition: service_healthy
 
 volumes:
   db-data:
+  worker-artifacts:

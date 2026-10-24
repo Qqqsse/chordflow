@@ -7,7 +7,7 @@ from chordflow_worker.config import SettingsError, describe, load_settings
 
 VALID = {
     "WORKER_API_BASE_URL": "http://web:3000",
-    "WORKER_TOKEN": "test-token-0123456789",
+    "WORKER_TOKEN": "test-token-0123456789-abcdefghijklmnop",
 }
 
 
