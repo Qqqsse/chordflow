@@ -26,25 +26,25 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 
 ## 2. Milestone 狀態
 
-| Milestone                       | 狀態                                | 主要文件                                              |
-| ------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| M0 基礎建設                     | ✅ 完成                             | `README.md`、`docs/local-deployment.md`               |
-| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認） | `docs/schema-decisions.md`                            |
-| M2 樂理                         | ✅ 完成                             | `docs/music-theory.md`                                |
-| M3 ChordPro 匯入／匯出          | ✅ 完成                             | `docs/chordpro.md`                                    |
-| M4 看譜器                       | ✅ 完成                             | `docs/viewer.md`（含 ADR-001，已接受）                |
-| M5 指法圖／播放模式／PWA        | ✅ 完成                             | `docs/offline-and-voicings.md`                        |
-| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（少數補完項見 §10）         | `docs/api-contract.md`、`docs/security-and-rights.md` |
-| M7 生成任務與 CPU mock worker   | ✅ 完成                             | `docs/generation-jobs.md`                             |
-| M8 本機 GPU 推論                | ⏳ 未開始：**需要擁有者的硬體**     | SPEC §11、§16                                         |
-| M9 審查與發布改進               | ⏳ 未開始                           | SPEC §16                                              |
+| Milestone                       | 狀態                                       | 主要文件                                              |
+| ------------------------------- | ------------------------------------------ | ----------------------------------------------------- |
+| M0 基礎建設                     | ✅ 完成                                    | `README.md`、`docs/local-deployment.md`               |
+| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）        | `docs/schema-decisions.md`                            |
+| M2 樂理                         | ✅ 完成                                    | `docs/music-theory.md`                                |
+| M3 ChordPro 匯入／匯出          | ✅ 完成                                    | `docs/chordpro.md`                                    |
+| M4 看譜器                       | ✅ 完成                                    | `docs/viewer.md`（含 ADR-001，已接受）                |
+| M5 指法圖／播放模式／PWA        | ✅ 完成                                    | `docs/offline-and-voicings.md`                        |
+| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP） | `docs/api-contract.md`、`docs/security-and-rights.md` |
+| M7 生成任務與 CPU mock worker   | ✅ 完成                                    | `docs/generation-jobs.md`                             |
+| M8 本機 GPU 推論                | ⏳ 未開始：**需要擁有者的硬體**            | SPEC §11、§16                                         |
+| M9 審查與發布改進               | ⏳ 未開始                                  | SPEC §16                                              |
 
 **CI**：最新一次 run 21（`67a999a`）的四個 job 全部通過：web、worker、compose、security。
 
-**測試數量**（本機，M7 後）：
+**測試數量**（本機，個人譜庫與 CSP 之後）：
 
-- Vitest：34 個檔案、704 個測試（含 48 個 PostgreSQL 整合測試）。
-- Playwright：45 個（demo 36、資料庫模式 9）。
+- Vitest：37 個檔案、730 個測試（含 53 個 PostgreSQL 整合測試）。
+- Playwright：50 個（demo 38、資料庫模式 12）。
 - pytest：95 個。
 
 ## 3. Repo 地圖
@@ -218,14 +218,13 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 ## 10. 已知缺口與技術債
 
-- 使用者看譜偏好（`user_chart_preferences` 資料表已建立）與收藏 API 尚未實作。
-- CSP 標頭尚未設定；其他安全標頭已設定。
+- CSP 允許 inline script／style（ADR-002 提案，見 `docs/security-and-rights.md`）。
+- 離線頁（`/offline/view`）不套用帳號儲存的看譜設定。
 - 限速使用單一程序的記憶體計數，多程序部署時需改用共用儲存。
 - 生成任務：
   - 使用者端沒有「重試」按鈕，也沒有 worker 狀態頁。
   - web 不驗證 artifact 的檔案內容，只驗證 manifest 結構與路徑範圍。
 - Python 沒有完整的 UAX #29 字形切分：遇到複雜字形時只在行首放和弦，並交給伺服器端驗證。
-- CI 的 web job 中，`playwright install` 佔了相當多時間，可以快取。
 
 ## 11. 下一步建議（依優先順序）
 
@@ -236,10 +235,9 @@ docker compose --env-file .env.example --profile worker --profile tools config -
    - 授權音訊上傳與 `SourceProvider`。
    - `compose.gpu-nvidia.yaml` 草稿（未驗證前不合併）。
    - 用合成訊號建立的評估 harness。
-3. **M6／M7 補完**：§10 的前四項。
+3. **M7 補完**：§10 中生成任務的兩項，以及多程序限速。
 4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器、審查差異比對、權利稽核紀錄、
    審查器的結構化建議介面（Vertex 等付費 provider 必須是 opt-in，且有預算上限）。
-5. **CI**：快取 Playwright 瀏覽器。
 
 ## 12. 文件索引
 
