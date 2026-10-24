@@ -16,6 +16,9 @@ export const E2E_ADMIN = {
   name: '測試管理員',
   password: 'e2e-admin-password-1',
 };
+/** Worker API credential for the database-mode server and the spawned Python worker (test only). */
+export const E2E_WORKER_TOKEN = 'e2e-only-worker-token-not-for-production-0123456789';
+
 const dbEnv = {
   CHORDFLOW_DATA_MODE: 'database',
   DATABASE_URL: testDatabaseUrl ?? '',
@@ -25,6 +28,7 @@ const dbEnv = {
   ADMIN_EMAIL: E2E_ADMIN.email,
   ADMIN_NAME: E2E_ADMIN.name,
   ADMIN_PASSWORD: E2E_ADMIN.password,
+  WORKER_TOKEN: E2E_WORKER_TOKEN,
 };
 
 export default defineConfig({
