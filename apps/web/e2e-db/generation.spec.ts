@@ -126,6 +126,13 @@ test('generate → queued → worker → review → edit → publish', async ({ 
   await editor.fill(source.replace('[D]', '[Dm]'));
   await page.getByRole('button', { name: '儲存為新修訂' }).click();
   await expect(page.getByRole('status')).toContainText('已儲存為第 2 版修訂');
+  // The review diff shows exactly the accepted suggestion.
+  const diff = page.getByTestId('review-diff');
+  await expect(diff.getByRole('listitem')).toHaveCount(1);
+  await expect(diff).toContainText('D → Dm');
+  // After a reload the edited revision is found again and can still be published.
+  await page.reload();
+  await expect(page.getByTestId('review-diff')).toContainText('D → Dm');
   await page.getByRole('button', { name: '發布第 2 版修訂' }).click();
   await expect(page.getByRole('status')).toHaveText('已發布。');
   await expect(page.getByTestId('job-status')).toHaveAttribute('data-status', 'completed');
