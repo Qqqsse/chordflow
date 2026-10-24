@@ -18,11 +18,13 @@ function basic(): ChartDocument {
 }
 
 describe('valid chart fixtures', () => {
-  it('includes the SPEC §4 example and multilingual songs', () => {
+  it('includes the SPEC §4 example, invented songs and public-domain songs', () => {
     expect(VALID).toEqual([
       'charts/demo-basic.chart.json',
       'charts/demo-english.chart.json',
       'charts/demo-full-zh.chart.json',
+      'charts/pd-amazing-grace.chart.json',
+      'charts/pd-songbie.chart.json',
     ]);
   });
 

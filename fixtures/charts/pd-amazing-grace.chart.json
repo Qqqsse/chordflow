@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "chartRevisionId": "rev_pd_amazing_grace_001",
+  "arrangementId": "arr_pd_amazing_grace_001",
+  "revision": 1,
+  "language": "en",
+  "title": "Amazing Grace",
+  "concertKey": "G",
+  "timeSignature": "3/4",
+  "defaultBpm": 76,
+  "instrument": {
+    "type": "guitar",
+    "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+  },
+  "sections": [
+    {
+      "id": "ag_verse1",
+      "kind": "verse",
+      "label": "Verse 1",
+      "lines": [
+        {
+          "id": "ag_l1",
+          "text": "Amazing grace! How sweet the sound",
+          "chords": [
+            {
+              "id": "ag_c01",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "ag_c02",
+              "symbol": "G7",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            },
+            {
+              "id": "ag_c03",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 19
+              }
+            },
+            {
+              "id": "ag_c04",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 29
+              }
+            }
+          ]
+        },
+        {
+          "id": "ag_l2",
+          "text": "That saved a wretch like me!",
+          "chords": [
+            {
+              "id": "ag_c05",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "ag_c06",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 25
+              }
+            }
+          ]
+        },
+        {
+          "id": "ag_l3",
+          "text": "I once was lost, but now am found;",
+          "chords": [
+            {
+              "id": "ag_c07",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 2
+              }
+            },
+            {
+              "id": "ag_c08",
+              "symbol": "G7",
+              "anchor": {
+                "graphemeOffset": 11
+              }
+            },
+            {
+              "id": "ag_c09",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 21
+              }
+            },
+            {
+              "id": "ag_c10",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 28
+              }
+            }
+          ]
+        },
+        {
+          "id": "ag_l4",
+          "text": "Was blind, but now I see.",
+          "chords": [
+            {
+              "id": "ag_c11",
+              "symbol": "Em",
+              "anchor": {
+                "graphemeOffset": 4
+              }
+            },
+            {
+              "id": "ag_c12",
+              "symbol": "D",
+              "anchor": {
+                "graphemeOffset": 15
+              }
+            },
+            {
+              "id": "ag_c13",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 21
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "voicingPolicy": {
+    "mode": "recommended",
+    "defaultDifficulty": "easy",
+    "occurrenceOverrides": {}
+  },
+  "importMetadata": {
+    "format": "native",
+    "unhandledDirectives": []
+  }
+}

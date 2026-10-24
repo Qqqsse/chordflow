@@ -21,6 +21,27 @@
       "aliases": [],
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "art_pd_li_shutong",
+      "name": "李叔同",
+      "aliases": ["弘一大師", "Li Shutong"],
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
+    },
+    {
+      "id": "art_pd_ordway",
+      "name": "John P. Ordway",
+      "aliases": [],
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
+    },
+    {
+      "id": "art_pd_newton",
+      "name": "John Newton",
+      "aliases": [],
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
     }
   ],
   "works": [
@@ -30,9 +51,18 @@
       "titleAliases": ["示范歌曲（虚构）", "Demo Song"],
       "language": "zh-TW",
       "credits": [
-        { "artistId": "art_demo_writer", "role": "composer" },
-        { "artistId": "art_demo_writer", "role": "lyricist" },
-        { "artistId": "art_demo_a", "role": "original_artist" }
+        {
+          "artistId": "art_demo_writer",
+          "role": "composer"
+        },
+        {
+          "artistId": "art_demo_writer",
+          "role": "lyricist"
+        },
+        {
+          "artistId": "art_demo_a",
+          "role": "original_artist"
+        }
       ],
       "externalIds": {},
       "createdAt": "2026-10-23T00:00:00Z",
@@ -43,7 +73,12 @@
       "title": "晨光小路（虛構示範）",
       "titleAliases": ["晨光小路"],
       "language": "zh-TW",
-      "credits": [{ "artistId": "art_demo_a", "role": "original_artist" }],
+      "credits": [
+        {
+          "artistId": "art_demo_a",
+          "role": "original_artist"
+        }
+      ],
       "externalIds": {},
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z"
@@ -53,10 +88,49 @@
       "title": "Paper Boats (fictional demo)",
       "titleAliases": ["Paper Boats"],
       "language": "en",
-      "credits": [{ "artistId": "art_demo_b", "role": "original_artist" }],
+      "credits": [
+        {
+          "artistId": "art_demo_b",
+          "role": "original_artist"
+        }
+      ],
       "externalIds": {},
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "work_pd_songbie",
+      "title": "送別",
+      "titleAliases": ["送别", "Farewell"],
+      "language": "zh-TW",
+      "credits": [
+        {
+          "artistId": "art_pd_li_shutong",
+          "role": "lyricist"
+        },
+        {
+          "artistId": "art_pd_ordway",
+          "role": "composer"
+        }
+      ],
+      "externalIds": {},
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
+    },
+    {
+      "id": "work_pd_amazing_grace",
+      "title": "Amazing Grace",
+      "titleAliases": ["奇異恩典"],
+      "language": "en",
+      "credits": [
+        {
+          "artistId": "art_pd_newton",
+          "role": "lyricist"
+        }
+      ],
+      "externalIds": {},
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
     }
   ],
   "recordings": [
@@ -64,7 +138,12 @@
       "id": "rec_demo_001",
       "workId": "work_demo_001",
       "title": null,
-      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "artistCredits": [
+        {
+          "artistId": "art_demo_a",
+          "role": "performer"
+        }
+      ],
       "kind": "studio",
       "durationMs": 58000,
       "externalIds": {},
@@ -76,7 +155,12 @@
       "id": "rec_demo_002",
       "workId": "work_demo_001",
       "title": "示範歌曲（虛構）Live",
-      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "artistCredits": [
+        {
+          "artistId": "art_demo_a",
+          "role": "performer"
+        }
+      ],
       "kind": "live",
       "durationMs": 60000,
       "externalIds": {},
@@ -88,7 +172,12 @@
       "id": "rec_demo_003",
       "workId": "work_demo_001",
       "title": null,
-      "artistCredits": [{ "artistId": "art_demo_b", "role": "performer" }],
+      "artistCredits": [
+        {
+          "artistId": "art_demo_b",
+          "role": "performer"
+        }
+      ],
       "kind": "cover",
       "durationMs": null,
       "externalIds": {},
@@ -100,7 +189,12 @@
       "id": "rec_demo_full_zh_001",
       "workId": "work_demo_full_zh",
       "title": null,
-      "artistCredits": [{ "artistId": "art_demo_a", "role": "performer" }],
+      "artistCredits": [
+        {
+          "artistId": "art_demo_a",
+          "role": "performer"
+        }
+      ],
       "kind": "acoustic",
       "durationMs": null,
       "externalIds": {},
@@ -112,7 +206,12 @@
       "id": "rec_demo_en_001",
       "workId": "work_demo_en",
       "title": null,
-      "artistCredits": [{ "artistId": "art_demo_b", "role": "performer" }],
+      "artistCredits": [
+        {
+          "artistId": "art_demo_b",
+          "role": "performer"
+        }
+      ],
       "kind": "studio",
       "durationMs": null,
       "externalIds": {},
@@ -172,6 +271,40 @@
       },
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "id": "arr_pd_songbie_001",
+      "workId": "work_pd_songbie",
+      "name": "C 調（簡易）",
+      "variant": "original",
+      "publishedRevisionId": "rev_pd_songbie_001",
+      "visibility": "public",
+      "rights": {
+        "lyrics": "public_domain",
+        "chart": "owner_original",
+        "audio": "unknown",
+        "attribution": "詞：李叔同（1880–1942）；曲：John P. Ordway〈Dreaming of Home and Mother〉（1851）",
+        "notes": "Public-domain lyrics and melody; chord arrangement written for the chordflow repository."
+      },
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
+    },
+    {
+      "id": "arr_pd_amazing_grace_001",
+      "workId": "work_pd_amazing_grace",
+      "name": "G (easy)",
+      "variant": "original",
+      "publishedRevisionId": "rev_pd_amazing_grace_001",
+      "visibility": "public",
+      "rights": {
+        "lyrics": "public_domain",
+        "chart": "owner_original",
+        "audio": "unknown",
+        "attribution": "Words: John Newton (1779); tune: \"New Britain\" (1829, anonymous)",
+        "notes": "Public-domain lyrics and melody; chord arrangement written for the chordflow repository."
+      },
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
     }
   ],
   "compatibilities": [
@@ -289,6 +422,28 @@
       "createdBy": null,
       "createdAt": "2026-10-23T00:00:00Z",
       "documentFixture": "charts/demo-english.chart.json"
+    },
+    {
+      "id": "rev_pd_songbie_001",
+      "arrangementId": "arr_pd_songbie_001",
+      "revision": 1,
+      "status": "published",
+      "origin": "human",
+      "parentRevisionId": null,
+      "createdBy": null,
+      "createdAt": "2026-10-24T00:00:00Z",
+      "documentFixture": "charts/pd-songbie.chart.json"
+    },
+    {
+      "id": "rev_pd_amazing_grace_001",
+      "arrangementId": "arr_pd_amazing_grace_001",
+      "revision": 1,
+      "status": "published",
+      "origin": "human",
+      "parentRevisionId": null,
+      "createdBy": null,
+      "createdAt": "2026-10-24T00:00:00Z",
+      "documentFixture": "charts/pd-amazing-grace.chart.json"
     }
   ],
   "syncs": [

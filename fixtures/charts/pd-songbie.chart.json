@@ -1,0 +1,248 @@
+{
+  "schemaVersion": "1.0.0",
+  "chartRevisionId": "rev_pd_songbie_001",
+  "arrangementId": "arr_pd_songbie_001",
+  "revision": 1,
+  "language": "zh-TW",
+  "title": "送別",
+  "concertKey": "C",
+  "timeSignature": "4/4",
+  "defaultBpm": 66,
+  "instrument": {
+    "type": "guitar",
+    "tuning": ["E2", "A2", "D3", "G3", "B3", "E4"]
+  },
+  "sections": [
+    {
+      "id": "sb_intro",
+      "kind": "intro",
+      "lines": [
+        {
+          "id": "sb_intro_l1",
+          "text": "",
+          "chords": [
+            {
+              "id": "sb_c01",
+              "symbol": "C",
+              "anchor": null
+            },
+            {
+              "id": "sb_c02",
+              "symbol": "F",
+              "anchor": null
+            },
+            {
+              "id": "sb_c03",
+              "symbol": "C",
+              "anchor": null
+            },
+            {
+              "id": "sb_c04",
+              "symbol": "G7",
+              "anchor": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb_verse",
+      "kind": "verse",
+      "lines": [
+        {
+          "id": "sb_l1",
+          "text": "長亭外　古道邊　芳草碧連天",
+          "chords": [
+            {
+              "id": "sb_c10",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "sb_c11",
+              "symbol": "F",
+              "anchor": {
+                "graphemeOffset": 4
+              }
+            },
+            {
+              "id": "sb_c12",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            },
+            {
+              "id": "sb_c13",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 12
+              }
+            }
+          ]
+        },
+        {
+          "id": "sb_l2",
+          "text": "晚風拂柳笛聲殘　夕陽山外山",
+          "chords": [
+            {
+              "id": "sb_c20",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "sb_c21",
+              "symbol": "F",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "sb_c22",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            },
+            {
+              "id": "sb_c23",
+              "symbol": "G7",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            },
+            {
+              "id": "sb_c24",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 12
+              }
+            }
+          ]
+        },
+        {
+          "id": "sb_l3",
+          "text": "天之涯　地之角　知交半零落",
+          "chords": [
+            {
+              "id": "sb_c30",
+              "symbol": "F",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "sb_c31",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 4
+              }
+            },
+            {
+              "id": "sb_c32",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            },
+            {
+              "id": "sb_c33",
+              "symbol": "Am",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            },
+            {
+              "id": "sb_c34",
+              "symbol": "G",
+              "anchor": {
+                "graphemeOffset": 12
+              }
+            }
+          ]
+        },
+        {
+          "id": "sb_l4",
+          "text": "一壺濁酒盡餘歡　今宵別夢寒",
+          "chords": [
+            {
+              "id": "sb_c40",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 0
+              }
+            },
+            {
+              "id": "sb_c41",
+              "symbol": "F",
+              "anchor": {
+                "graphemeOffset": 5
+              }
+            },
+            {
+              "id": "sb_c42",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 6
+              }
+            },
+            {
+              "id": "sb_c43",
+              "symbol": "G7",
+              "anchor": {
+                "graphemeOffset": 8
+              }
+            },
+            {
+              "id": "sb_c44",
+              "symbol": "C",
+              "anchor": {
+                "graphemeOffset": 12
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sb_outro",
+      "kind": "outro",
+      "lines": [
+        {
+          "id": "sb_outro_l1",
+          "text": "",
+          "chords": [
+            {
+              "id": "sb_c50",
+              "symbol": "F",
+              "anchor": null
+            },
+            {
+              "id": "sb_c51",
+              "symbol": "G7",
+              "anchor": null
+            },
+            {
+              "id": "sb_c52",
+              "symbol": "C",
+              "anchor": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "voicingPolicy": {
+    "mode": "recommended",
+    "defaultDifficulty": "easy",
+    "occurrenceOverrides": {}
+  },
+  "importMetadata": {
+    "format": "native",
+    "unhandledDirectives": []
+  }
+}
