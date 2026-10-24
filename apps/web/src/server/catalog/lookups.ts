@@ -6,7 +6,12 @@ import { visibleArrangement } from './views';
 
 export function requireId(
   value: string,
-  notFound: 'WORK_NOT_FOUND' | 'RECORDING_NOT_FOUND' | 'ARRANGEMENT_NOT_FOUND' | 'CHART_NOT_FOUND',
+  notFound:
+    | 'WORK_NOT_FOUND'
+    | 'RECORDING_NOT_FOUND'
+    | 'ARRANGEMENT_NOT_FOUND'
+    | 'CHART_NOT_FOUND'
+    | 'JOB_NOT_FOUND',
 ): string {
   if (!OpaqueIdSchema.safeParse(value).success) throw new ApiProblem(404, notFound, 'Not found');
   return value;

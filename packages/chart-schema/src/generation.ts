@@ -54,6 +54,7 @@ export const GenerationInputSchema = z.discriminatedUnion('kind', [
 export type GenerationInput = z.infer<typeof GenerationInputSchema>;
 
 export const PROCESSOR_MODES = ['mock'] as const;
+export type ProcessorMode = (typeof PROCESSOR_MODES)[number];
 export const LLM_REVIEW_PROVIDERS = ['disabled', 'fake'] as const;
 
 export const GenerationOptionsSchema = z.strictObject({

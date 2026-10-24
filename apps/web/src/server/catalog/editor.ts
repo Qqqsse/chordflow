@@ -141,6 +141,8 @@ export interface NewRevisionInput {
   /** Optimistic concurrency: the latest revision number the editor saw (null = none). */
   expectedLatestRevision?: number | null;
   createdBy: string;
+  /** AI drafts enter review directly; everything else starts as a draft. */
+  initialStatus?: 'draft' | 'needs_review';
 }
 
 export async function createRevision(db: Database, input: NewRevisionInput) {
@@ -191,14 +193,14 @@ export async function createRevision(db: Database, input: NewRevisionInput) {
       id,
       arrangementId: input.arrangementId,
       revision,
-      status: 'draft',
+      status: input.initialStatus ?? 'draft',
       origin: input.origin,
       parentRevisionId: input.parentRevisionId,
       document: validated.value,
       schemaVersion: validated.value.schemaVersion,
       createdBy: input.createdBy,
     });
-    return { id, revision, status: 'draft' as const };
+    return { id, revision, status: input.initialStatus ?? ('draft' as const) };
   });
 }
 
