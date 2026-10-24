@@ -1,6 +1,7 @@
 export * from './api';
 export * from './artifacts';
 export * from './catalog';
+export * from './chart-diff';
 export * from './chart-document';
 export * from './domain';
 export * from './generation';

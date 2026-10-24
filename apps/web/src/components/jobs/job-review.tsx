@@ -16,6 +16,7 @@ import { sectionLabel } from '@/components/section-label';
 import { ChordSheet } from '@/components/viewer/chord-sheet';
 import { getJson, postJson } from '@/lib/api/client';
 import { JobStatusText } from './job-list';
+import { ReviewDiff } from './review-diff';
 import { JOB_ERROR_LABEL, LIVE_STATUSES, SPAN_REASON_LABEL, STAGE_LABEL } from './labels';
 
 interface JobResult {
@@ -68,6 +69,10 @@ export function JobReview({ jobId }: { jobId: string }) {
   const [message, setMessage] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [edited, setEdited] = useState<{ id: string; revision: number } | null>(null);
+  // After a reload, the newest derived revision is found again so it can still be published.
+  const rememberLatest = useCallback((latest: { id: string; revision: number }) => {
+    setEdited((current) => (current?.revision === latest.revision ? current : latest));
+  }, []);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(
@@ -195,6 +200,8 @@ export function JobReview({ jobId }: { jobId: string }) {
           />
         </div>
       </section>
+
+      <ReviewDiff draft={revision} refreshKey={edited?.id ?? null} onLatest={rememberLatest} />
 
       <section aria-labelledby="flags-title" className="space-y-2">
         <h2 id="flags-title" className="text-lg font-semibold">
