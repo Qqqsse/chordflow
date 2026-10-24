@@ -11,6 +11,7 @@
 1. 修改任何東西之前，先檢查 `git status`、`docs/agent-handoff.md`、package scripts 與相關測試。
    絕不覆寫使用者尚未提交的工作。
 2. 依序處理下一個未完成的 Milestone（SPEC §16），以小而聚焦的 conventional commits 提交。
+   **每項工作開始前**，先更新 `docs/agent-handoff.md` 的「進行中的工作」並推送，避免 session 中斷後無法交接。
 3. schema／樂理／parser 程式碼採測試先行；UI 與 API 必須有測試支撐。
 4. 結束 Milestone 前執行等同 CI 的檢查（見下方）。若工具無法使用，在 handoff 中記錄確切原因——
    絕不宣稱沒執行過的檢查已通過。
