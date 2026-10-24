@@ -58,8 +58,9 @@ export function createAuth(db: Database, config: AuthConfig) {
     },
     rateLimit: {
       enabled: true,
+      // Every page view reads the session, so the general limit must allow normal browsing.
       window: 60,
-      max: 20,
+      max: 300,
       storage: 'memory',
       // Brute-force guard for password sign-in: 10 attempts per minute per client.
       customRules: { '/sign-in/email': { window: 60, max: 10 } },
