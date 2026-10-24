@@ -16,11 +16,12 @@ import {
   getJob,
   getJobResult,
   listJobEvents,
+  retryJob,
   reviewJob,
   submitJob,
   type JobUser,
 } from './service';
-import { isWorkerAvailable } from './store';
+import { isWorkerAvailable, listWorkers } from './store';
 import { toJobView } from './views';
 import { claimJob, completeJob, failJob, heartbeatJob } from './worker-service';
 
@@ -493,6 +494,68 @@ export function jobsIntegrationSuite(getHandle: () => DatabaseHandle): void {
           requestFingerprint: 'x',
         }),
       ).rejects.toThrow();
+    });
+
+    it('retries a failed job as a new job and leaves the original untouched', async () => {
+      const { row } = await submitJob(db, member, request('retry-orig-0001'));
+      await expectProblem(retryJob(db, member, row.id, 'retry-new-0001'), 'JOB_STATE_CONFLICT');
+      const job = await claimJob(db, claimRequest());
+      if (!job) throw new Error('no job claimed');
+      await failJob(db, row.id, {
+        workerId: 'cpu-mock-1',
+        leaseToken: job.leaseToken,
+        error: { code: 'AUDIO_NOT_AVAILABLE', message: 'x', retryable: false },
+      });
+      const failed = await getJob(db, row.id, member);
+      expect(toJobView(failed, { isAdmin: false, workerAvailable: true }).canRetry).toBe(true);
+      // Another member cannot see (or retry) it.
+      await expectProblem(
+        retryJob(db, { userId: 'usr_other', role: 'member' }, row.id, 'retry-new-0002'),
+        'JOB_NOT_FOUND',
+      );
+      // An admin may start it; the retry still belongs to the original submitter.
+      const retry = await retryJob(db, admin, row.id, 'retry-new-0001');
+      expect(retry.reused).toBe(false);
+      expect(retry.row).toMatchObject({
+        state: 'queued',
+        retryOfJobId: row.id,
+        createdBy: member.userId,
+        attempt: 0,
+      });
+      expect((await retryJob(db, member, row.id, 'retry-new-0001')).row.id).toBe(retry.row.id);
+      // A second retry while the first is still active reuses it (same request).
+      expect((await retryJob(db, member, row.id, 'retry-new-0003')).row.id).toBe(retry.row.id);
+      expect((await getJob(db, row.id, member)).state).toBe('failed_terminal');
+    });
+
+    it('allows retrying a job cancelled before a draft, not a rejected draft', async () => {
+      const { row } = await submitJob(db, member, request('retry-cancel-0001'));
+      await cancelJob(db, row.id, member);
+      const retry = await retryJob(db, member, row.id, 'retry-cancel-0002');
+      expect(retry.row.retryOfJobId).toBe(row.id);
+      const claimed = await claimJob(db, claimRequest());
+      if (claimed?.id !== retry.row.id) throw new Error('claim mismatch');
+      await completeJob(db, claimed.id, completion(claimed.id, 'cpu-mock-1', claimed.leaseToken));
+      await reviewJob(db, claimed.id, admin, { action: 'reject' });
+      const rejected = await getJob(db, claimed.id, member);
+      expect(toJobView(rejected, { isAdmin: false, workerAvailable: true }).canRetry).toBe(false);
+      await expectProblem(
+        retryJob(db, member, claimed.id, 'retry-cancel-0003'),
+        'JOB_STATE_CONFLICT',
+      );
+    });
+
+    it('lists workers with their online status', async () => {
+      await claimJob(db, claimRequest('cpu-mock-7'));
+      await db.execute(
+        sql`insert into worker_presence (worker_id, worker_version, last_seen_at) values ('cpu-old', '0.0.1', now() - interval '10 minutes')`,
+      );
+      const workers = await listWorkers(db);
+      expect(workers.find((w) => w.workerId === 'cpu-mock-7')).toMatchObject({
+        online: true,
+        workerVersion: '0.1.0',
+      });
+      expect(workers.find((w) => w.workerId === 'cpu-old')?.online).toBe(false);
     });
   });
 }

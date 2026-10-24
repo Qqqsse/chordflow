@@ -13,6 +13,7 @@ import { ApiProblem } from '@/lib/api/handler';
 import { publishRevision } from '../catalog/editor';
 import { toApiProblem } from '../catalog/editor-errors';
 import { createPgCatalog } from '../catalog/pg-repository';
+import { authUsers } from '../db/auth-schema';
 import type { Database } from '../db/client';
 import {
   ACTIVE_JOB_STATES,
@@ -31,7 +32,7 @@ import {
   releaseLease,
   transition,
 } from './store';
-import { toJobEvent, type JobRow } from './views';
+import { canRetryJob, toJobEvent, type JobRow } from './views';
 
 /*
  * User-facing side of the generation coordinator (SPEC §10). Submissions are
@@ -138,6 +139,7 @@ export async function submitJob(
   db: Database,
   user: JobUser,
   raw: GenerationJobCreateRequest,
+  options: { retryOfJobId?: string } = {},
 ): Promise<{ row: JobRow; reused: boolean }> {
   const request = normalizeRequest(raw);
   const fingerprint = requestFingerprint(request);
@@ -174,6 +176,7 @@ export async function submitJob(
         request,
         title,
         state: 'created',
+        retryOfJobId: options.retryOfJobId ?? null,
       });
       await recordInitialEvent(tx, id);
       const validated = await transition(
@@ -357,4 +360,33 @@ export async function reviewJob(
     return review.revisionId;
   });
   return { row: await getJob(db, jobId, admin), publishedRevisionId: published };
+}
+
+/** Retry = a new job with the original request; the failed job stays as it was. */
+export async function retryJob(
+  db: Database,
+  user: JobUser,
+  jobId: string,
+  idempotencyKey: string,
+): Promise<{ row: JobRow; reused: boolean }> {
+  const original = await getJob(db, jobId, user);
+  if (!canRetryJob(original)) {
+    throw new ApiProblem(
+      409,
+      'JOB_STATE_CONFLICT',
+      'Only failed jobs, or jobs cancelled before a draft existed, can be retried',
+    );
+  }
+  // The retry belongs to the original submitter (also when an admin starts it), so it
+  // counts against their quota; rights are checked again because they may have changed.
+  const [owner] = await db
+    .select({ role: authUsers.role })
+    .from(authUsers)
+    .where(eq(authUsers.id, original.createdBy));
+  return submitJob(
+    db,
+    { userId: original.createdBy, role: owner?.role === 'admin' ? 'admin' : 'member' },
+    { ...original.request, idempotencyKey },
+    { retryOfJobId: original.id },
+  );
 }

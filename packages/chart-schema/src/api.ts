@@ -17,8 +17,8 @@ import { RecordingSyncSchema } from './recording-sync';
  * `data` schemas are shared with tests and published as OpenAPI/JSON Schema.
  */
 
-/** 1.1.0: personal library routes (`/me/*`), additive. */
-export const API_VERSION = '1.1.0';
+/** 1.1.0: personal library routes (`/me/*`); 1.2.0: job retry and worker status. Both additive. */
+export const API_VERSION = '1.2.0';
 
 export const ApiMetaSchema = z.strictObject({
   requestId: z.string().min(1).max(100),

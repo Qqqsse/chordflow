@@ -285,6 +285,10 @@ export const GenerationJobViewSchema = z.strictObject({
     .strictObject({ code: JobErrorCodeSchema, message: z.string(), retryable: z.boolean() })
     .nullable(),
   draft: z.strictObject({ arrangementId: OpaqueIdSchema, revisionId: OpaqueIdSchema }).nullable(),
+  /** The failed or cancelled job this one retries, if any. */
+  retryOfJobId: OpaqueIdSchema.nullable(),
+  /** Whether the caller may start a retry (failed, or cancelled before a draft existed). */
+  canRetry: z.boolean(),
   createdAt: UtcTimestampSchema,
   updatedAt: UtcTimestampSchema,
 });
@@ -324,6 +328,24 @@ export const GenerationJobResultDataSchema = z.strictObject({
   quality: QualityReportSchema,
   processor: z.strictObject({ id: ProcessorIdSchema, version: ProcessorVersionSchema }),
   artifacts: z.array(ArtifactManifestEntrySchema),
+});
+
+/** A retry is a new job with the same request; the failed job stays as it was. */
+export const GenerationJobRetryRequestSchema = z.strictObject({
+  idempotencyKey: IdempotencyKeySchema,
+});
+
+export const WorkerStatusSchema = z.strictObject({
+  workerId: z.string(),
+  workerVersion: z.string(),
+  lastSeenAt: UtcTimestampSchema,
+  /** Seen within the presence window (60 s). */
+  online: z.boolean(),
+});
+
+export const WorkerStatusListDataSchema = z.strictObject({
+  workers: z.array(WorkerStatusSchema),
+  presenceWindowSeconds: z.int().min(1),
 });
 
 export const GenerationJobReviewRequestSchema = z.discriminatedUnion('action', [

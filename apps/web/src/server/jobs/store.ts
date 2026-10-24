@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { assertTransition, type JobState } from '@chordflow/chart-schema';
-import { eq, sql, type SQL } from 'drizzle-orm';
+import { desc, eq, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { generationJobEvents, generationJobs, workerPresence } from '../db/jobs-schema';
 import type { JobRow } from './views';
@@ -114,4 +114,25 @@ export function isUniqueViolation(error: unknown): boolean {
     if ((e as { code?: unknown }).code === '23505') return true;
   }
   return false;
+}
+
+export interface WorkerStatusRow {
+  workerId: string;
+  workerVersion: string;
+  lastSeenAt: string;
+  online: boolean;
+}
+
+export async function listWorkers(db: Database): Promise<WorkerStatusRow[]> {
+  const rows = await db
+    .select({
+      workerId: workerPresence.workerId,
+      workerVersion: workerPresence.workerVersion,
+      lastSeenAt: workerPresence.lastSeenAt,
+      online: sql<boolean>`${workerPresence.lastSeenAt} > now() - (${WORKER_PRESENCE_WINDOW_SECONDS}::int * interval '1 second')`,
+    })
+    .from(workerPresence)
+    .orderBy(desc(workerPresence.lastSeenAt))
+    .limit(50);
+  return rows.map((r) => ({ ...r, lastSeenAt: new Date(r.lastSeenAt).toISOString() }));
 }
