@@ -12,8 +12,8 @@
 | M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
 | M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
 | M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
-| M6 PostgreSQL／搜尋／帳號／修訂 | 下一個                                     |                                                                         |
-| M7 生成任務與 CPU mock worker   | 尚未開始                                   |                                                                         |
+| M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（使用者看譜偏好與收藏 API 待做）  | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
+| M7 生成任務與 CPU mock worker   | 下一個                                     |                                                                         |
 
 ## 目前已有的內容
 
@@ -34,6 +34,9 @@
   羅馬級數與 Nashville／字級、快捷鍵；`/demo/[arrangementId]` 使用。
 - **packages/guitar-voicings：** 指法驗證、精選與可移動指法庫、推薦排序、選擇順序、指法圖幾何。
 - **播放模式與離線：** 連續自動捲動（尊重減少動態）、分頁模式、IndexedDB 離線儲存、`/offline` 譜庫、service worker、manifest。
+- **資料庫與 API（M6）：** Drizzle schema／migrations（含不可變修訂等觸發器）、PostgreSQL repository 與搜尋、
+  `/api/v1` 讀取與寫入路由、OpenAPI、伺服器端存取規則、better-auth 邀請制帳號（Argon2id）、
+  ChordPro 匯入與交易式發布、`/search`、`/charts/[id]`、`/login`、`/invite`、`/admin`、`/admin/import`。
 - **fixtures：** 新增公有領域歌曲〈送別〉與〈Amazing Grace〉（和弦自編），來源與權利見 `fixtures/README.md`。
 - **services/ai-worker：** Python ≥ 3.12、pydantic 設定、`chordflow-worker check`；pytest 以產生的 JSON Schema
   驗證 fixtures。尚無工作迴圈（M7）。
@@ -76,6 +79,14 @@
 | ecdf091 | feat(viewer): SVG chord diagrams with a per-viewer voicing chooser         |
 | 5e34bd7 | feat(viewer): continuous autoscroll and paged reading mode                 |
 | d548a8c | feat(pwa): explicit offline save with IndexedDB and a service worker       |
+| 6c7824c | docs(handoff): record M5 completion                                        |
+| 0add746 | feat(db): PostgreSQL catalog schema, migrations and repository adapter     |
+| 8121699 | feat(api): catalog read API with OpenAPI contract and access rules         |
+| 70fd330 | feat(search): search page, catalog chart pages and home search             |
+| 3fce5ee | feat(auth): invitation-only accounts with better-auth and Argon2id         |
+| 8e2b4fd | test(e2e): database-mode account flows                                     |
+| eaaadb3 | feat(revisions): draft revisions, transactional publish and write API      |
+| 3dea180 | feat(admin): ChordPro import, preview and publish UI                       |
 
 ## 驗證結果（本 session，本機）
 
@@ -85,9 +96,9 @@
 | `pnpm format:check`                                                               | 通過                                                                                                                   |
 | `pnpm lint`                                                                       | 通過，0 個警告                                                                                                         |
 | `pnpm typecheck`                                                                  | 通過                                                                                                                   |
-| `pnpm test`                                                                       | 24 個檔案、522 個測試通過（M5 後）                                                                                     |
+| `TEST_DATABASE_URL=… pnpm test`                                                   | 28 個檔案、637 個測試通過（含 36 個 PostgreSQL 整合測試；M6 後）                                                       |
 | `pnpm build`                                                                      | 通過（/、/demo、3 個 SSG 示範譜、/api/v1/health）                                                                      |
-| `CI=1 pnpm exec playwright test`                                                  | 32 個通過（Chromium，M5 後）                                                                                           |
+| `TEST_DATABASE_URL=… CI=1 pnpm exec playwright test`                              | 43 個通過（demo 36 + 資料庫模式 7；M6 後）                                                                             |
 | `(cd services/ai-worker && .venv/bin/python -m pytest)`                           | 42 個通過                                                                                                              |
 | `pnpm licenses:check`                                                             | 通過（已審查例外：LGPL 的 `@img/sharp-libvips-*`，由 sharp 動態載入）                                                  |
 | `docker compose --env-file .env.example config -q`（含 worker profile、公開疊加） | 通過                                                                                                                   |
@@ -99,6 +110,9 @@
 Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉取。CI 不需要這些變通即可建置映像。
 
 ## CI
+
+- Run 14（`70fd330`）因 `apps/web/e2e/search.spec.ts` 未格式化而在 `format:check` 失敗；下一個 commit 已修正，Run 15 綠燈。
+  教訓：提交前一定跑 `pnpm format:check`，且不要用 `pnpm -s` 檢查 typecheck（會吞掉子專案錯誤輸出；請看 exit code）。
 
 - Run 3（`03754f1`，https://github.com/Qqqsse/chordflow/actions/runs/40014177668）：4 個 job 全部通過
   （web、worker、compose build、security）。
@@ -123,8 +137,8 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **M6**：Drizzle schema 與 migrations、PostgreSQL repository adapter（實作 `CatalogRepository`）、搜尋 API、
-   邀請制帳號與角色、修訂版本建立與交易式發布、`POST /api/v1/chordpro/import`、使用者偏好與離線資料命名空間。
-   需要 PostgreSQL：雲端沙盒可手動啟動 dockerd 並從 `mirror.gcr.io` 拉 `postgres:17-alpine`；CI 用 service container。
-2. **M7 生成任務與 CPU mock worker**。
-3. 小改善：CI 中快取 Playwright 瀏覽器；`/demo` 以外的頁面加上 CSP。
+1. **M7 生成任務與 CPU mock worker**：job 資料表／lease／狀態機（`jobs.ts` 已定義）、`POST /generation-jobs`（冪等）、
+   worker API（claim／heartbeat／complete／fail，獨立 token）、Python Pydantic client 與 mock processor、
+   artifact manifest、草稿審查 UI。
+2. M6 補完：使用者看譜偏好（UserChartPreference）與收藏 API、修訂退回（reject）流程、CSP 標頭。
+3. CI：快取 Playwright 瀏覽器；`docker compose build` 已涵蓋，可再加 compose 啟動 smoke test。
