@@ -130,3 +130,70 @@ test('admins see an append-only rights history for an arrangement', async ({ pag
   expect(response?.status()).toBe(401);
   await anonymous?.close();
 });
+
+test('admins move, rename and add chords in the editor and publish a new revision', async ({
+  page,
+}) => {
+  await login(page, E2E_ADMIN.email, E2E_ADMIN.password);
+  const origin = { origin: new URL(page.url()).origin };
+  const created = await page.request.post('/api/v1/arrangements', {
+    data: {
+      work: {
+        title: '編輯器測試曲（自創）',
+        titleAliases: [],
+        language: 'zh-TW',
+        artistName: null,
+      },
+      name: '原調',
+      visibility: 'private',
+      rights: {
+        lyrics: 'owner_original',
+        chart: 'owner_original',
+        audio: 'unknown',
+        attribution: null,
+        notes: null,
+      },
+    },
+    headers: origin,
+  });
+  const { arrangementId } = ((await created.json()) as { data: { arrangementId: string } }).data;
+  const revision = await page.request.post(`/api/v1/arrangements/${arrangementId}/revisions`, {
+    data: {
+      chordpro: { source: '{title: 編輯器測試曲（自創）}\n{key: C}\n\n[C]晨光照進小窗[G]口\n' },
+      expectedLatestRevision: null,
+    },
+    headers: origin,
+  });
+  expect(revision.status()).toBe(201);
+
+  await page.goto(`/admin/arrangements/${arrangementId}/edit`);
+  const line = page.getByTestId('editor-line').first();
+  // Move G from 「口」 to 「小」.
+  await line.getByRole('button', { name: 'G', exact: true }).click();
+  await line.getByRole('button', { name: '第 1 行 「小」前' }).click();
+  // Rename C to Cmaj7, and refuse a nonsense name.
+  await line.getByRole('button', { name: 'C', exact: true }).click();
+  await page.getByLabel(/改為/).fill('H<b>');
+  await page.getByRole('button', { name: '改名' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: '無法辨識的和弦名稱' })).toBeVisible();
+  await page.getByLabel(/改為/).fill('Cmaj7');
+  await page.getByRole('button', { name: '改名' }).click();
+  // Add Am before 「照」.
+  await line.getByRole('button', { name: 'Cmaj7', exact: true }).click(); // deselect
+  await page.getByLabel('新增和弦').fill('Am');
+  await line.getByRole('button', { name: '第 1 行 「照」前' }).click();
+
+  const preview = page.getByTestId('chord-sheet');
+  await expect(preview.locator('.chord-label')).toHaveText(['Cmaj7', 'Am', 'G']);
+  await page.getByRole('button', { name: '儲存為新修訂' }).click();
+  await expect(page.getByRole('status')).toHaveText('已儲存為第 2 版（草稿，尚未發布）。');
+  await page.getByRole('button', { name: '發布第 2 版' }).click();
+  await expect(page.getByRole('status')).toHaveText('已發布第 2 版。');
+
+  await page.goto(`/charts/${arrangementId}`);
+  await expect(page.getByTestId('chord-sheet').locator('.chord-label')).toHaveText([
+    'Cmaj7',
+    'Am',
+    'G',
+  ]);
+});
