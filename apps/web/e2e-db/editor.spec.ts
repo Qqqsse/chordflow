@@ -87,3 +87,46 @@ test('admin imports ChordPro, resolves the capo question, publishes, and visitor
   await page.getByRole('button', { name: '建立' }).click();
   await expect(page.getByRole('status')).toContainText('content rights do not permit');
 });
+
+test('admins see an append-only rights history for an arrangement', async ({ page }) => {
+  await login(page, E2E_ADMIN.email, E2E_ADMIN.password);
+  const origin = { origin: new URL(page.url()).origin };
+  const rights = {
+    lyrics: 'owner_original',
+    chart: 'owner_original',
+    audio: 'unknown',
+    attribution: '稽核測試（自創）',
+    notes: null,
+  };
+  const created = await page.request.post('/api/v1/arrangements', {
+    data: {
+      work: { title: '稽核頁測試曲', titleAliases: [], language: 'zh-TW', artistName: null },
+      name: '原調',
+      visibility: 'private',
+      rights,
+    },
+    headers: origin,
+  });
+  expect(created.status()).toBe(201);
+  const { arrangementId } = ((await created.json()) as { data: { arrangementId: string } }).data;
+  const patched = await page.request.patch(`/api/v1/arrangements/${arrangementId}`, {
+    data: { visibility: 'shared', rights },
+    headers: origin,
+  });
+  expect(patched.status()).toBe(200);
+
+  await page.goto(`/admin/arrangements/${arrangementId}/audit`);
+  const log = page.getByTestId('audit-log');
+  await expect(log.getByRole('listitem').filter({ hasText: '・' })).toHaveCount(2);
+  await expect(log).toContainText('建立');
+  await expect(log).toContainText('可見度：私人 → 會員可見');
+  await expect(log).toContainText(E2E_ADMIN.name);
+
+  // Members cannot read it.
+  const anonymous = await page.context().browser()?.newContext();
+  const response = await anonymous?.request.get(
+    `${new URL(page.url()).origin}/api/v1/arrangements/${arrangementId}/audit`,
+  );
+  expect(response?.status()).toBe(401);
+  await anonymous?.close();
+});

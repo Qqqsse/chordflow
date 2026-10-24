@@ -14,11 +14,11 @@ export const dynamic = 'force-dynamic';
 export const POST = apiRoute(
   async (request: Request, { params }: { params: Promise<{ id: string }> }, requestId) => {
     assertSameOrigin(request);
-    const { db } = await requireAdmin(request);
+    const { db, userId } = await requireAdmin(request);
     const arrangementId = requireId((await params).id, 'ARRANGEMENT_NOT_FOUND');
     const parsed = PublishRequestSchema.safeParse(await readJsonBody(request, 4096));
     if (!parsed.success) throw new ApiProblem(422, 'VALIDATION_FAILED', 'revisionId is required');
-    const result = await publishRevision(db, arrangementId, parsed.data.revisionId).catch(
+    const result = await publishRevision(db, arrangementId, parsed.data.revisionId, userId).catch(
       toApiProblem,
     );
     return ok(result, requestId);

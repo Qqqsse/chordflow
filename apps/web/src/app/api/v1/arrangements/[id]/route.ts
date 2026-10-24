@@ -58,11 +58,11 @@ export const GET = apiRoute(
 export const PATCH = apiRoute(
   async (request: Request, { params }: { params: Promise<{ id: string }> }, requestId) => {
     assertSameOrigin(request);
-    const { db } = await requireAdmin(request);
+    const { db, userId } = await requireAdmin(request);
     const id = (await params).id;
     const parsed = ArrangementSettingsSchema.safeParse(await readJsonBody(request, 8 * 1024));
     if (!parsed.success) throw new ApiProblem(422, 'VALIDATION_FAILED', 'Invalid settings');
-    await updateArrangementSettings(db, id, parsed.data).catch(toApiProblem);
+    await updateArrangementSettings(db, id, parsed.data, userId).catch(toApiProblem);
     return ok({ id }, requestId);
   },
 );

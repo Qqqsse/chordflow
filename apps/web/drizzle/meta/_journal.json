@@ -43,6 +43,13 @@
       "when": 1792863254882,
       "tag": "0005_job_retry",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792864178784,
+      "tag": "0006_arrangement_audit",
+      "breakpoints": true
     }
   ]
 }

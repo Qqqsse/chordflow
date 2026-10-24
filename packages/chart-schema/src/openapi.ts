@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   API_VERSION,
   ApiErrorSchema,
+  ArrangementAuditDataSchema,
   ArrangementDetailSchema,
   ArrangementSettingsRequestSchema,
   ChordProImportDataSchema,
@@ -105,6 +106,7 @@ const COMPONENTS = {
   WorkerFailRequest: WorkerFailRequestSchema,
   WorkerFailResponse: envelopeOf(WorkerFailDataSchema),
   LibraryResponse: envelopeOf(LibraryDataSchema),
+  ArrangementAuditResponse: envelopeOf(ArrangementAuditDataSchema),
   FavoriteResponse: envelopeOf(FavoriteDataSchema),
   ViewerPreferences: ViewerPreferencesSchema,
   ViewerPreferencesResponse: envelopeOf(ViewerPreferencesDataSchema),
@@ -479,6 +481,18 @@ export function buildOpenApi(): Json {
             409: errorResponse('LEASE_LOST'),
           },
         }),
+      },
+      '/arrangements/{id}/audit': {
+        get: {
+          summary: 'Append-only history of visibility, rights and publication changes (admin)',
+          parameters: [idParam('id', 'Arrangement id')],
+          responses: {
+            200: okResponse('ArrangementAuditResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            403: errorResponse('FORBIDDEN'),
+            404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
       },
       '/me/library': {
         get: {

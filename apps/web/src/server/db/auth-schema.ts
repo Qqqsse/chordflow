@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  bigserial,
   boolean,
   check,
   index,
@@ -118,6 +119,48 @@ export const favorites = pgTable(
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.arrangementId] })],
+);
+
+export const AUDIT_ACTIONS = ['created', 'settings_changed', 'revision_published'] as const;
+
+/** Snapshot of what an audit event records about an arrangement's rights. */
+export interface RightsSnapshot {
+  visibility: string;
+  rights: {
+    lyrics: string;
+    chart: string;
+    audio: string;
+    attribution: string | null;
+    notes: string | null;
+  };
+  publishedRevisionId: string | null;
+}
+
+/**
+ * Append-only rights/visibility audit log (SPEC §16 M9). Rows are written in
+ * the same transaction as the change; a trigger forbids UPDATE and DELETE.
+ */
+export const arrangementAuditEvents = pgTable(
+  'arrangement_audit_events',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    arrangementId: text('arrangement_id')
+      .notNull()
+      .references(() => arrangements.id),
+    actorUserId: text('actor_user_id').references(() => authUsers.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    before: jsonb('before').$type<RightsSnapshot>(),
+    after: jsonb('after').$type<RightsSnapshot>().notNull(),
+    details: jsonb('details').$type<Record<string, string>>().notNull().default({}),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('arrangement_audit_events_arrangement').on(t.arrangementId, t.id),
+    check(
+      'arrangement_audit_events_action',
+      sql.raw(`action in (${AUDIT_ACTIONS.map((a) => `'${a}'`).join(', ')})`),
+    ),
+  ],
 );
 
 /** Recently opened charts per user; the service keeps only the newest few per user. */
