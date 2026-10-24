@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   turbopack: { root: monorepoRoot },
   transpilePackages: [
     '@chordflow/chart-schema',
+    '@chordflow/chordpro',
     '@chordflow/guitar-voicings',
     '@chordflow/music-theory',
   ],

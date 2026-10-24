@@ -1,11 +1,16 @@
 import { isVerifiedCompatibility } from '@chordflow/chart-schema';
+import { readJsonBody } from '@/lib/api/body';
 import { ok } from '@/lib/api/envelope';
-import { apiRoute } from '@/lib/api/handler';
+import { ApiProblem, apiRoute } from '@/lib/api/handler';
 import { canViewRevision } from '@/server/access';
+import { requireAdmin } from '@/server/auth/guards';
 import { getPrincipal } from '@/server/auth/principal';
 import { getCatalog } from '@/server/catalog';
 import { requireVisibleArrangement } from '@/server/catalog/lookups';
+import { ArrangementSettingsSchema, updateArrangementSettings } from '@/server/catalog/editor';
+import { toApiProblem } from '@/server/catalog/editor-errors';
 import { toArrangementSummary, toWorkSummary } from '@/server/catalog/views';
+import { assertSameOrigin } from '@/server/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,5 +51,18 @@ export const GET = apiRoute(
       },
       requestId,
     );
+  },
+);
+
+/** Updates visibility and per-asset rights (admin only); rights must allow the visibility. */
+export const PATCH = apiRoute(
+  async (request: Request, { params }: { params: Promise<{ id: string }> }, requestId) => {
+    assertSameOrigin(request);
+    const { db } = await requireAdmin(request);
+    const id = (await params).id;
+    const parsed = ArrangementSettingsSchema.safeParse(await readJsonBody(request, 8 * 1024));
+    if (!parsed.success) throw new ApiProblem(422, 'VALIDATION_FAILED', 'Invalid settings');
+    await updateArrangementSettings(db, id, parsed.data).catch(toApiProblem);
+    return ok({ id }, requestId);
   },
 );

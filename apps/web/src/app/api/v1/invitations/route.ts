@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { InvitationCreateRequestSchema } from '@chordflow/chart-schema';
 import { ok } from '@/lib/api/envelope';
 import { ApiProblem, apiRoute } from '@/lib/api/handler';
 import { isAdmin } from '@/server/access';
@@ -8,12 +8,6 @@ import { getPrincipal } from '@/server/auth/principal';
 import { assertSameOrigin } from '@/server/security';
 
 export const dynamic = 'force-dynamic';
-
-const CreateSchema = z.strictObject({
-  role: z.enum(['member', 'admin']).default('member'),
-  note: z.string().trim().max(200).nullable().default(null),
-  ttlDays: z.int().min(1).max(30).default(7),
-});
 
 async function requireAdmin(request: Request) {
   const db = getDatabase();
@@ -47,7 +41,7 @@ export const POST = apiRoute(async (request: Request, _context: unknown, request
   assertSameOrigin(request);
   const { db, principal } = await requireAdmin(request);
   const body: unknown = await request.json().catch(() => null);
-  const parsed = CreateSchema.safeParse(body ?? {});
+  const parsed = InvitationCreateRequestSchema.safeParse(body ?? {});
   if (!parsed.success) throw new ApiProblem(422, 'VALIDATION_FAILED', 'Invalid invitation request');
   const invite = await createInvitation(db, { createdBy: principal.userId, ...parsed.data });
   const base = new URL(process.env.APP_BASE_URL ?? 'http://localhost:3000');

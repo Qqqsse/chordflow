@@ -43,8 +43,24 @@
 | `GET /arrangements/{id}`                 | 編曲摘要、權利、可見的修訂列表、錄音對應                        | 404 `ARRANGEMENT_NOT_FOUND`               |
 | `GET /arrangements/{id}/revisions/{rev}` | 該修訂的 Chart Document                                         | 404 `CHART_NOT_FOUND`                     |
 
-尚未實作（後續）：`POST /chordpro/import`、`POST /arrangements/{id}/revisions`、`POST /arrangements/{id}/publish`
-（帳號與修訂發布，M6 後半），以及生成任務與 worker 路由（M7）。
+### 寫入路由（只在資料庫模式；需登入；`Origin` 必須等於 `APP_BASE_URL`）
+
+| 路由                                    | 身分           | 說明                                                                     |
+| --------------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `POST /chordpro/import`                 | 會員           | 解析 ChordPro 並回傳預覽與行號訊息，**不儲存**；錯誤時 422 仍附 issues   |
+| `POST /arrangements`                    | 管理員         | 建立編曲（作品不存在時一併建立作品與歌手）；權利須允許可見度             |
+| `PATCH /arrangements/{id}`              | 管理員         | 設定可見度與各素材權利；`unknown` 權利只能 `private`                     |
+| `POST /arrangements/{id}/revisions`     | 管理員或擁有者 | 由文件或 ChordPro 建立草稿；伺服器指派 id、修訂編號與 schema 版本        |
+| `POST /arrangements/{id}/publish`       | 管理員         | 交易式發布：鎖定編曲列、檢查權利與文件一致性、更新狀態與指標；可重複呼叫 |
+| `POST /invitations`、`GET /invitations` | 管理員         | 建立（token 只回傳一次）與列出邀請                                       |
+| `POST /invitations/accept`              | 公開（限速）   | 接受邀請、建立帳號並登入                                                 |
+
+- **樂觀鎖**：`expectedLatestRevision` 與目前最新修訂編號不符時回 `409 REVISION_CONFLICT`；同一編曲的寫入以
+  資料列鎖序列化，修訂編號不會重複。
+- **修訂不可變**：既有修訂永遠不會被改寫；編輯就是新增修訂。發布新版本後，舊的已發布修訂仍保留為歷史。
+- 請求大小上限：匯入 256 KB、修訂 512 KB、其他 4–32 KB；超過回 `413 PAYLOAD_TOO_LARGE`。
+
+尚未實作：生成任務與 worker 路由（M7）、使用者看譜偏好與收藏的 API。
 
 ## 搜尋
 

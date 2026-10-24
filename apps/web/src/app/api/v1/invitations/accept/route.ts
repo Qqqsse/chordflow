@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { InvitationAcceptRequestSchema } from '@chordflow/chart-schema';
 import { ok } from '@/lib/api/envelope';
 import { ApiProblem, apiRoute } from '@/lib/api/handler';
 import { getAuth } from '@/server/auth';
@@ -7,13 +7,6 @@ import { getDatabase } from '@/server/catalog';
 import { assertSameOrigin, rateLimit } from '@/server/security';
 
 export const dynamic = 'force-dynamic';
-
-const BodySchema = z.strictObject({
-  token: z.string().min(1).max(200),
-  email: z.string(),
-  name: z.string(),
-  password: z.string(),
-});
 
 const STATUS: Record<
   AccountError['code'],
@@ -33,7 +26,7 @@ export const POST = apiRoute(async (request: Request, _context: unknown, request
   const auth = getAuth();
   if (db === null || auth === null)
     throw new ApiProblem(404, 'NOT_FOUND', 'Accounts are not available in demo mode');
-  const parsed = BodySchema.safeParse(await request.json().catch(() => null));
+  const parsed = InvitationAcceptRequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) throw new ApiProblem(422, 'VALIDATION_FAILED', 'Invalid request body');
   const { token, ...account } = parsed.data;
   try {

@@ -3,6 +3,18 @@ import {
   API_VERSION,
   ApiErrorSchema,
   ArrangementDetailSchema,
+  ArrangementSettingsRequestSchema,
+  ChordProImportDataSchema,
+  ChordProImportRequestSchema,
+  InvitationAcceptRequestSchema,
+  InvitationCreateRequestSchema,
+  InvitationCreatedDataSchema,
+  NewArrangementDataSchema,
+  NewArrangementRequestSchema,
+  NewRevisionDataSchema,
+  NewRevisionRequestSchema,
+  PublishDataSchema,
+  PublishRequestSchema,
   ChartRevisionDataSchema,
   HealthDataSchema,
   ReadinessDataSchema,
@@ -38,6 +50,18 @@ const COMPONENTS = {
   ArrangementResponse: envelopeOf(ArrangementDetailSchema),
   ChartRevisionResponse: envelopeOf(ChartRevisionDataSchema),
   RecordingSyncResponse: envelopeOf(RecordingSyncDataSchema),
+  ChordProImportRequest: ChordProImportRequestSchema,
+  ChordProImportResponse: envelopeOf(ChordProImportDataSchema),
+  NewArrangementRequest: NewArrangementRequestSchema,
+  NewArrangementResponse: envelopeOf(NewArrangementDataSchema),
+  ArrangementSettingsRequest: ArrangementSettingsRequestSchema,
+  NewRevisionRequest: NewRevisionRequestSchema,
+  NewRevisionResponse: envelopeOf(NewRevisionDataSchema),
+  PublishRequest: PublishRequestSchema,
+  PublishResponse: envelopeOf(PublishDataSchema),
+  InvitationCreateRequest: InvitationCreateRequestSchema,
+  InvitationCreatedResponse: envelopeOf(InvitationCreatedDataSchema),
+  InvitationAcceptRequest: InvitationAcceptRequestSchema,
 } as const;
 
 const ref = (name: keyof typeof COMPONENTS) => ({ $ref: `#/components/schemas/${name}` });
@@ -59,6 +83,20 @@ const idParam = (name: string, description: string) => ({
   description,
   schema: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$' },
 });
+
+const jsonBody = (name: keyof typeof COMPONENTS) => ({
+  required: true,
+  content: { 'application/json': { schema: ref(name) } },
+});
+
+/** Writes need a session cookie and an Origin header equal to APP_BASE_URL. */
+const WRITE_ERRORS = {
+  401: errorResponse('UNAUTHENTICATED'),
+  403: errorResponse('FORBIDDEN or CSRF_REJECTED'),
+  404: errorResponse('Not available in demo mode, or resource not found'),
+  413: errorResponse('PAYLOAD_TOO_LARGE'),
+  422: errorResponse('VALIDATION_FAILED'),
+};
 
 const requestIdHeader = {
   name: 'x-request-id',
@@ -161,6 +199,78 @@ export function buildOpenApi(): Json {
           responses: {
             200: okResponse('ArrangementResponse'),
             404: errorResponse('ARRANGEMENT_NOT_FOUND'),
+          },
+        },
+        patch: {
+          summary: 'Set visibility and per-asset rights (admin); rights must allow the visibility',
+          parameters: [idParam('id', 'Arrangement id')],
+          requestBody: jsonBody('ArrangementSettingsRequest'),
+          responses: {
+            200: { description: 'Updated' },
+            ...WRITE_ERRORS,
+            422: errorResponse('VALIDATION_FAILED or PUBLISH_REJECTED'),
+          },
+        },
+      },
+      '/arrangements': {
+        post: {
+          summary: 'Create an arrangement, and its work when new (admin)',
+          requestBody: jsonBody('NewArrangementRequest'),
+          responses: { 201: okResponse('NewArrangementResponse', 'Created'), ...WRITE_ERRORS },
+        },
+      },
+      '/arrangements/{id}/revisions': {
+        post: {
+          summary: 'Create a draft revision from a document or ChordPro (admin or owner)',
+          parameters: [idParam('id', 'Arrangement id')],
+          requestBody: jsonBody('NewRevisionRequest'),
+          responses: {
+            201: okResponse('NewRevisionResponse', 'Created'),
+            ...WRITE_ERRORS,
+            409: errorResponse('REVISION_CONFLICT (expectedLatestRevision is stale)'),
+          },
+        },
+      },
+      '/arrangements/{id}/publish': {
+        post: {
+          summary: 'Transactional, rights- and review-gated publish (admin); idempotent',
+          parameters: [idParam('id', 'Arrangement id')],
+          requestBody: jsonBody('PublishRequest'),
+          responses: {
+            200: okResponse('PublishResponse'),
+            ...WRITE_ERRORS,
+            422: errorResponse('PUBLISH_REJECTED'),
+          },
+        },
+      },
+      '/chordpro/import': {
+        post: {
+          summary: 'Parse ChordPro into a preview (members); nothing is stored',
+          requestBody: jsonBody('ChordProImportRequest'),
+          responses: {
+            200: okResponse('ChordProImportResponse'),
+            ...WRITE_ERRORS,
+            422: okResponse('ChordProImportResponse', 'Import errors (issues with line numbers)'),
+          },
+        },
+      },
+      '/invitations': {
+        post: {
+          summary: 'Create an invitation (admin); the token is returned once',
+          requestBody: jsonBody('InvitationCreateRequest'),
+          responses: { 201: okResponse('InvitationCreatedResponse', 'Created'), ...WRITE_ERRORS },
+        },
+      },
+      '/invitations/accept': {
+        post: {
+          summary: 'Accept an invitation, create the account and start a session',
+          requestBody: jsonBody('InvitationAcceptRequest'),
+          responses: {
+            201: { description: 'Account created; session cookie set' },
+            403: errorResponse('FORBIDDEN (invalid, expired or used invitation) or CSRF_REJECTED'),
+            409: errorResponse('Email already registered'),
+            422: errorResponse('VALIDATION_FAILED'),
+            429: errorResponse('RATE_LIMITED'),
           },
         },
       },

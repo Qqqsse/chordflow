@@ -180,3 +180,106 @@ export const ArrangementDetailSchema = z.strictObject({
 
 export const ChartRevisionDataSchema = ChartRevisionSchema;
 export const RecordingSyncDataSchema = RecordingSyncSchema;
+
+// --- write API (database mode; authenticated, same-origin) -----------------
+
+export const ChordProImportRequestSchema = z.strictObject({
+  source: z.string().max(200_000),
+  title: z.string().trim().min(1).max(200).optional(),
+  language: z.string().max(35).optional(),
+  chordsWrittenAs: z.enum(['concert', 'capo_shapes']).optional(),
+});
+
+export const ImportIssueSchema = z.strictObject({
+  severity: z.enum(['error', 'warning']),
+  code: z.string(),
+  line: z.int().min(0),
+  column: z.int().nullable(),
+  message: z.string(),
+});
+
+export const ChordProImportDataSchema = z.strictObject({
+  ok: z.boolean(),
+  document: ChartRevisionSchema.shape.document.nullable(),
+  metadata: z
+    .strictObject({
+      title: z.string().nullable(),
+      subtitles: z.array(z.string()),
+      artists: z.array(z.string()),
+      key: z.string().nullable(),
+      capo: z.int().nullable(),
+      tempo: z.number().nullable(),
+      time: z.string().nullable(),
+    })
+    .nullable(),
+  issues: z.array(ImportIssueSchema),
+});
+
+export const NewArrangementRequestSchema = z.strictObject({
+  work: z.union([
+    z.strictObject({ id: OpaqueIdSchema }),
+    z.strictObject({
+      title: z.string().trim().min(1).max(200),
+      titleAliases: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
+      language: z.string().max(35).nullable().default(null),
+      artistName: z.string().trim().min(1).max(200).nullable().default(null),
+    }),
+  ]),
+  name: z.string().trim().min(1).max(200),
+  variant: ArrangementSchema.shape.variant.default('original'),
+  visibility: ArrangementSchema.shape.visibility.default('private'),
+  rights: ArrangementSchema.shape.rights,
+});
+
+export const NewArrangementDataSchema = z.strictObject({
+  workId: OpaqueIdSchema,
+  arrangementId: OpaqueIdSchema,
+});
+
+export const ArrangementSettingsRequestSchema = z.strictObject({
+  visibility: ArrangementSchema.shape.visibility,
+  rights: ArrangementSchema.shape.rights,
+});
+
+export const NewRevisionRequestSchema = z.strictObject({
+  /** Chart content (ids, revision number and schema version are assigned by the server)… */
+  document: z.record(z.string(), z.json()).optional(),
+  /** …or ChordPro source. Exactly one must be given. */
+  chordpro: ChordProImportRequestSchema.omit({ language: true }).optional(),
+  parentRevisionId: OpaqueIdSchema.nullable().default(null),
+  /** Optimistic concurrency: latest revision number the editor saw; mismatch → 409. */
+  expectedLatestRevision: z.int().min(1).nullable().optional(),
+});
+
+export const NewRevisionDataSchema = z.strictObject({
+  id: OpaqueIdSchema,
+  revision: z.int().min(1),
+  status: z.literal('draft'),
+});
+
+export const PublishRequestSchema = z.strictObject({ revisionId: OpaqueIdSchema });
+export const PublishDataSchema = z.strictObject({
+  publishedRevisionId: OpaqueIdSchema,
+  changed: z.boolean(),
+});
+
+export const InvitationCreateRequestSchema = z.strictObject({
+  role: z.enum(['member', 'admin']).default('member'),
+  note: z.string().trim().max(200).nullable().default(null),
+  ttlDays: z.int().min(1).max(30).default(7),
+});
+
+export const InvitationCreatedDataSchema = z.strictObject({
+  id: OpaqueIdSchema,
+  /** Shown once; only its SHA-256 hash is stored. */
+  token: z.string(),
+  acceptUrl: z.url(),
+  expiresAt: UtcTimestampSchema,
+});
+
+export const InvitationAcceptRequestSchema = z.strictObject({
+  token: z.string().min(1).max(200),
+  email: z.string(),
+  name: z.string(),
+  password: z.string(),
+});

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe } from 'vitest';
 import snapshot from '../../../../fixtures/contracts/catalog-demo.json';
 import { authIntegrationSuite } from './auth/auth.integration';
 import { DEMO_FIXTURE_FILES } from './catalog/demo-catalog-files';
+import { editorIntegrationSuite } from './catalog/editor.integration';
 import { catalogIntegrationSuite } from './catalog/pg-repository.integration';
 import { seedCatalog } from './catalog/seed';
 import { openDatabase, type DatabaseHandle } from './db/client';
@@ -39,4 +40,5 @@ describe.skipIf(!url)('PostgreSQL integration', () => {
 
   catalogIntegrationSuite(getHandle);
   authIntegrationSuite(getHandle);
+  editorIntegrationSuite(getHandle);
 });
