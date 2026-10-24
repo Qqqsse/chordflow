@@ -12,6 +12,13 @@ export type JobEventRow = typeof generationJobEvents.$inferSelect;
 
 const iso = (value: string): string => new Date(value).toISOString();
 
+/** Failed jobs, and jobs cancelled before any draft existed, can be retried as a new job. */
+export function canRetryJob(row: Pick<JobRow, 'state' | 'resultRevisionId'>): boolean {
+  return (
+    row.state === 'failed_terminal' || (row.state === 'cancelled' && row.resultRevisionId === null)
+  );
+}
+
 /**
  * User-facing job view. A lease that has expired but not yet been swept is
  * reported as waiting/queued rather than "processing", so a dead worker
@@ -53,6 +60,8 @@ export function toJobView(
       row.resultArrangementId !== null && row.resultRevisionId !== null
         ? { arrangementId: row.resultArrangementId, revisionId: row.resultRevisionId }
         : null,
+    retryOfJobId: row.retryOfJobId,
+    canRetry: canRetryJob(row),
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),
   };

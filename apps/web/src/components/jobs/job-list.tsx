@@ -54,6 +54,14 @@ export function JobList({ refreshKey }: { refreshKey: number }) {
     await load();
   };
 
+  const retry = async (id: string) => {
+    const result = await postJson(`/api/v1/generation-jobs/${id}/retry`, {
+      idempotencyKey: `retry_${crypto.randomUUID().replaceAll('-', '')}`,
+    });
+    setMessage(result.error === null ? null : result.error.message);
+    await load();
+  };
+
   if (jobs === null) return <p role="status">{message ?? '載入中…'}</p>;
   if (jobs.length === 0) return <p>還沒有任務。</p>;
   return (
@@ -67,6 +75,7 @@ export function JobList({ refreshKey }: { refreshKey: number }) {
             data-job-id={job.id}
           >
             <span className="font-medium">{job.title}</span>
+            {job.retryOfJobId !== null && <span className="text-ink-muted">（重試）</span>}
             <JobStatusText job={job} />
             <span className="text-ink-muted">
               第 {job.attempt}／{job.maxAttempts} 次
@@ -82,6 +91,15 @@ export function JobList({ refreshKey }: { refreshKey: number }) {
                 <a className="underline" href={`/admin/jobs/${job.id}`}>
                   {job.status === 'needs_review' ? '審查草稿' : '查看結果'}
                 </a>
+              )}
+              {job.canRetry && (
+                <button
+                  type="button"
+                  onClick={() => void retry(job.id)}
+                  className="min-h-11 rounded-md border border-border px-3"
+                >
+                  重試
+                </button>
               )}
               {LIVE_STATUSES.has(job.status) && (
                 <button

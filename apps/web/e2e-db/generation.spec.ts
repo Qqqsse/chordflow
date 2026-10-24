@@ -136,3 +136,30 @@ test('generate → queued → worker → review → edit → publish', async ({ 
   await expect(sheet.locator('.chord-label', { hasText: /^Dm$/ }).first()).toBeVisible();
   await expect(sheet.locator('.chord-label', { hasText: /^D$/ })).toHaveCount(0);
 });
+
+test('a cancelled job can be retried as a new job; worker status is shown', async ({ page }) => {
+  await login(page);
+  await page.goto('/admin/generate');
+  await expect(page.getByTestId('worker-status')).toContainText('worker');
+  await page.getByRole('button', { name: '填入自創範例歌詞' }).click();
+  await page.getByLabel('歌名').fill('重試測試曲（自創）');
+  await page.getByRole('button', { name: '產生草稿' }).click();
+  await expect(page.getByRole('status').first()).toHaveText('已建立任務。');
+
+  const jobs = page.getByRole('list', { name: '生成任務' });
+  const original = jobs.getByRole('listitem').filter({ hasText: '重試測試曲' }).first();
+  await original.getByRole('button', { name: '取消' }).click();
+  await expect(original.getByTestId('job-status')).toHaveAttribute('data-status', 'cancelled');
+
+  await original.getByRole('button', { name: '重試' }).click();
+  const retried = jobs.getByRole('listitem').filter({ hasText: '（重試）' });
+  await expect(retried).toHaveCount(1);
+  await expect(retried.getByTestId('job-status')).toHaveAttribute(
+    'data-status',
+    /^(queued|waiting_for_worker)$/,
+  );
+  // The original stays cancelled; the retry is a separate job.
+  await expect(
+    jobs.getByRole('listitem').filter({ hasText: '重試測試曲' }).getByTestId('job-status'),
+  ).toHaveCount(2);
+});

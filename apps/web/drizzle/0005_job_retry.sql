@@ -1,0 +1,2 @@
+ALTER TABLE "generation_jobs" ADD COLUMN "retry_of_job_id" text;--> statement-breakpoint
+ALTER TABLE "generation_jobs" ADD CONSTRAINT "generation_jobs_retry_of_job_id_generation_jobs_id_fk" FOREIGN KEY ("retry_of_job_id") REFERENCES "public"."generation_jobs"("id") ON DELETE no action ON UPDATE no action;

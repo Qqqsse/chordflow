@@ -31,6 +31,7 @@ import {
   GenerationJobListDataSchema,
   GenerationJobResultDataSchema,
   GenerationJobReviewDataSchema,
+  GenerationJobRetryRequestSchema,
   GenerationJobReviewRequestSchema,
   WorkerClaimDataSchema,
   WorkerClaimRequestSchema,
@@ -40,6 +41,7 @@ import {
   WorkerFailRequestSchema,
   WorkerHeartbeatDataSchema,
   WorkerHeartbeatRequestSchema,
+  WorkerStatusListDataSchema,
 } from './generation';
 import {
   FavoriteDataSchema,
@@ -91,6 +93,8 @@ const COMPONENTS = {
   GenerationJobListResponse: envelopeOf(GenerationJobListDataSchema),
   GenerationJobResultResponse: envelopeOf(GenerationJobResultDataSchema),
   GenerationJobReviewRequest: GenerationJobReviewRequestSchema,
+  GenerationJobRetryRequest: GenerationJobRetryRequestSchema,
+  WorkerStatusListResponse: envelopeOf(WorkerStatusListDataSchema),
   GenerationJobReviewResponse: envelopeOf(GenerationJobReviewDataSchema),
   WorkerClaimRequest: WorkerClaimRequestSchema,
   WorkerClaimResponse: envelopeOf(WorkerClaimDataSchema),
@@ -395,6 +399,30 @@ export function buildOpenApi(): Json {
             409: errorResponse('JOB_STATE_CONFLICT'),
           },
         }),
+      },
+      '/generation-jobs/{id}/retry': {
+        post: jobPath('Retry a failed (or cancelled, draft-less) job as a new job (owner/admin)', {
+          requestBody: jsonBody('GenerationJobRetryRequest'),
+          responses: {
+            200: okResponse('GenerationJobCreatedResponse', 'Existing retry reused'),
+            201: okResponse('GenerationJobCreatedResponse', 'Retry created'),
+            ...WRITE_ERRORS,
+            409: errorResponse(
+              'JOB_STATE_CONFLICT (job is not failed or cancelled before a draft)',
+            ),
+            429: errorResponse('QUOTA_EXCEEDED or RATE_LIMITED'),
+          },
+        }),
+      },
+      '/workers': {
+        get: {
+          summary: 'Workers that have contacted the worker API, with online status (admin)',
+          responses: {
+            200: okResponse('WorkerStatusListResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            403: errorResponse('FORBIDDEN'),
+          },
+        },
       },
       '/generation-jobs/{id}/review': {
         post: jobPath('Publish the draft (or a revision derived from it) or reject it (admin)', {

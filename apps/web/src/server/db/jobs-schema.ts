@@ -7,6 +7,7 @@ import {
 } from '@chordflow/chart-schema';
 import { sql } from 'drizzle-orm';
 import {
+  type AnyPgColumn,
   bigserial,
   boolean,
   check,
@@ -79,6 +80,8 @@ export const generationJobs = pgTable(
     processorVersion: text('processor_version'),
     resultArrangementId: text('result_arrangement_id').references(() => arrangements.id),
     resultRevisionId: text('result_revision_id').references(() => chartRevisions.id),
+    /** The failed or cancelled job this one retries (a retry is always a new job). */
+    retryOfJobId: text('retry_of_job_id').references((): AnyPgColumn => generationJobs.id),
     createdAt: ts('created_at').notNull().defaultNow(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },

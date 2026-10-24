@@ -70,6 +70,8 @@
 | `GET /generation-jobs/{id}/result`  | 擁有者或管理員     | 草稿修訂、品質報告、處理器與 artifact manifest；尚未完成回 404               |
 | `POST /generation-jobs/{id}/cancel` | 擁有者或管理員     | 取消尚未產生草稿的任務；可重複呼叫                                           |
 | `POST /generation-jobs/{id}/review` | 管理員             | `publish`（草稿或衍生修訂）或 `reject`                                       |
+| `POST /generation-jobs/{id}/retry`  | 擁有者或管理員     | 以原請求建立新任務（只限失敗，或在草稿產生前取消）；原任務不變               |
+| `GET /workers`                      | 管理員             | worker 列表與在線狀態（60 秒內聯絡過＝在線）                                 |
 
 ### Worker API（`Authorization: Bearer <WORKER_TOKEN>`；不使用 cookie）
 
@@ -90,7 +92,7 @@
 | `GET`／`PUT /me/preferences/{id}`  | 讀取／儲存看譜設定（UserChartPreference v1，`ViewerPreferencesSchema`）；不會改動和弦譜 |
 | `POST /me/recent/{id}`             | 記錄開啟；每位使用者只保留最新 20 筆（204）                                             |
 
-API 契約版本 1.1.0（新增個人譜庫路由，向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
+API 契約版本 1.2.0（1.1.0 新增個人譜庫，1.2.0 新增任務重試與 worker 狀態；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
 
 ## 搜尋
 

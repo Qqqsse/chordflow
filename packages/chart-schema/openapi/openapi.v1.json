@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "chordflow API",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Envelope: success `{ data, meta: { requestId, schemaVersion } }`, error `{ error: { code, message, details, requestId } }`. Hidden and missing resources both return 404."
   },
   "servers": [
@@ -1317,6 +1317,162 @@
           },
           "422": {
             "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generation-jobs/{id}/retry": {
+      "post": {
+        "summary": "Retry a failed (or cancelled, draft-less) job as a new job (owner/admin)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationJobRetryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing retry reused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobCreatedResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Retry created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobCreatedResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN or CSRF_REJECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not available in demo mode, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "JOB_STATE_CONFLICT (job is not failed or cancelled before a draft)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "QUOTA_EXCEEDED or RATE_LIMITED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workers": {
+      "get": {
+        "summary": "Workers that have contacted the worker API, with online status (admin)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerStatusListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
             "content": {
               "application/json": {
                 "schema": {
@@ -6276,6 +6432,20 @@
                       }
                     ]
                   },
+                  "retryOfJobId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canRetry": {
+                    "type": "boolean"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time",
@@ -6299,6 +6469,8 @@
                   "maxAttempts",
                   "error",
                   "draft",
+                  "retryOfJobId",
+                  "canRetry",
                   "createdAt",
                   "updatedAt"
                 ],
@@ -6535,6 +6707,20 @@
                       }
                     ]
                   },
+                  "retryOfJobId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canRetry": {
+                    "type": "boolean"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time",
@@ -6558,6 +6744,8 @@
                   "maxAttempts",
                   "error",
                   "draft",
+                  "retryOfJobId",
+                  "canRetry",
                   "createdAt",
                   "updatedAt"
                 ],
@@ -6874,6 +7062,20 @@
                         }
                       ]
                     },
+                    "retryOfJobId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "canRetry": {
+                      "type": "boolean"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -6897,6 +7099,8 @@
                     "maxAttempts",
                     "error",
                     "draft",
+                    "retryOfJobId",
+                    "canRetry",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -7130,6 +7334,20 @@
                       }
                     ]
                   },
+                  "retryOfJobId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canRetry": {
+                    "type": "boolean"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time",
@@ -7153,6 +7371,8 @@
                   "maxAttempts",
                   "error",
                   "draft",
+                  "retryOfJobId",
+                  "canRetry",
                   "createdAt",
                   "updatedAt"
                 ],
@@ -8149,6 +8369,92 @@
           }
         ]
       },
+      "GenerationJobRetryRequest": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{8,100}$"
+          }
+        },
+        "required": [
+          "idempotencyKey"
+        ],
+        "additionalProperties": false
+      },
+      "WorkerStatusListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "workers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "workerId": {
+                      "type": "string"
+                    },
+                    "workerVersion": {
+                      "type": "string"
+                    },
+                    "lastSeenAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    },
+                    "online": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "workerId",
+                    "workerVersion",
+                    "lastSeenAt",
+                    "online"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "presenceWindowSeconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "workers",
+              "presenceWindowSeconds"
+            ],
+            "additionalProperties": false
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schemaVersion": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+              }
+            },
+            "required": [
+              "requestId",
+              "schemaVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
       "GenerationJobReviewResponse": {
         "type": "object",
         "properties": {
@@ -8344,6 +8650,20 @@
                       }
                     ]
                   },
+                  "retryOfJobId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canRetry": {
+                    "type": "boolean"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time",
@@ -8367,6 +8687,8 @@
                   "maxAttempts",
                   "error",
                   "draft",
+                  "retryOfJobId",
+                  "canRetry",
                   "createdAt",
                   "updatedAt"
                 ],

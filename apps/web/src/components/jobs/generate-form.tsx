@@ -3,6 +3,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { postJson } from '@/lib/api/client';
 import { JobList } from './job-list';
+import { WorkerStatusPanel } from './worker-status';
 import { SAMPLE_LYRICS, SAMPLE_TITLE } from './sample-lyrics';
 
 const LYRICS_RIGHTS = [
@@ -182,6 +183,12 @@ export function GenerateForm() {
         </div>
         {status !== null && <p role="status">{status}</p>}
       </form>
+      <section aria-labelledby="workers-title" className="space-y-2">
+        <h2 id="workers-title" className="text-lg font-semibold">
+          Worker 狀態
+        </h2>
+        <WorkerStatusPanel />
+      </section>
       <section aria-labelledby="jobs-title" className="space-y-2">
         <h2 id="jobs-title" className="text-lg font-semibold">
           最近的任務
