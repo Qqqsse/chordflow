@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { DatabaseHandle } from '../db/client';
 import { authAccounts, invitations } from '../db/auth-schema';
-import { createAuth, type Auth } from './auth';
+import { DEFAULT_SIGN_IN_PER_MINUTE, createAuth, type Auth } from './auth';
 import { AccountError, acceptInvitation, bootstrapAdmin, createInvitation } from './invitations';
 
 const ADMIN = { email: 'Admin@Example.org', name: '管理員', password: 'admin-password-123' };
@@ -40,6 +40,7 @@ export function authIntegrationSuite(getHandle: () => DatabaseHandle): void {
       auth = createAuth(handle.db, {
         baseURL: 'http://localhost:3000',
         secret: 'test-secret-'.padEnd(40, 'x'),
+        signInPerMinute: DEFAULT_SIGN_IN_PER_MINUTE,
       });
       adminId = (await bootstrapAdmin(handle.db, auth, ADMIN)).userId;
     });
