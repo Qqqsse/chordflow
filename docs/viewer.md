@@ -55,3 +55,10 @@ SPEC §8 要求「visual regression」。像素截圖比對會受字型版本、
 之間容易誤報，而且不會說明「哪裡錯了」。本專案改以上述幾何斷言驗證 SPEC 真正關心的性質（對齊、不重疊、不溢出、
 基線一致），並把截圖附在報告中供人工檢視。若日後改用固定版本的 Playwright Docker 映像執行 CI，可再加上
 `toHaveScreenshot` 基準圖。
+
+## 和弦譜編輯器（管理員）
+
+`/admin/arrangements/[id]/edit`（`apps/web/src/components/editor/`）以最新修訂為基礎：點和弦選取，再點歌詞中的字，
+和弦就移到那個字前；也可新增、改名（名稱必須能被樂理引擎解析）、刪除和弦，以及修改段落類型與名稱，並即時預覽。
+儲存會先驗證，再建立**新的修訂**（帶 `parentRevisionId` 與樂觀鎖），之後可直接發布。`editor-state.ts` 是純 reducer，
+有單元測試保證和弦依位置排序、id 不重複、每次結果都是合法的譜，無效輸入不會改變譜。
