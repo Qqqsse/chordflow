@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SaveOfflineButton } from '@/components/offline/save-offline-button';
 import { ChartViewer } from '@/components/viewer/chart-viewer';
 import { getDemoCatalog } from '@/server/catalog/demo-catalog';
 import { DEMO_ARRANGEMENT_IDS } from '../demo-arrangements';
@@ -46,6 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DemoChartPage({ params }: Props) {
   const { arrangement, chart, credits } = await load((await params).arrangementId);
+  const creditLine = credits
+    .filter((c) => c.artist !== null)
+    .map((c) => `${ROLE_LABELS[c.role] ?? c.role}：${c.artist?.name ?? ''}`)
+    .join('\u3000');
   return (
     <article aria-labelledby="chart-title" className="space-y-6">
       <header className="space-y-1">
@@ -55,12 +60,7 @@ export default async function DemoChartPage({ params }: Props) {
         <h1 id="chart-title" className="text-2xl font-bold">
           {chart.title}
         </h1>
-        <p className="text-sm text-ink-muted">
-          {credits
-            .filter((c) => c.artist !== null)
-            .map((c) => `${ROLE_LABELS[c.role] ?? c.role}：${c.artist?.name ?? ''}`)
-            .join('\u3000')}
-        </p>
+        <p className="text-sm text-ink-muted">{creditLine}</p>
         <p className="text-sm text-ink-muted">
           版本：{arrangement.name}
           {chart.timeSignature !== null && `\u3000拍號 ${chart.timeSignature}`}
@@ -70,6 +70,10 @@ export default async function DemoChartPage({ params }: Props) {
           <p className="text-xs text-ink-muted">{arrangement.rights.attribution}</p>
         )}
       </header>
+      <SaveOfflineButton
+        chart={chart}
+        meta={{ arrangementName: arrangement.name, credits: creditLine === '' ? null : creditLine }}
+      />
       <ChartViewer chart={chart} />
     </article>
   );

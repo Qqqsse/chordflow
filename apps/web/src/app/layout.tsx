@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ServiceWorkerRegistrar } from '@/components/offline/service-worker-registrar';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'chordflow', template: '%s · chordflow' },
   description: '邊彈邊唱的吉他和弦譜',
+  icons: { icon: '/icon.svg' },
 };
 
 export const viewport: Viewport = {
@@ -34,11 +36,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Link href="/demo" className="text-ink-muted hover:text-ink">
               示範譜
             </Link>
+            <a href="/offline" className="text-ink-muted hover:text-ink">
+              離線譜庫
+            </a>
           </nav>
         </header>
         <main id="main" className="mx-auto max-w-4xl px-4 py-8">
           {children}
         </main>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
