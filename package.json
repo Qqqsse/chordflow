@@ -19,6 +19,7 @@
     "build": "pnpm -r build",
     "e2e": "playwright test",
     "licenses:check": "node scripts/check-licenses.mjs",
+    "secrets:check": "node scripts/check-secrets.mjs",
     "worker:test": "cd services/ai-worker && python -m pytest"
   },
   "devDependencies": {

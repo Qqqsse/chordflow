@@ -26,6 +26,15 @@ pnpm exec playwright install --with-deps chromium
 
 E2E 跑在 production build 上，所以要先執行 `pnpm build`。可用 `E2E_PORT` 更改 port。
 
+## Secret 掃描
+
+```sh
+pnpm secrets:check    # 以 Docker 執行 gitleaks，掃描整個 git 歷史並套用 .gitleaks.toml（與 CI 相同）
+GITLEAKS_IMAGE=mirror.gcr.io/zricethezav/gitleaks:v8.28.0 pnpm secrets:check   # Docker Hub 限流時
+```
+
+沒有 Docker daemon 時回傳 exit code 2，並提示 CI 仍會執行這項掃描。
+
 ## Python worker
 
 ```sh

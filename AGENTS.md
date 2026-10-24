@@ -1,7 +1,7 @@
 # AGENTS.md — chordflow 程式開發 Agent 規則
 
 `SPEC.md` 是具約束力的工程規格。動手修改前，先讀 §0、§4、§5、§10、§15、§16、§17，
-再讀 `docs/agent-handoff.md` 了解目前狀態與下一個任務。
+再讀 `docs/agent-onboarding.md`（全貌、怎麼跑、踩過的坑）與 `docs/agent-handoff.md`（逐次紀錄）了解目前狀態與下一個任務。
 
 > English summary: `SPEC.md` is binding. Follow the session protocol and hard rules below; run the quality
 > gate before closing a milestone and record skipped checks honestly in `docs/agent-handoff.md`.
@@ -28,6 +28,7 @@ pnpm test
 pnpm build
 pnpm exec playwright test        # 使用 Chromium；見 docs/testing.md
 pnpm licenses:check
+pnpm secrets:check               # gitleaks 掃 git 歷史（需 Docker），與 CI 相同
 (cd services/ai-worker && python -m pytest)
 docker compose --env-file .env.example config -q   # 只需 Docker CLI，不需 daemon
 ```

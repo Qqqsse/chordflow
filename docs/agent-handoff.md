@@ -1,6 +1,7 @@
 # Agent 交接文件
 
 給下一個 session 的持久上下文（SPEC §17）。每個任務結束時更新。
+接手前請先讀 `docs/agent-onboarding.md`（全貌、怎麼跑、踩過的坑、下一步）。
 
 ## 進度（2026-10-24）
 
@@ -125,7 +126,8 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 - Run 18–20（`4e74005`、`8de4c3f`、`0909687`）：web、worker、compose 三個 job 通過，**security job 失敗**——
   gitleaks 的 generic-api-key 規則把 worker fixtures 中合成的 `lease_<32 hex>` 判成金鑰（10 筆，全是誤判）。
-  `ce02303` 加入只針對租約 token 格式的 allowlist；推送後需確認 CI 恢復綠燈。
+  `ce02303` 加入只針對租約 token 格式的 `.gitleaks.toml`；**Run 21（`67a999a`）四個 job 全部通過**。
+  根本原因是推送前沒在本機跑 secret 掃描；已新增 `pnpm secrets:check`（與 CI 相同的 gitleaks 掃描）並列入品質閘門。
 
 - Run 14（`70fd330`）因 `apps/web/e2e/search.spec.ts` 未格式化而在 `format:check` 失敗；下一個 commit 已修正，Run 15 綠燈。
   教訓：提交前一定跑 `pnpm format:check`，且不要用 `pnpm -s` 檢查 typecheck（會吞掉子專案錯誤輸出；請看 exit code）。
@@ -159,7 +161,7 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## 下一個最有價值的工作
 
-1. **確認 CI 綠燈**（`ce02303` 之後的 run）。
+1. 推送前跑完整品質閘門，包含 `pnpm secrets:check`。
 2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 主機與授權音訊；雲端 session 不做 CUDA 安裝或模型下載。
    可先在雲端準備：授權音訊上傳的 SourceProvider 介面、`compose.gpu-nvidia.yaml` 草稿（不驗證就不合併）、
    原曲 vs 分離音軌的評估 harness（用合成訊號）。
