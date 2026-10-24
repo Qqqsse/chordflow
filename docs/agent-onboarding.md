@@ -1,6 +1,6 @@
 # Agent 交接總覽（給接手的 Agent）
 
-> 狀態截至 **2026-10-24**，分支 `claude/beautiful-maxwell-h4wqaz`（尚未開 PR，也尚未合併到 `main`）。
+> 狀態截至 **2026-10-24**。穩定分支是 `main`；開發分支 `claude/beautiful-maxwell-h4wqaz` 經 PR 合併進 `main`。
 > 這份文件是**一次讀完就能開工**的總覽；逐次 session 的細節紀錄在 `docs/agent-handoff.md`。
 > 若兩者衝突，以程式碼與測試為準，並修正文件。
 
@@ -32,7 +32,7 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 | M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認） | `docs/schema-decisions.md`                            |
 | M2 樂理                         | ✅ 完成                             | `docs/music-theory.md`                                |
 | M3 ChordPro 匯入／匯出          | ✅ 完成                             | `docs/chordpro.md`                                    |
-| M4 看譜器                       | ✅ 完成                             | `docs/viewer.md`（含 ADR-001 提案）                   |
+| M4 看譜器                       | ✅ 完成                             | `docs/viewer.md`（含 ADR-001，已接受）                |
 | M5 指法圖／播放模式／PWA        | ✅ 完成                             | `docs/offline-and-voicings.md`                        |
 | M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（少數補完項見 §10）         | `docs/api-contract.md`、`docs/security-and-rights.md` |
 | M7 生成任務與 CPU mock worker   | ✅ 完成                             | `docs/generation-jobs.md`                             |
@@ -226,12 +226,11 @@ docker compose --env-file .env.example --profile worker --profile tools config -
   - web 不驗證 artifact 的檔案內容，只驗證 manifest 結構與路徑範圍。
 - Python 沒有完整的 UAX #29 字形切分：遇到複雜字形時只在行首放和弦，並交給伺服器端驗證。
 - CI 的 web job 中，`playwright install` 佔了相當多時間，可以快取。
-- ADR-001（以幾何驗證取代像素比對的視覺回歸）仍是提案，等擁有者確認。
 
 ## 11. 下一步建議（依優先順序）
 
-1. **合併前整理**：如果擁有者要合併，開 PR 到 `main` 前先確認 CI 綠燈。
-   PR 只在使用者明確要求時才開。
+1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `c1a5d0c` 建立）。新工作在
+   session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
 2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 與授權音訊，雲端 session 不能做 CUDA 或模型相關工作。
    雲端可以先準備：
    - 授權音訊上傳與 `SourceProvider`。
@@ -263,8 +262,11 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 | `docs/testing.md`              | 測試分層、Playwright、PostgreSQL 整合、跨語言 fixtures    |
 | `fixtures/README.md`           | fixtures 的來源與權利                                     |
 
-## 13. 待擁有者決定（不阻擋進度）
+## 13. 擁有者已決定的事項
 
-1. `LICENSE` 的著作權人名稱。目前是「chordflow contributors」。
-2. ADR-001 是否接受。
-3. 何時開 PR 合併到 `main`。
+- `LICENSE` 著作權人：**Chen-Wei, Liu**（2026-10-24）。
+- ADR-001（以幾何驗證取代像素比對的視覺回歸）：**已接受**（2026-10-24）。
+- 合併方式：建立 `main` 作為穩定分支，之後的工作經 PR 合併（2026-10-24）。
+  建議擁有者在 GitHub Settings 把預設分支改為 `main`，並為 `main` 開啟「合併前 CI 必須通過」的分支保護。
+
+目前沒有待擁有者決定的事項。

@@ -11,7 +11,7 @@
 | M1 和弦譜 schema 與領域模型     | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
 | M2 樂理                         | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
 | M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
-| M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001 提案）                                  |
+| M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001，已接受）                               |
 | M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
 | M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（使用者看譜偏好與收藏 API 待做）  | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
 | M7 生成任務與 CPU mock worker   | **完成**                                   | 見 `docs/generation-jobs.md`                                            |
@@ -151,13 +151,15 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
   其他情況只放行首並標記 `unaligned`（伺服器端仍會以 `Intl.Segmenter` 完整驗證）。
 - better-auth 一般端點限速由每分鐘 20 次調為 300 次（每次瀏覽都會讀 session，原設定會讓使用者看起來被登出）；
   密碼登入維持每分鐘 10 次。
-- LICENSE：MIT，「Copyright (c) 2026 chordflow contributors」——擁有者可能想改成自己的名字。
+- LICENSE：MIT，「Copyright (c) 2026 Chen-Wei, Liu」（擁有者 2026-10-24 指定）。
+- ADR-001 已由擁有者接受（2026-10-24）。
+- `main` 於 2026-10-24 由 `c1a5d0c` 建立為穩定分支；之後經 PR 合併。
 - 文件以繁體中文為主（擁有者要求）；`SPEC.md` 與 `docs/claude-code-kickoff.md` 為擁有者提供的原始文件，
   保持原樣。程式碼註解、識別字、JSON key 與 API 路徑維持英文。
 
 ## 待擁有者決定（不阻擋進度）
 
-1. `LICENSE` 中的著作權人名稱。
+目前沒有。建議在 GitHub Settings 把預設分支改為 `main` 並開啟分支保護（CI 必須通過）。
 
 ## 下一個最有價值的工作
 
