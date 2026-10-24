@@ -8,13 +8,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/server/db/cli.ts migrate",
+    "db:seed-demo": "tsx src/server/db/cli.ts seed-demo"
   },
   "dependencies": {
     "@chordflow/chart-schema": "workspace:*",
     "@chordflow/guitar-voicings": "workspace:*",
     "@chordflow/music-theory": "workspace:*",
+    "drizzle-orm": "0.45.4",
     "next": "16.4.3",
+    "postgres": "3.4.9",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "server-only": "^0.0.1"
@@ -23,6 +28,8 @@
     "@tailwindcss/postcss": "4.3.3",
     "@types/react": "19.3.0",
     "@types/react-dom": "^19.3.0",
-    "tailwindcss": "4.3.3"
+    "drizzle-kit": "0.31.11",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15"
   }
 }

@@ -32,4 +32,16 @@ export interface CatalogRepository {
   getPublishedRevision(arrangementId: string): Promise<ChartRevision | null>;
   getRecordingSync(recordingId: string, chartRevisionId: string): Promise<RecordingSync | null>;
   getSource(id: string): Promise<SourceReference | null>;
+  /**
+   * Works whose normalized title, aliases or artist names contain the
+   * normalized query (adapters may add fuzzy matches after exact ones).
+   * Ordered by match position, then title, then id.
+   */
+  searchWorks(
+    normalizedQuery: string,
+    page: { limit: number; offset: number },
+  ): Promise<{
+    works: Work[];
+    hasMore: boolean;
+  }>;
 }

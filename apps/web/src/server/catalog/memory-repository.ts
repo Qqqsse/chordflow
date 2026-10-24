@@ -14,6 +14,7 @@ import {
   type ValidationIssue,
 } from '@chordflow/chart-schema';
 import type { CatalogRepository } from './repository';
+import { buildWorkSearchText } from './search-text';
 
 /** Fixture path → parsed JSON content (chart documents and syncs referenced by the snapshot). */
 export type FixtureFiles = Readonly<Record<string, unknown>>;
@@ -163,6 +164,26 @@ export function createMemoryCatalog(
       .filter((r) => r.arrangementId === arrangementId)
       .sort((a, b) => a.revision - b.revision);
 
+  const workSearchText = new Map<string, string>();
+  for (const work of works.values()) {
+    const names: string[] = [work.title, ...work.titleAliases];
+    const addArtist = (artistId: string) => {
+      const artist = artists.get(artistId);
+      if (artist) names.push(artist.name, ...artist.aliases);
+    };
+    work.credits.forEach((c) => {
+      addArtist(c.artistId);
+    });
+    for (const rec of recordings.values()) {
+      if (rec.workId !== work.id) continue;
+      if (rec.title !== null) names.push(rec.title);
+      rec.artistCredits.forEach((c) => {
+        addArtist(c.artistId);
+      });
+    }
+    workSearchText.set(work.id, buildWorkSearchText(names));
+  }
+
   const get = <T>(map: Map<string, T>, id: string): Promise<T | null> =>
     Promise.resolve(map.has(id) ? copy(map.get(id) as T) : null);
 
@@ -200,5 +221,21 @@ export function createMemoryCatalog(
     getRecordingSync: (recordingId, chartRevisionId) =>
       get(syncs, `${recordingId}|${chartRevisionId}`),
     getSource: (id) => get(sources, id),
+    searchWorks: (query, page) => {
+      const matches = [...works.values()]
+        .map((work) => ({ work, at: (workSearchText.get(work.id) ?? '').indexOf(query) }))
+        .filter((m) => query !== '' && m.at >= 0)
+        .sort(
+          (a, b) =>
+            a.at - b.at ||
+            (a.work.title < b.work.title ? -1 : a.work.title > b.work.title ? 1 : 0) ||
+            (a.work.id < b.work.id ? -1 : 1),
+        );
+      const slice = matches.slice(page.offset, page.offset + page.limit);
+      return Promise.resolve({
+        works: copy(slice.map((m) => m.work)),
+        hasMore: matches.length > page.offset + page.limit,
+      });
+    },
   };
 }

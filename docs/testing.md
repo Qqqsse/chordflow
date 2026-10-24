@@ -35,6 +35,20 @@ python -m venv .venv
 .venv/bin/python -m pytest
 ```
 
+## PostgreSQL 整合測試
+
+`apps/web/src/server/catalog/pg-repository.integration.test.ts` 只在設定 `TEST_DATABASE_URL` 時執行，
+否則顯示為 skipped。**它會刪除並重建該資料庫的 `public` schema**，只能指向可丟棄的測試資料庫。
+
+```sh
+docker run -d --name chordflow-testdb -e POSTGRES_USER=chordflow -e POSTGRES_PASSWORD=testpw \
+  -e POSTGRES_DB=chordflow_test -p 127.0.0.1:55432:5432 postgres:17-alpine
+TEST_DATABASE_URL=postgres://chordflow:testpw@127.0.0.1:55432/chordflow_test pnpm test
+```
+
+記憶體與 PostgreSQL 兩個 adapter 跑同一套 `describeCatalogRepositoryContract`，另外測試資料庫觸發器
+（修訂不可變、發布指標、跨作品對應、未對應錄音的時間軸、來源重複）。CI 以 service container 提供資料庫。
+
 ## 契約 fixtures 的跨語言驗證
 
 `services/ai-worker/tests/test_contract_fixtures.py` 以 `packages/chart-schema/json-schema/` 中產生的

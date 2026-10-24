@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import snapshot from '../../../../../fixtures/contracts/catalog-demo.json';
 import { DEMO_FIXTURE_FILES, getDemoCatalog } from './demo-catalog';
 import { createMemoryCatalog } from './memory-repository';
+import { describeCatalogRepositoryContract } from './repository-contract';
 
 type Snapshot = typeof snapshot;
 
@@ -11,6 +12,8 @@ function mutated(change: (s: Snapshot) => void): Snapshot {
   change(copy);
   return copy;
 }
+
+describeCatalogRepositoryContract('memory', getDemoCatalog);
 
 describe('demo catalog', () => {
   const catalog = getDemoCatalog();

@@ -27,6 +27,20 @@ curl http://127.0.0.1:3000/api/v1/health
 `CHORDFLOW_DATA_MODE=demo`（預設）只提供合成的示範和弦譜，不需要資料庫。
 web 容器仍會等 `db` healthy 才啟動，讓兩種模式的 stack 行為一致。
 
+### 資料庫模式
+
+```sh
+# .env：CHORDFLOW_DATA_MODE=database，並設定 DATABASE_URL
+docker compose up -d db
+docker compose --profile tools run --rm migrate                    # 套用 apps/web/drizzle 中的 migrations
+docker compose --profile tools run --rm migrate pnpm db:seed-demo  # （選用）載入合成示範曲庫
+docker compose up -d web
+```
+
+migration 是明確的操作步驟，web 啟動時**不會**自動執行。`migrate` 服務使用 web 映像的 build stage
+（含開發工具），只在 `tools` profile 下存在。開發機上也可以直接執行
+`DATABASE_URL=... pnpm --filter @chordflow/web db:migrate`。
+
 Worker 設定檢查（驗證設定後即結束；工作迴圈在 M7 實作）：
 
 ```sh
