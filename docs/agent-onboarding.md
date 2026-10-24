@@ -255,6 +255,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 | `docs/offline-and-voicings.md` | 指法圖、播放模式、PWA 與離線                              |
 | `docs/api-contract.md`         | REST 路由、錯誤代碼、存取規則                             |
 | `docs/security-and-rights.md`  | 帳號、CSRF、限速、worker 憑證、內容權利                   |
+| `docs/audio-sources.md`        | 授權音訊來源設計（M8 準備，ADR-003 提案）                 |
 | `docs/generation-jobs.md`      | 生成任務、租約、mock 流程、審查                           |
 | `docs/local-deployment.md`     | Docker Compose、備份、公開前檢查清單                      |
 | `docs/testing.md`              | 測試分層、Playwright、PostgreSQL 整合、跨語言 fixtures    |
