@@ -222,7 +222,6 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - 離線頁（`/offline/view`）不套用帳號儲存的看譜設定。
 - 限速使用單一程序的記憶體計數，多程序部署時需改用共用儲存。
 - 生成任務：
-  - 使用者端沒有「重試」按鈕，也沒有 worker 狀態頁。
   - web 不驗證 artifact 的檔案內容，只驗證 manifest 結構與路徑範圍。
 - Python 沒有完整的 UAX #29 字形切分：遇到複雜字形時只在行首放和弦，並交給伺服器端驗證。
 
@@ -235,7 +234,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
    - 授權音訊上傳與 `SourceProvider`。
    - `compose.gpu-nvidia.yaml` 草稿（未驗證前不合併）。
    - 用合成訊號建立的評估 harness。
-3. **M7 補完**：§10 中生成任務的兩項，以及多程序限速。
+3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
 4. **M9 中可在雲端進行的部分**：和弦位置與段落編輯器、審查差異比對、權利稽核紀錄、
    審查器的結構化建議介面（Vertex 等付費 provider 必須是 opt-in，且有預算上限）。
 

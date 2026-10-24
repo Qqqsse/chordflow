@@ -134,9 +134,15 @@ Docker：`docker compose --profile worker up -d worker`（見 `docs/local-deploy
 - Playwright 資料庫模式（`e2e-db/generation.spec.ts`）：管理員送出 → 沒有 worker 時顯示「等待 worker」→
   重複送出沿用同一任務 → 啟動**真正的 Python worker** → 處理中 → 待審查 → 修改為新修訂 → 發布 → 譜頁顯示。
 
+## 重試與 worker 狀態
+
+- **重試**：失敗的任務，或在草稿產生前就取消的任務，可以按「重試」。重試會建立一個**新任務**
+  （`retryOfJobId` 指向原任務），原任務保持原狀，所以 `failed_terminal`／`cancelled` 仍是終點狀態。
+  重試屬於原提交者（管理員代為重試也一樣），會重新檢查權利與配額。草稿被退回的任務不能重試。
+- **worker 狀態**：`/admin/generate` 顯示哪些 worker 在線（60 秒內聯絡過）與最後聯絡時間。
+
 ## 尚未包含（後續）
 
 - 真正的音訊取得與 GPU 推論（M8）；授權音訊上傳。
-- 使用者重試按鈕、管理員檢視所有 worker 狀態的頁面。
 - Artifact 的位元組驗證：目前 web 不讀取 worker 的 artifact 目錄，只驗證 manifest 結構與路徑範圍。
 - 多程序部署時的限速共用儲存。
