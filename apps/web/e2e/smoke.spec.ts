@@ -20,9 +20,11 @@ test('demo chart renders without database or GPU', async ({ page }) => {
   await page.goto('/demo/arr_demo_001');
   await expect(page.getByRole('heading', { name: '示範歌曲（虛構）' })).toBeVisible();
   await expect(page.getByRole('region', { name: '主歌' })).toContainText('微風帶我');
-  const slashChord = page.locator('[data-chord-id="ch_verse_2"]');
-  await expect(slashChord).toContainText('G/B');
-  await expect(slashChord).toContainText('向前走');
+  await expect(page.locator('[data-chord-id="ch_verse_2"] .chord-label')).toHaveText('G/B');
+  const lyrics = await page
+    .locator('[data-line-id="line_verse_1"] .lyric')
+    .evaluateAll((els) => els.map((el) => el.textContent).join(''));
+  expect(lyrics).toBe('微風帶我向前走');
 });
 
 test('health endpoint reports liveness without secrets', async ({ request }) => {
