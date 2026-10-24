@@ -103,3 +103,33 @@ body {
 .sheet-chords-only .chord-label {
   padding-right: 0;
 }
+
+/* ---- chord diagrams ---- */
+.voicing-card {
+  width: 6.5rem;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.chord-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--color-ink);
+}
+
+.chord-diagram .diagram-dot {
+  fill: currentColor;
+}
+
+.chord-diagram .diagram-finger {
+  fill: var(--color-surface);
+  font-size: 6.5px;
+  font-weight: 700;
+}
+
+.chord-diagram .diagram-mark {
+  fill: currentColor;
+  font-size: 8px;
+}

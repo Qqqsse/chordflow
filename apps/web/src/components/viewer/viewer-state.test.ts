@@ -52,6 +52,20 @@ describe('viewerReducer', () => {
     expect(reset).toEqual({ ...DEFAULT_VIEWER_STATE, fontSize: 26 });
   });
 
+  it('records voicing choices per symbol without sharing state', () => {
+    const base = s();
+    const next = viewerReducer(base, { type: 'chooseVoicing', symbol: 'C', voicingId: 'v_x35553' });
+    expect(next.voicingChoices).toEqual({ C: 'v_x35553' });
+    expect(base.voicingChoices).toEqual({});
+    expect(viewerReducer(next, { type: 'reset' }).voicingChoices).toEqual({});
+  });
+
+  it('toggles the diagram strip and keeps that choice on reset', () => {
+    const hidden = viewerReducer(s(), { type: 'toggleDiagrams' });
+    expect(hidden.showDiagrams).toBe(false);
+    expect(viewerReducer(hidden, { type: 'reset' }).showDiagrams).toBe(false);
+  });
+
   it('switches notation and displayed target', () => {
     expect(viewerReducer(s(), { type: 'setNotation', notation: 'roman' }).notation).toBe('roman');
     expect(viewerReducer(s(), { type: 'setShow', show: 'sounding' }).show).toBe('sounding');

@@ -5,6 +5,7 @@ import { transposeChartDisplay } from '@chordflow/music-theory';
 import { useEffect, useMemo, useReducer } from 'react';
 import { ChordSheet } from './chord-sheet';
 import { ViewerControls } from './viewer-controls';
+import { VoicingStrip } from './voicing-strip';
 import { DEFAULT_VIEWER_STATE, viewerReducer, type ViewerAction } from './viewer-state';
 
 /** Keyboard shortcuts; ignored while typing in a form field. */
@@ -54,7 +55,22 @@ export function ChartViewer({ chart }: { chart: ChartDocument }) {
   return (
     <div className="space-y-6">
       <ViewerControls state={{ ...state, notation }} dispatch={dispatch} display={display} />
-      <p className="text-xs text-ink-muted">快捷鍵：+／− 移調、0 回原調。</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-ink-muted">快捷鍵：+／− 移調、0 回原調。</p>
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-border px-3 text-sm"
+          aria-pressed={state.showDiagrams}
+          onClick={() => {
+            dispatch({ type: 'toggleDiagrams' });
+          }}
+        >
+          指法圖
+        </button>
+      </div>
+      {state.showDiagrams && (
+        <VoicingStrip chart={chart} display={display} state={state} dispatch={dispatch} />
+      )}
       <ChordSheet chart={chart} display={display} fontSize={state.fontSize} />
     </div>
   );

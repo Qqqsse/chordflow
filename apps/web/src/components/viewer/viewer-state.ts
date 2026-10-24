@@ -16,6 +16,9 @@ export interface ViewerState {
   show: ChordDisplayTarget;
   notation: ChordNotation;
   fontSize: number;
+  /** Viewer's own voicing choice per shape symbol; never written to the chart. */
+  voicingChoices: Readonly<Record<string, string>>;
+  showDiagrams: boolean;
 }
 
 export const TRANSPOSE_MIN = -11;
@@ -33,6 +36,8 @@ export const DEFAULT_VIEWER_STATE: ViewerState = {
   show: 'shape',
   notation: 'letters',
   fontSize: 20,
+  voicingChoices: {},
+  showDiagrams: true,
 };
 
 export type ViewerAction =
@@ -43,6 +48,8 @@ export type ViewerAction =
   | { type: 'setShow'; show: ChordDisplayTarget }
   | { type: 'setNotation'; notation: ChordNotation }
   | { type: 'fontSize'; delta: number }
+  | { type: 'chooseVoicing'; symbol: string; voicingId: string }
+  | { type: 'toggleDiagrams' }
   | { type: 'reset' };
 
 /** Keeps a semitone offset within −11…+11 (an octave is the same key). */
@@ -84,8 +91,19 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
         ...state,
         fontSize: clamp(state.fontSize + action.delta, FONT_SIZE_MIN, FONT_SIZE_MAX),
       };
+    case 'chooseVoicing':
+      return {
+        ...state,
+        voicingChoices: { ...state.voicingChoices, [action.symbol]: action.voicingId },
+      };
+    case 'toggleDiagrams':
+      return { ...state, showDiagrams: !state.showDiagrams };
     case 'reset':
-      return { ...DEFAULT_VIEWER_STATE, fontSize: state.fontSize };
+      return {
+        ...DEFAULT_VIEWER_STATE,
+        fontSize: state.fontSize,
+        showDiagrams: state.showDiagrams,
+      };
   }
 }
 

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@chordflow/chart-schema": "workspace:*",
+    "@chordflow/guitar-voicings": "workspace:*",
     "@chordflow/music-theory": "workspace:*",
     "next": "16.4.3",
     "react": "19.3.1",

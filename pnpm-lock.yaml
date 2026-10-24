@@ -47,6 +47,9 @@ importers:
       '@chordflow/chart-schema':
         specifier: workspace:*
         version: link:../../packages/chart-schema
+      '@chordflow/guitar-voicings':
+        specifier: workspace:*
+        version: link:../../packages/guitar-voicings
       '@chordflow/music-theory':
         specifier: workspace:*
         version: link:../../packages/music-theory
