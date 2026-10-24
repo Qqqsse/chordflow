@@ -31,3 +31,75 @@ body {
   background-color: var(--color-surface);
   color: var(--color-ink);
 }
+
+/* ---- chord sheet (SPEC §8): chords sit in atomic blocks above their anchor text ---- */
+.chord-sheet {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sheet-section {
+  margin-bottom: 1.6em;
+}
+
+.sheet-section-label {
+  margin: 0 0 0.3em;
+  font-size: 0.65em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-muted);
+}
+
+.sheet-line {
+  margin: 0 0 0.35em;
+}
+
+.sheet-blank {
+  height: 0.9em;
+}
+
+.sheet-line .lyric {
+  white-space: pre-wrap;
+}
+
+.sheet-line .anchor {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+/* A chord inside a word: the word's pieces never wrap apart. */
+.sheet-line .glue,
+.sheet-line .glue .lyric {
+  white-space: pre;
+}
+
+.chord-label {
+  display: block;
+  padding-right: 0.45em;
+  font-size: 0.8em;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--color-accent);
+  user-select: none;
+}
+
+.chord-label sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
+.chord-unsupported {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}
+
+.sheet-chords-only .chord-only {
+  display: inline-block;
+  margin-right: 1em;
+}
+
+.sheet-chords-only .chord-label {
+  padding-right: 0;
+}
