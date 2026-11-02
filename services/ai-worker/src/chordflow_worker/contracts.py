@@ -14,6 +14,16 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 CONTRACT_MAJOR = 1
 
+#: Headers of `GET /worker/jobs/{id}/audio` (contract 1.1.0); mirrors WORKER_AUDIO_HEADERS.
+WORKER_AUDIO_HEADERS = {
+    "workerId": "x-worker-id",
+    "leaseToken": "x-lease-token",
+    "sha256": "x-content-sha256",
+    "format": "x-audio-format",
+    "maxDurationSeconds": "x-audio-max-duration-seconds",
+}
+AUDIO_FORMATS = ("wav", "flac", "mp3", "ogg", "m4a")
+
 OpaqueId = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")]
 SemVer = Annotated[str, StringConstraints(pattern=r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")]
 LanguageTag = Annotated[str, StringConstraints(pattern=r"^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$")]

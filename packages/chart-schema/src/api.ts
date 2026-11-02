@@ -19,9 +19,9 @@ import { RecordingSyncSchema } from './recording-sync';
 
 /**
  * 1.1.0: personal library (`/me/*`); 1.2.0: job retry, worker status; 1.3.0: rights audit;
- * 1.4.0: audio uploads. All additive.
+ * 1.4.0: audio uploads; 1.5.0: worker audio download. All additive.
  */
-export const API_VERSION = '1.4.0';
+export const API_VERSION = '1.5.0';
 
 export const ApiMetaSchema = z.strictObject({
   requestId: z.string().min(1).max(100),
@@ -69,6 +69,7 @@ export const API_ERROR_CODES = [
   'ARTIFACT_VALIDATION_FAILED',
   'UPLOAD_NOT_FOUND',
   'UNSUPPORTED_AUDIO_FORMAT',
+  'AUDIO_NOT_AVAILABLE',
   'CONFIGURATION_INVALID',
   'SERVICE_UNAVAILABLE',
   'INTERNAL_ERROR',

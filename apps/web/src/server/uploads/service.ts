@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { rm } from 'node:fs/promises';
+import { rm, stat } from 'node:fs/promises';
 import {
   AUDIO_FORMATS,
   type AudioFormat,
@@ -30,6 +30,7 @@ import {
   listStoredFiles,
   moveIntoStore,
   removeStaleParts,
+  resolveInStore,
   stageUpload,
 } from './storage';
 
@@ -358,6 +359,42 @@ export async function canAnalyzeUpload(
     .from(audioUploads)
     .where(and(eq(audioUploads.sourceId, sourceId), eq(audioUploads.status, 'active')));
   return row !== undefined && (user.role === 'admin' || row.owner === user.userId);
+}
+
+export interface UploadAudio {
+  absolutePath: string;
+  sizeBytes: number;
+  sha256: string;
+  format: AudioFormat;
+}
+
+/**
+ * SourceProvider.obtainAuthorizedAudio for uploads: the stored file of an active
+ * upload. Callers must already have checked who may receive it (the job's lease).
+ */
+export async function obtainUploadAudio(
+  db: Database,
+  config: UploadConfig,
+  sourceId: string,
+): Promise<UploadAudio> {
+  const notAvailable = () =>
+    new ApiProblem(404, 'AUDIO_NOT_AVAILABLE', 'No authorized audio is available for this job');
+  if (config.storageDir === null) throw notAvailable();
+  const [row] = await db
+    .select()
+    .from(audioUploads)
+    .where(and(eq(audioUploads.sourceId, sourceId), eq(audioUploads.status, 'active')));
+  if (row === undefined) throw notAvailable();
+  const absolutePath = resolveInStore(config.storageDir, row.storagePath);
+  const info = await stat(absolutePath).catch(() => null);
+  // A missing or changed file (e.g. a deleted volume) is reported, never served.
+  if (info?.isFile() !== true || info.size !== row.sizeBytes) throw notAvailable();
+  return {
+    absolutePath,
+    sizeBytes: row.sizeBytes,
+    sha256: row.sha256,
+    format: row.format as AudioFormat,
+  };
 }
 
 /** Ends an upload: revokes its source and cancels jobs that still need the audio. */

@@ -43,6 +43,7 @@ import {
   WorkerHeartbeatDataSchema,
   WorkerHeartbeatRequestSchema,
   WorkerStatusListDataSchema,
+  WORKER_AUDIO_HEADERS,
 } from './generation';
 import {
   FavoriteDataSchema,
@@ -511,6 +512,54 @@ export function buildOpenApi(): Json {
             409: errorResponse('LEASE_LOST'),
           },
         }),
+      },
+      '/worker/jobs/{id}/audio': {
+        get: jobPath(
+          'Stream the authorized audio of a leased source_reference job (lease holder only); verify it with the digest header',
+          {
+            security: workerSecurity,
+            parameters: [
+              idParam('id', 'Generation job id'),
+              {
+                name: WORKER_AUDIO_HEADERS.workerId,
+                in: 'header',
+                required: true,
+                schema: { type: 'string', pattern: '^[a-z0-9][a-z0-9._-]{0,63}$' },
+              },
+              {
+                name: WORKER_AUDIO_HEADERS.leaseToken,
+                in: 'header',
+                required: true,
+                schema: { type: 'string', pattern: '^lease_[0-9a-f]{32}$' },
+              },
+            ],
+            responses: {
+              200: {
+                description: 'The audio file, never cached',
+                headers: {
+                  [WORKER_AUDIO_HEADERS.sha256]: {
+                    description: 'Lowercase hex SHA-256 of the body',
+                    schema: { type: 'string', pattern: '^[0-9a-f]{64}$' },
+                  },
+                  [WORKER_AUDIO_HEADERS.format]: {
+                    description: 'Container detected at upload time',
+                    schema: { type: 'string', enum: [...AUDIO_FORMATS] },
+                  },
+                  [WORKER_AUDIO_HEADERS.maxDurationSeconds]: {
+                    description: 'Longest audio the worker may analyse (AUDIO_TOO_LONG beyond it)',
+                    schema: { type: 'integer', minimum: 1 },
+                  },
+                },
+                content: {
+                  'application/octet-stream': { schema: { type: 'string', format: 'binary' } },
+                },
+              },
+              ...WORKER_ERRORS,
+              404: errorResponse('JOB_NOT_FOUND or AUDIO_NOT_AVAILABLE (no active upload behind the job)'),
+              409: errorResponse('LEASE_LOST (expired, reassigned or job cancelled)'),
+            },
+          },
+        ),
       },
       '/arrangements/{id}/audit': {
         get: {

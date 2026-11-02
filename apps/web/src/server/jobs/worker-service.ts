@@ -21,7 +21,7 @@ import { EditorError, createArrangement, createRevision } from '../catalog/edito
 import type { Database } from '../db/client';
 import { generationArtifacts, generationJobs } from '../db/jobs-schema';
 import { sanitizeWorkerMessage, sha256Of } from './canonical';
-import { lockJob, releaseLease, touchWorker, transition } from './store';
+import { loadJob, lockJob, releaseLease, touchWorker, transition } from './store';
 import type { JobRow } from './views';
 
 /*
@@ -154,6 +154,23 @@ function assertLease(row: JobRow | null, workerId: string, token: string): asser
         : 'The lease is no longer held by this worker',
     );
   }
+}
+
+/** Source of a job this worker currently leases, for the audio download (contract 1.1.0). */
+export async function leasedJobSource(
+  db: Database,
+  jobId: string,
+  workerId: string,
+  leaseToken: string,
+): Promise<string> {
+  const row = await loadJob(db, jobId);
+  assertLease(row, workerId, leaseToken);
+  await touchWorker(db, workerId);
+  const { input } = row.request;
+  if (input.kind !== 'source_reference') {
+    throw new ApiProblem(404, 'AUDIO_NOT_AVAILABLE', 'This job has no audio source');
+  }
+  return input.sourceReferenceId;
 }
 
 export async function heartbeatJob(
