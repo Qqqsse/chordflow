@@ -6,32 +6,38 @@
 ## 進行中的工作（每項開始前更新；接手時先看這裡）
 
 > 規則：每開始一項工作，先在這裡把狀態改成「進行中」並寫下計畫，commit 並推送到
-> `claude/beautiful-maxwell-h4wqaz`，再寫程式。完成並合併到 `main` 後改成「完成」。
+> session 使用的功能分支（雲端時期是 `claude/beautiful-maxwell-h4wqaz`），再寫程式。完成並合併到 `main` 後改成「完成」。
 > 若 session 中斷：切到該分支，`git log origin/main..HEAD` 看已提交的部分，依下表「接手方式」繼續。
 >
-> **目前狀態：雲端可做的佇列已全部完成並合併。** 下一步需要擁有者先決定 `docs/audio-sources.md` 文末四項，
-> 之後才能實作音訊上傳；GPU 推論（M8）只能在擁有者的硬體上進行。
+> **目前狀態（2026-11-02）：雲端額度已用完，之後全部在擁有者的本機開發**（Windows 11、RTX 5090、Docker Desktop；
+> Python／Node 使用專屬 conda 環境 `chordflow`，不使用 base，見 `docs/agent-onboarding.md` §6）。
+> 擁有者已接受 ADR-002、ADR-003，並決定音訊上傳規則（`docs/audio-sources.md`「擁有者決定」）。
+> 下一步：在本機跑完基準品質閘門，再實作 M8-1 音訊上傳。
 
-| #   | 工作                                         | 狀態                                | 計畫與接手方式                                                                                                                                                                                                                                                                                          |
-| --- | -------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | M7 補完：使用者重試失敗任務、worker 狀態面板 | **完成**（PR #3 已合併，`a535525`） | 重試＝新任務（`retry_of_job_id`，migration 0005），原任務不變；`POST /generation-jobs/{id}/retry`、`GET /workers`；API 1.2.0                                                                                                                                                                            |
-| 2   | M9：審查差異比對                             | **完成**（PR #4 已合併，`1363c4d`） | `diffCharts`（`packages/chart-schema/src/chart-diff.ts`）依 id 或內容（LCS）對齊段落與行，和弦依位置再依名稱比對；`/admin/jobs/[id]` 顯示最新衍生修訂與草稿的差異（`review-diff.tsx`、`diff-labels.ts`）                                                                                                |
-| 3   | M9：權利稽核紀錄                             | **完成**（PR #5 已合併，`c67127c`） | `arrangement_audit_events`（migration 0006，觸發器禁止修改／刪除，只允許刪帳號時把操作者設為 NULL）；`editor.ts` 三個寫入函式在同一交易記錄並明確帶入操作者；`GET /arrangements/{id}/audit`、`/admin/arrangements/[id]/audit`；API 1.3.0。另：`AUTH_SIGN_IN_PER_MINUTE`（預設 10）讓 e2e 可調高登入限速 |
-| 4   | M9：和弦位置／段落編輯器                     | **完成**（PR #6 已合併，`73d309d`） | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                             |
-| 5   | M8 雲端準備                                  | **完成**（PR #6 已合併，`73d309d`） | 設計文件 `docs/audio-sources.md`（ADR-003 提案）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除。實作前需擁有者決定文件末四項                                                                                                            |
+| #   | 工作                                         | 狀態                                                  | 計畫與接手方式                                                                                                                                                                                                                                                                                          |
+| --- | -------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | M7 補完：使用者重試失敗任務、worker 狀態面板 | **完成**（PR #3 已合併，`a535525`）                   | 重試＝新任務（`retry_of_job_id`，migration 0005），原任務不變；`POST /generation-jobs/{id}/retry`、`GET /workers`；API 1.2.0                                                                                                                                                                            |
+| 2   | M9：審查差異比對                             | **完成**（PR #4 已合併，`1363c4d`）                   | `diffCharts`（`packages/chart-schema/src/chart-diff.ts`）依 id 或內容（LCS）對齊段落與行，和弦依位置再依名稱比對；`/admin/jobs/[id]` 顯示最新衍生修訂與草稿的差異（`review-diff.tsx`、`diff-labels.ts`）                                                                                                |
+| 3   | M9：權利稽核紀錄                             | **完成**（PR #5 已合併，`c67127c`）                   | `arrangement_audit_events`（migration 0006，觸發器禁止修改／刪除，只允許刪帳號時把操作者設為 NULL）；`editor.ts` 三個寫入函式在同一交易記錄並明確帶入操作者；`GET /arrangements/{id}/audit`、`/admin/arrangements/[id]/audit`；API 1.3.0。另：`AUTH_SIGN_IN_PER_MINUTE`（預設 10）讓 e2e 可調高登入限速 |
+| 4   | M9：和弦位置／段落編輯器                     | **完成**（PR #6 已合併，`73d309d`）                   | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                             |
+| 5   | M8 雲端準備                                  | **完成**（PR #6 已合併，`73d309d`）                   | 設計文件 `docs/audio-sources.md`（ADR-003，擁有者 2026-11-02 接受）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除                                                                                                                       |
+| 6   | 本機環境與基準品質閘門（Windows）            | **完成**（`claude/local-owner-decisions`，PR 待合併） | conda 環境 `chordflow`（Python 3.12、Node 22、corepack 的 pnpm 10.28）；`pnpm install --frozen-lockfile` 後依 AGENTS.md 跑品質閘門，Windows 特有的問題記在 onboarding §7                                                                                                                                |
+| 7   | M8-1：音訊上傳 API、權利聲明、檔案儲存       | 未開始                                                | 依 `docs/audio-sources.md`「擁有者決定」：預設只有管理員可上傳、會員開放的配套同時做好；數值全部可設定；聲明措辭以版本化常數存放                                                                                                                                                                        |
 
-## 進度（2026-10-24）
+## 進度（2026-11-02）
 
-| Milestone                       | 狀態                                       | 說明                                                                    |
-| ------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
-| M0 基礎建設                     | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈                                  |
-| M1 和弦譜 schema 與領域模型     | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                            |
-| M2 樂理                         | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                      |
-| M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證） |
-| M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001，已接受）                               |
-| M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                       |
-| M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（含個人譜庫與 CSP）               | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                |
-| M7 生成任務與 CPU mock worker   | **完成**                                   | 見 `docs/generation-jobs.md`                                            |
+| Milestone                       | 狀態                                       | 說明                                                                                                         |
+| ------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| M0 基礎建設                     | **完成**                                   | Monorepo、工具鏈、Docker 基礎、CI 綠燈                                                                       |
+| M1 和弦譜 schema 與領域模型     | **完成、已凍結**（擁有者 2026-10-24 確認） | 變更需版本號、fixtures、測試                                                                                 |
+| M2 樂理                         | **完成**                                   | `packages/music-theory`，見 `docs/music-theory.md`                                                           |
+| M3 ChordPro                     | **完成**                                   | `packages/chordpro`，見 `docs/chordpro.md`；API 路由待 M6（需身分驗證）                                      |
+| M4 看譜器                       | **完成**                                   | 見 `docs/viewer.md`（含 ADR-001，已接受）                                                                    |
+| M5 指法／播放模式／PWA          | **完成**                                   | 見 `docs/offline-and-voicings.md`                                                                            |
+| M6 PostgreSQL／搜尋／帳號／修訂 | **完成**（含個人譜庫與 CSP）               | 見 `docs/api-contract.md`、`docs/security-and-rights.md`                                                     |
+| M7 生成任務與 CPU mock worker   | **完成**                                   | 見 `docs/generation-jobs.md`                                                                                 |
+| M8 本機 GPU 推論                | 設計完成（ADR-003 已接受），實作未開始     | 全部在擁有者本機進行；見 `docs/audio-sources.md`                                                             |
+| M9 審查與發布改進               | **部分完成**                               | 已完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器。尚餘：同步時間軸看譜、LLM 結構化建議、指法轉換排序改進 |
 
 ## 目前已有的內容
 
@@ -124,7 +130,23 @@
 | 4cc48d9 | feat(library): favorite toggle, saved viewer settings and library page     |
 | 388d218 | feat(security): same-origin Content-Security-Policy                        |
 
-## 驗證結果（本 session，本機）
+## 驗證結果（2026-11-02，擁有者的 Windows 本機基準）
+
+環境：conda 環境 `chordflow`（Python 3.12.16、Node 22.23.4、corepack 的 pnpm 10.28.0）、Docker Desktop 29.9.2。
+
+| 指令                                                                  | 結果                                                                                         |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile`                                      | 通過                                                                                         |
+| `pnpm format:check`、`pnpm lint`、`pnpm typecheck`                    | 通過，lint 0 個警告                                                                          |
+| `TEST_DATABASE_URL=… pnpm test`                                       | 41 個檔案、763 個測試通過（含 57 個 PostgreSQL 整合測試）；修正 migration 路徑前整合測試失敗 |
+| `pnpm build`                                                          | 通過                                                                                         |
+| `TEST_DATABASE_URL=… WORKER_PYTHON=… CI=1 pnpm exec playwright test`  | 53 個通過（demo 38、資料庫模式 15，其中一個啟動真正的 Python worker）                        |
+| `python -m pytest`（`services/ai-worker`）                            | 95 個通過                                                                                    |
+| `pnpm licenses:check`                                                 | 402 個套件通過（修正 pnpm 呼叫方式，並新增 Windows 版 sharp 的已審查例外）                   |
+| `pnpm secrets:check`                                                  | 63 個 commit 無洩漏                                                                          |
+| `docker compose … config -q`（預設、worker＋tools profile、公開疊加） | 通過（公開疊加需設定 `PROXY_NETWORK`）                                                       |
+
+## 驗證結果（雲端 session，M7 後）
 
 | 指令                                                                              | 結果                                                                                                                                          |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -181,20 +203,29 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
   免費方案不強制分支保護，規則寫在 `AGENTS.md`。
 - 個人譜庫：看譜設定只在登入時於瀏覽器端讀寫（伺服器渲染的 HTML 不含個人資料）；載入完成前讀者已調整的設定不會被覆蓋；
   儲存的資料不符合契約時忽略（回到預設），不猜測。
-- CSP 允許 inline script／style，理由與緩解見 ADR-002（提案，`docs/security-and-rights.md`）。
+- CSP 允許 inline script／style，理由與緩解見 ADR-002（擁有者 2026-11-02 接受，`docs/security-and-rights.md`）。
 - 文件以繁體中文為主（擁有者要求）；`SPEC.md` 與 `docs/claude-code-kickoff.md` 為擁有者提供的原始文件，
   保持原樣。程式碼註解、識別字、JSON key 與 API 路徑維持英文。
+- **擁有者決定（2026-11-02）**：
+  - 接受 ADR-002（CSP）與 ADR-003（授權音訊來源）。
+  - 音訊上傳預設只有管理員，開放會員的配套同時做好；50 MB、15 分鐘、每人 1 GB、保留 30 天；
+    權利聲明採兩層（逐次聲明＋使用條款），措辭見 `docs/audio-sources.md` 的 v1 草案。
+  - 雲端額度用完，之後全部在本機開發；Python 不用 conda base，改用專屬環境。
+  - 短期只有擁有者自己使用，服務要用時才啟動、不常駐。因此到期刪除等維護工作不能只靠外部排程，
+    web 啟動時也要補做。
+- GitHub 預設分支已是 `main`。私人 repo 在免費方案無法開啟分支保護（API 回 403），仍依 `AGENTS.md` 自律。
 
 ## 待擁有者決定（不阻擋進度）
 
-目前沒有。建議在 GitHub Settings 把預設分支改為 `main` 並開啟分支保護（CI 必須通過）。
+1. 權利聲明 v1 措辭定稿（`docs/audio-sources.md`）。程式以版本化常數存放，不阻擋 M8-1。
+2. 是否把 repo 設為公開。公開後免費方案就能開分支保護；7 個 merge commit 的作者 email 是擁有者的個人信箱，公開前要先決定怎麼處理。
+3. LLM 審查器：建議維持 `disabled`，等 M8 有實際量測再決定；若要做，provider（本機模型或 Vertex AI）與每月預算上限由擁有者決定。
+4. M8 候選模型：逐一記錄程式碼與權重的授權後，由擁有者核可。
 
-## 下一個最有價值的工作
+## 下一個最有價值的工作（全部在本機）
 
-1. 推送前跑完整品質閘門，包含 `pnpm secrets:check`。
-2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 主機與授權音訊；雲端 session 不做 CUDA 安裝或模型下載。
-   可先在雲端準備：授權音訊上傳的 SourceProvider 介面、`compose.gpu-nvidia.yaml` 草稿（不驗證就不合併）、
-   原曲 vs 分離音軌的評估 harness（用合成訊號）。
-3. M7 補完：使用者端「重試」按鈕、worker 狀態頁、web 端 artifact 位元組驗證（共用 volume 時）、
-   多程序部署的限速共用儲存。
-4. M9（可在雲端進行的部分）：和弦位置／段落編輯器、審查差異比對、權利稽核紀錄。
+1. 完成 Windows 本機的基準品質閘門（含 PostgreSQL 整合測試、Playwright、`pnpm secrets:check`），修掉或記錄 Windows 特有的問題。
+2. **M8-1**：音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（CPU 即可）。
+3. **M8-2**：`GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（用合成的測試音訊）。
+4. **M8-3**：驗證 Docker Desktop 的 GPU、`compose.gpu-nvidia.yaml`、評估 harness（先用合成訊號，再用擁有者自錄的音訊）、模型轉接器。
+5. M7／M9 餘項：web 端 artifact 位元組驗證、多程序限速共用儲存、同步時間軸看譜、指法轉換排序改進、離線頁套用帳號看譜設定。

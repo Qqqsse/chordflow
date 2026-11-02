@@ -1,6 +1,7 @@
 # Agent 交接總覽（給接手的 Agent）
 
-> 狀態截至 **2026-10-24**。穩定分支是 `main`；開發分支 `claude/beautiful-maxwell-h4wqaz` 經 PR 合併進 `main`。
+> 狀態截至 **2026-11-02**。穩定分支是 `main`；功能分支經 PR 合併進 `main`。
+> 雲端額度已用完，之後在擁有者的本機（Windows 11、RTX 5090、Docker Desktop）開發，環境見 §6。
 > 這份文件是**一次讀完就能開工**的總覽；逐次 session 的細節紀錄在 `docs/agent-handoff.md`。
 > 若兩者衝突，以程式碼與測試為準，並修正文件。
 
@@ -13,7 +14,7 @@
 5. 要動哪一塊，就讀該塊的專題文件（見 §12 文件索引）。
 
 開工第一步：`git status`（不要覆寫未提交的工作）→ 讀 handoff →
-用 GitHub MCP 工具查看最新的 CI run → 跑一次品質閘門當基準。
+用 `gh run list`（或 GitHub MCP 工具）查看最新的 CI run → 跑一次品質閘門當基準。
 
 ## 1. 專案是什麼
 
@@ -26,43 +27,47 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 
 ## 2. Milestone 狀態
 
-| Milestone                       | 狀態                                       | 主要文件                                              |
-| ------------------------------- | ------------------------------------------ | ----------------------------------------------------- |
-| M0 基礎建設                     | ✅ 完成                                    | `README.md`、`docs/local-deployment.md`               |
-| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）        | `docs/schema-decisions.md`                            |
-| M2 樂理                         | ✅ 完成                                    | `docs/music-theory.md`                                |
-| M3 ChordPro 匯入／匯出          | ✅ 完成                                    | `docs/chordpro.md`                                    |
-| M4 看譜器                       | ✅ 完成                                    | `docs/viewer.md`（含 ADR-001，已接受）                |
-| M5 指法圖／播放模式／PWA        | ✅ 完成                                    | `docs/offline-and-voicings.md`                        |
-| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP） | `docs/api-contract.md`、`docs/security-and-rights.md` |
-| M7 生成任務與 CPU mock worker   | ✅ 完成                                    | `docs/generation-jobs.md`                             |
-| M8 本機 GPU 推論                | ⏳ 未開始：**需要擁有者的硬體**            | SPEC §11、§16                                         |
-| M9 審查與發布改進               | ⏳ 未開始                                  | SPEC §16                                              |
+| Milestone                       | 狀態                                                      | 主要文件                                              |
+| ------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
+| M0 基礎建設                     | ✅ 完成                                                   | `README.md`、`docs/local-deployment.md`               |
+| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）                       | `docs/schema-decisions.md`                            |
+| M2 樂理                         | ✅ 完成                                                   | `docs/music-theory.md`                                |
+| M3 ChordPro 匯入／匯出          | ✅ 完成                                                   | `docs/chordpro.md`                                    |
+| M4 看譜器                       | ✅ 完成                                                   | `docs/viewer.md`（含 ADR-001，已接受）                |
+| M5 指法圖／播放模式／PWA        | ✅ 完成                                                   | `docs/offline-and-voicings.md`                        |
+| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP）                | `docs/api-contract.md`、`docs/security-and-rights.md` |
+| M7 生成任務與 CPU mock worker   | ✅ 完成                                                   | `docs/generation-jobs.md`                             |
+| M8 本機 GPU 推論                | ⏳ 設計完成（ADR-003 已接受），實作在擁有者本機進行       | `docs/audio-sources.md`、SPEC §11、§16                |
+| M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器 | `docs/generation-jobs.md`、SPEC §16                   |
 
-**CI**：最新一次 run 21（`67a999a`）的四個 job 全部通過：web、worker、compose、security。
+**CI**：PR #7 合併後的 `main`（`bc36d1a`）四個 job 全部通過：web、worker、compose、security。
 
-**測試數量**（本機，個人譜庫與 CSP 之後）：
+**測試數量**（2026-11-02，Windows 本機）：
 
-- Vitest：37 個檔案、730 個測試（含 53 個 PostgreSQL 整合測試）。
-- Playwright：50 個（demo 38、資料庫模式 12）。
+- Vitest：41 個檔案、763 個測試（含 57 個 PostgreSQL 整合測試）。
+- Playwright：53 個（demo 38、資料庫模式 15）。
 - pytest：95 個。
 
 ## 3. Repo 地圖
 
 ```text
 apps/web/                     Next.js 16 App Router（UI + /api/v1 BFF）
-  src/app/                    頁面：/、/demo、/search、/charts/[id]、/offline、/login、/invite、
-                              /admin、/admin/import、/admin/generate、/admin/jobs/[id]
+  src/app/                    頁面：/、/demo、/search、/charts/[id]、/offline、/library、/login、/invite、
+                              /admin、/admin/import、/admin/generate、/admin/jobs/[id]、
+                              /admin/arrangements/[id]/edit、/admin/arrangements/[id]/audit
   src/app/api/v1/             REST 路由（每個 OpenAPI 路徑都有 route.ts，由 routes-contract.test.ts 檢查）
   src/components/viewer/      看譜器（排版、控制、指法圖、自動捲動、分頁）
   src/components/offline/     離線儲存、離線譜庫、service worker 註冊
   src/components/account/     登入、邀請、ChordPro 匯入 UI
-  src/components/jobs/        生成表單、任務列表、草稿審查
-  src/server/catalog/         CatalogRepository（記憶體／PostgreSQL）、editor.ts（寫入端）
+  src/components/jobs/        生成表單、任務列表、草稿審查、差異比對、worker 狀態
+  src/components/editor/      和弦位置／段落編輯器（純 reducer editor-state.ts）
+  src/components/library/     個人譜庫（收藏、最近開啟）
+  src/server/catalog/         CatalogRepository（記憶體／PostgreSQL）、editor.ts（寫入端）、audit.ts（權利稽核）
+  src/server/library/         收藏、最近開啟、看譜設定
   src/server/auth/            better-auth 設定、principal、邀請、guards
   src/server/jobs/            生成任務協調器（service、worker-service、worker-auth、store、views）
   src/server/db/              Drizzle schema（schema.ts、auth-schema.ts、jobs-schema.ts）、migrate、CLI
-  drizzle/                    SQL migrations 0000–0003（含手寫觸發器）
+  drizzle/                    SQL migrations 0000–0006（含手寫觸發器）
   e2e/                        Playwright（demo 模式）
   e2e-db/                     Playwright（資料庫模式；generation.spec.ts 會啟動真正的 Python worker）
   public/sw.js                service worker（永遠不快取 /api）
@@ -114,6 +119,27 @@ compose.yaml、deploy/         Docker Compose（CPU）；deploy/compose.public.y
   4. 已提交的 migration 不要改，要改就新增一個。
 
 ## 6. 怎麼跑
+
+### 本機 Windows（擁有者主機）
+
+Python 與 Node 都裝在專屬的 conda 環境 `chordflow`（全部來自 conda-forge），**不使用 base**：
+
+```powershell
+conda create -n chordflow -c conda-forge --override-channels python=3.12 nodejs=22 -y
+conda activate chordflow
+node "$env:CONDA_PREFIX\node_modules\corepack\dist\corepack.js" enable pnpm --install-directory "$env:CONDA_PREFIX"
+pnpm install --frozen-lockfile
+python -m pip install -e "services/ai-worker[dev]"
+pnpm exec playwright install chromium     # 瀏覽器裝在 %LOCALAPPDATA%\ms-playwright
+```
+
+- conda-forge 的 nodejs 沒有附 `corepack` 指令，所以直接用 node 執行 corepack 的腳本；pnpm 版本依 `packageManager`。
+- 在 PowerShell 呼叫 `conda` 時，版本條件不要寫 `<`、`>`：`conda.bat` 經過 cmd，會把它們當成重新導向。
+- Worker 直接用環境裡的 python，不另建 `.venv`；資料庫模式的 Playwright 要設 `WORKER_PYTHON` 指向 `$env:CONDA_PREFIX\python.exe`。
+- PostgreSQL 測試、`pnpm secrets:check` 與 Compose 都需要 Docker Desktop 在執行中。
+- M8 的 GPU 套件（CUDA 版 PyTorch 等）另開環境（例如 `chordflow-gpu`），不要裝進 `chordflow`。
+
+### 通用（Linux／macOS／CI）
 
 ```sh
 pnpm install --frozen-lockfile
@@ -189,6 +215,16 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - Playwright 已鎖定為預裝 Chromium（`/opt/pw-browsers`）對應的版本，**不要**執行 `playwright install`。
 - 不要用 `pkill -f`：它會連自己的 shell 一起殺掉。長時間的程序改用背景執行。
 
+### 本機 Windows 的注意事項
+
+- 指令相同，環境變數改用 PowerShell 語法，例如
+  `$env:TEST_DATABASE_URL = "postgres://chordflow:testpw@127.0.0.1:55432/chordflow_test"; pnpm test`。
+- 2026-11-02 第一次在 Windows 跑基準時，修掉兩個只在 Windows 出現的問題：
+  - migration 目錄改用 `fileURLToPath`。原本的 `URL.pathname` 在 Windows 會變成 `/D:/...`，資料庫模式完全無法使用。
+  - `licenses:check` 改經 shell 呼叫 pnpm（Node 不能直接執行 `pnpm.cmd`），並把 Windows 版 sharp
+    （內含 LGPL 的 libvips DLL）列入已審查的例外，理由與 Linux／macOS 版相同。
+- `deploy/compose.public.yaml` 需要 `PROXY_NETWORK`；只驗證設定時給任意名稱即可。
+
 ## 8. 硬性規則摘要（完整版在 AGENTS.md）
 
 - UI 文字使用 zh-TW；識別字、JSON key、API 路徑使用英文。
@@ -219,7 +255,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 ## 10. 已知缺口與技術債
 
-- CSP 允許 inline script／style（ADR-002 提案，見 `docs/security-and-rights.md`）。
+- CSP 允許 inline script／style（ADR-002，已接受的取捨，見 `docs/security-and-rights.md`）。
 - 離線頁（`/offline/view`）不套用帳號儲存的看譜設定。
 - 限速使用單一程序的記憶體計數，多程序部署時需改用共用儲存。
 - 生成任務：
@@ -230,14 +266,13 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `c1a5d0c` 建立）。新工作在
    session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
-2. **M8 本機 GPU 推論**：需要擁有者的 RTX 5090 與授權音訊，雲端 session 不能做 CUDA 或模型相關工作。
-   雲端可以先準備：
-   - 授權音訊上傳與 `SourceProvider`。
-   - `compose.gpu-nvidia.yaml` 草稿（未驗證前不合併）。
-   - 用合成訊號建立的評估 harness。
+2. **M8（全部在擁有者本機）**，依 `docs/audio-sources.md` 的切分：
+   - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（CPU 即可）。
+   - M8-2 `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（合成測試音訊）。
+   - M8-3 Docker Desktop GPU 驗證、`compose.gpu-nvidia.yaml`、評估 harness、模型轉接器（模型授權先記錄、由擁有者核可）。
 3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
-4. **M9**：審查差異比對、權利稽核紀錄、和弦位置與段落編輯器已完成；尚餘
-   審查器的結構化建議介面（Vertex 等付費 provider 必須是 opt-in，且有預算上限）。
+4. **M9**：審查差異比對、權利稽核紀錄、和弦位置與段落編輯器已完成；尚餘同步時間軸看譜、指法轉換排序改進，
+   以及審查器的結構化建議（LLM provider 預設 `disabled`；要不要做由擁有者在 M8 量測後決定，付費 provider 必須 opt-in 且有預算上限）。
 
 ## 12. 文件索引
 
@@ -255,7 +290,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 | `docs/offline-and-voicings.md` | 指法圖、播放模式、PWA 與離線                              |
 | `docs/api-contract.md`         | REST 路由、錯誤代碼、存取規則                             |
 | `docs/security-and-rights.md`  | 帳號、CSRF、限速、worker 憑證、內容權利                   |
-| `docs/audio-sources.md`        | 授權音訊來源設計（M8 準備，ADR-003 提案）                 |
+| `docs/audio-sources.md`        | 授權音訊來源設計與擁有者決定（ADR-003，已接受）           |
 | `docs/generation-jobs.md`      | 生成任務、租約、mock 流程、審查                           |
 | `docs/local-deployment.md`     | Docker Compose、備份、公開前檢查清單                      |
 | `docs/testing.md`              | 測試分層、Playwright、PostgreSQL 整合、跨語言 fixtures    |
@@ -266,6 +301,10 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - `LICENSE` 著作權人：**Chen-Wei, Liu**（2026-10-24）。
 - ADR-001（以幾何驗證取代像素比對的視覺回歸）：**已接受**（2026-10-24）。
 - 合併方式：建立 `main` 作為穩定分支，之後的工作經 PR 合併（2026-10-24）。
-  建議擁有者在 GitHub Settings 把預設分支改為 `main`，並為 `main` 開啟「合併前 CI 必須通過」的分支保護。
+  GitHub 預設分支已是 `main`；私人 repo 在免費方案無法開分支保護。
+- ADR-002（CSP）與 ADR-003（授權音訊來源）：**已接受**（2026-11-02）。
+- 音訊上傳規則（誰可以上傳、大小、配額、保留天數、權利聲明）：見 `docs/audio-sources.md`「擁有者決定」（2026-11-02）。
+- 雲端額度已用完，之後在本機開發；Python 使用專屬 conda 環境，不用 base（2026-11-02）。
+- 短期只有擁有者自己使用，服務要用時才啟動、不常駐；開放其他帳號的配套要先做好（2026-11-02）。
 
-目前沒有待擁有者決定的事項。
+待擁有者決定的事項見 `docs/agent-handoff.md`「待擁有者決定」。
