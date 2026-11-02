@@ -22,6 +22,7 @@ import {
   generationJobs,
 } from '../db/jobs-schema';
 import * as t from '../db/schema';
+import { canAnalyzeUpload } from '../uploads/service';
 import { sha256Of } from './canonical';
 import {
   isUniqueViolation,
@@ -95,7 +96,7 @@ async function findReusable(
   return active ?? null;
 }
 
-async function assertSubmittable(db: Database, request: GenerationJobCreateRequest) {
+async function assertSubmittable(db: Database, user: JobUser, request: GenerationJobCreateRequest) {
   const { target, input } = request;
   if (!rightsAllowVisibility(target.rights, target.visibility)) {
     throw new ApiProblem(
@@ -114,7 +115,12 @@ async function assertSubmittable(db: Database, request: GenerationJobCreateReque
     }
   } else {
     const source = await createPgCatalog(db).getSource(input.sourceReferenceId);
-    if (source === null || !canAnalyzeSource(source)) {
+    if (
+      source === null ||
+      !canAnalyzeSource(source) ||
+      // Uploads are private: only an active upload, for its uploader or an administrator.
+      (source.platform === 'user_upload' && !(await canAnalyzeUpload(db, source.id, user)))
+    ) {
       // Unknown and unauthorised sources look the same to the caller.
       throw new ApiProblem(
         422,
@@ -145,7 +151,7 @@ export async function submitJob(
   const fingerprint = requestFingerprint(request);
   const existing = await findReusable(db, user.userId, request.idempotencyKey, fingerprint);
   if (existing) return { row: existing, reused: true };
-  await assertSubmittable(db, request);
+  await assertSubmittable(db, user, request);
   const title = await resolveTitle(db, request.target);
   try {
     return await db.transaction(async (tx) => {

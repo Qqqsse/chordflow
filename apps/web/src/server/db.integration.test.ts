@@ -10,6 +10,7 @@ import { openDatabase, type DatabaseHandle } from './db/client';
 import { runMigrations } from './db/migrate';
 import { jobsIntegrationSuite } from './jobs/jobs.integration';
 import { libraryIntegrationSuite } from './library/library.integration';
+import { uploadsIntegrationSuite } from './uploads/uploads.integration';
 
 /**
  * PostgreSQL integration tests, in one file so suites never race on the same
@@ -45,4 +46,5 @@ describe.skipIf(!url)('PostgreSQL integration', () => {
   editorIntegrationSuite(getHandle);
   jobsIntegrationSuite(getHandle);
   libraryIntegrationSuite(getHandle);
+  uploadsIntegrationSuite(getHandle);
 });
