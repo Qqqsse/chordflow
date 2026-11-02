@@ -63,7 +63,7 @@ export function readUploadConfig(env: Readonly<Record<string, string | undefined
     throw new ConfigError('AUDIO_UPLOAD_DIR must be an absolute path');
   }
   return {
-    storageDir: dir === '' ? null : path.resolve(dir),
+    storageDir: dir === '' ? null : dir,
     roles: parseRoles(env.AUDIO_UPLOAD_ROLES),
     maxBytes: positiveInt(env, 'AUDIO_UPLOAD_MAX_BYTES', UPLOAD_DEFAULTS.maxBytes),
     maxDurationSeconds: positiveInt(
