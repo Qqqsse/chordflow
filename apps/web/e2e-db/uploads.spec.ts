@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { E2E_ADMIN } from '../../../playwright.config';
+import { createHash } from 'node:crypto';
+import { E2E_ADMIN, E2E_WORKER_TOKEN } from '../../../playwright.config';
 
 /* Private audio uploads: rights declaration, listing and withdrawal (M8-1). */
 
@@ -40,21 +41,25 @@ test('an admin uploads private audio after agreeing to the declaration, then del
   await expect(page.getByRole('heading', { name: '我的音訊' })).toBeVisible();
   await expect(page.getByTestId('upload-limits')).toContainText('50 MB');
 
+  // Unique per attempt: a retried serial file runs again on the same database.
+  const title = `晨光小路（自錄 ${String(test.info().retry)}）`;
+  const rows = page.getByTestId('upload-row');
+  const before = await rows.count();
   const form = page.getByRole('form', { name: '上傳音訊' });
   await form.getByLabel('音訊檔').setInputFiles({
     name: 'morning-path.wav',
     mimeType: 'audio/wav',
     buffer: syntheticWav(7),
   });
-  await form.getByLabel('歌名').fill('晨光小路（自錄）');
+  await form.getByLabel('歌名').fill(title);
   // Without the declaration the browser refuses to submit.
   await form.getByRole('button', { name: '上傳' }).click();
-  await expect(page.getByTestId('upload-row')).toHaveCount(0);
+  await expect(rows).toHaveCount(before);
 
   await form.getByRole('checkbox').check();
   await form.getByRole('button', { name: '上傳' }).click();
   await expect(page.getByRole('status')).toHaveText('已上傳。');
-  const row = page.getByTestId('upload-row').filter({ hasText: '晨光小路（自錄）' });
+  const row = rows.filter({ hasText: title });
   await expect(row).toContainText('WAV');
   await expect(row).toContainText('保存到');
 
@@ -64,7 +69,7 @@ test('an admin uploads private audio after agreeing to the declaration, then del
   expect(await listed.text()).not.toContain('storage');
 
   page.once('dialog', (dialog) => void dialog.accept());
-  await row.getByRole('button', { name: '刪除「晨光小路（自錄）」' }).click();
+  await row.getByRole('button', { name: `刪除「${title}」` }).click();
   await expect(row).toContainText('已刪除');
   await expect(row.getByRole('button', { name: /刪除/ })).toHaveCount(0);
 });
@@ -82,4 +87,100 @@ test('a file that is not audio is refused with an explanation', async ({ page })
   await form.getByRole('checkbox').check();
   await form.getByRole('button', { name: '上傳' }).click();
   await expect(page.getByRole('status')).toContainText('不支援這個檔案格式');
+});
+
+test('only the worker holding the lease downloads exactly the uploaded audio', async ({ page }) => {
+  await login(page);
+  const origin = new URL(page.url()).origin;
+  const audio = syntheticWav(9);
+  const uploaded = await page.request.post('/api/v1/audio-uploads', {
+    headers: { origin },
+    multipart: {
+      file: { name: 'download-check.wav', mimeType: 'audio/wav', buffer: audio },
+      title: '晨光小路（下載測試）',
+      declarationVersion: 'audio-upload-v1',
+      declarationAccepted: 'true',
+    },
+  });
+  expect(uploaded.status()).toBe(201);
+  const { upload } = (
+    (await uploaded.json()) as {
+      data: { upload: { sourceReferenceId: string; sha256: string } };
+    }
+  ).data;
+
+  const submitted = await page.request.post('/api/v1/generation-jobs', {
+    headers: { origin },
+    data: {
+      idempotencyKey: `e2e-audio-download-${String(test.info().retry)}`,
+      input: { kind: 'source_reference', sourceReferenceId: upload.sourceReferenceId },
+      target: {
+        work: {
+          title: '晨光小路（下載測試）',
+          titleAliases: [],
+          language: 'zh-TW',
+          artistName: null,
+        },
+        name: 'AI 草稿',
+        variant: 'original',
+        visibility: 'private',
+        rights: {
+          lyrics: 'owner_original',
+          chart: 'synthetic',
+          audio: 'owner_original',
+          attribution: null,
+          notes: null,
+        },
+      },
+    },
+  });
+  expect(submitted.status()).toBe(201);
+  const jobId = ((await submitted.json()) as { data: { job: { id: string } } }).data.job.id;
+
+  const worker = { authorization: `Bearer ${E2E_WORKER_TOKEN}` };
+  // Earlier specs may have left queued jobs: claim until this one is leased.
+  let job: { id: string; leaseToken: string } | null = null;
+  for (let i = 0; i < 10 && job?.id !== jobId; i += 1) {
+    const claim = await page.request.post('/api/v1/worker/jobs/claim', {
+      headers: worker,
+      data: {
+        workerId: 'e2e-audio',
+        workerVersion: '0.1.0',
+        processors: ['mock'],
+        leaseSeconds: 60,
+      },
+    });
+    job = ((await claim.json()) as { data: { job: { id: string; leaseToken: string } | null } })
+      .data.job;
+    if (job === null) break;
+  }
+  if (job?.id !== jobId) throw new Error('the upload job was not claimed');
+
+  const url = `/api/v1/worker/jobs/${jobId}/audio`;
+  const lease = { 'x-worker-id': 'e2e-audio', 'x-lease-token': job.leaseToken };
+  expect((await page.request.get(url, { headers: lease })).status()).toBe(401);
+  const stranger = await page.request.get(url, {
+    headers: { ...worker, ...lease, 'x-worker-id': 'someone-else' },
+  });
+  expect(stranger.status()).toBe(409);
+
+  const download = await page.request.get(url, { headers: { ...worker, ...lease } });
+  expect(download.status()).toBe(200);
+  const body = await download.body();
+  expect(Buffer.compare(body, audio)).toBe(0);
+  expect(download.headers()['x-content-sha256']).toBe(upload.sha256);
+  expect(createHash('sha256').update(body).digest('hex')).toBe(upload.sha256);
+  expect(download.headers()['x-audio-format']).toBe('wav');
+  expect(download.headers()['cache-control']).toBe('no-store');
+
+  // Release the job so nothing else picks it up.
+  const failed = await page.request.post(`/api/v1/worker/jobs/${jobId}/fail`, {
+    headers: worker,
+    data: {
+      workerId: 'e2e-audio',
+      leaseToken: job.leaseToken,
+      error: { code: 'MODEL_UNAVAILABLE', message: 'e2e check only', retryable: false },
+    },
+  });
+  expect(failed.status()).toBe(200);
 });
