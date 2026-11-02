@@ -12,3 +12,4 @@ export * from './library';
 export * from './openapi';
 export * from './primitives';
 export * from './recording-sync';
+export * from './uploads';

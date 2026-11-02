@@ -29,6 +29,8 @@ ENV NODE_ENV=production \
 WORKDIR /app
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+# Private audio upload store; a new named volume mounted here inherits this ownership.
+RUN mkdir -p /var/lib/chordflow/audio-uploads && chown node:node /var/lib/chordflow/audio-uploads
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

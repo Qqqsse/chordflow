@@ -4,11 +4,11 @@ chordflow 先在擁有者自己的機器上私人運作。基本 stack 只用 CP
 
 ## 服務
 
-| 服務     | 映像／建置                      | 對外暴露                           | 說明                                     |
-| -------- | ------------------------------- | ---------------------------------- | ---------------------------------------- |
-| `db`     | `postgres:17-alpine`            | 只在內部網路                       | 持久化 named volume `db-data`            |
-| `web`    | `apps/web/Dockerfile`           | 主機 `127.0.0.1:${WEB_PORT:-3000}` | Next.js standalone、非 root、healthcheck |
-| `worker` | `services/ai-worker/Dockerfile` | 無                                 | profile `worker`；CPU mock 處理流程      |
+| 服務     | 映像／建置                      | 對外暴露                           | 說明                                                                                  |
+| -------- | ------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| `db`     | `postgres:17-alpine`            | 只在內部網路                       | 持久化 named volume `db-data`                                                         |
+| `web`    | `apps/web/Dockerfile`           | 主機 `127.0.0.1:${WEB_PORT:-3000}` | Next.js standalone、非 root、healthcheck；上傳的音訊存在 named volume `audio-uploads` |
+| `worker` | `services/ai-worker/Dockerfile` | 無                                 | profile `worker`；CPU mock 處理流程                                                   |
 
 規劃中的疊加設定：`deploy/compose.gpu-nvidia.yaml`（M8，獨立且鎖定版本的 CUDA 映像），以及未來的 ROCm profile。
 在能於擁有者硬體上驗證之前，刻意不提供。
@@ -97,6 +97,10 @@ docker compose start web
 
 正式使用時，請加密備份檔（例如 `age` 或 `gpg`）並保留一份異地副本。`backups/` 絕不可提交到 git。
 Artifact 儲存（已授權音訊、模型輸出）出現後（M7 以後）會有以 manifest 為基礎的獨立備份方式。
+
+**上傳的音訊**（volume `audio-uploads`，掛在 `/var/lib/chordflow/audio-uploads`）是暫存資料：撤回或過了保留期限
+（預設 30 天）就會刪除，不需要也不建議備份。`docker compose down -v` 同樣會刪除它；這時資料庫中的上傳紀錄仍顯示
+為有效但檔案已不存在，請到 `/uploads` 把它們刪除（聲明紀錄會保留）。設定與規則見 `docs/audio-sources.md`。
 
 ## 區網、Tailscale 與公開 HTTPS
 

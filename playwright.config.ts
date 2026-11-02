@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const port = Number(process.env.E2E_PORT ?? 3100);
@@ -31,6 +33,8 @@ const dbEnv = {
   WORKER_TOKEN: E2E_WORKER_TOKEN,
   // The database-mode specs sign in more than the production limit (10/min) allows.
   AUTH_SIGN_IN_PER_MINUTE: '100',
+  // Synthetic test audio only; outside the repository.
+  AUDIO_UPLOAD_DIR: path.join(tmpdir(), 'chordflow-e2e-uploads'),
 };
 
 export default defineConfig({

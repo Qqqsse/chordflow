@@ -3,8 +3,9 @@ import postgres from 'postgres';
 import * as authSchema from './auth-schema';
 import * as jobsSchema from './jobs-schema';
 import * as catalogSchema from './schema';
+import * as uploadsSchema from './uploads-schema';
 
-const schema = { ...catalogSchema, ...authSchema, ...jobsSchema };
+const schema = { ...catalogSchema, ...authSchema, ...jobsSchema, ...uploadsSchema };
 
 export type Database = PostgresJsDatabase<typeof schema>;
 

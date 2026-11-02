@@ -17,8 +17,11 @@ import { RecordingSyncSchema } from './recording-sync';
  * `data` schemas are shared with tests and published as OpenAPI/JSON Schema.
  */
 
-/** 1.1.0: personal library (`/me/*`); 1.2.0: job retry, worker status; 1.3.0: rights audit. All additive. */
-export const API_VERSION = '1.3.0';
+/**
+ * 1.1.0: personal library (`/me/*`); 1.2.0: job retry, worker status; 1.3.0: rights audit;
+ * 1.4.0: audio uploads. All additive.
+ */
+export const API_VERSION = '1.4.0';
 
 export const ApiMetaSchema = z.strictObject({
   requestId: z.string().min(1).max(100),
@@ -64,6 +67,8 @@ export const API_ERROR_CODES = [
   'JOB_STATE_CONFLICT',
   'LEASE_LOST',
   'ARTIFACT_VALIDATION_FAILED',
+  'UPLOAD_NOT_FOUND',
+  'UNSUPPORTED_AUDIO_FORMAT',
   'CONFIGURATION_INVALID',
   'SERVICE_UNAVAILABLE',
   'INTERNAL_ERROR',

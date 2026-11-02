@@ -6,6 +6,7 @@ export default defineConfig({
     './src/server/db/schema.ts',
     './src/server/db/auth-schema.ts',
     './src/server/db/jobs-schema.ts',
+    './src/server/db/uploads-schema.ts',
   ],
   out: './drizzle',
   // Only used by `drizzle-kit migrate`/`studio`; generation needs no database.
