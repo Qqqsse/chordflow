@@ -50,6 +50,12 @@ import {
   ViewerPreferencesDataSchema,
   ViewerPreferencesSchema,
 } from './library';
+import {
+  AUDIO_FORMATS,
+  AudioUploadBlockDataSchema,
+  AudioUploadDataSchema,
+  AudioUploadListDataSchema,
+} from './uploads';
 
 /*
  * OpenAPI 3.1 document for the `/api/v1` contract (SPEC §10), generated from
@@ -110,6 +116,9 @@ const COMPONENTS = {
   FavoriteResponse: envelopeOf(FavoriteDataSchema),
   ViewerPreferences: ViewerPreferencesSchema,
   ViewerPreferencesResponse: envelopeOf(ViewerPreferencesDataSchema),
+  AudioUploadListResponse: envelopeOf(AudioUploadListDataSchema),
+  AudioUploadResponse: envelopeOf(AudioUploadDataSchema),
+  AudioUploadBlockResponse: envelopeOf(AudioUploadBlockDataSchema),
 } as const;
 
 const ref = (name: keyof typeof COMPONENTS) => ({ $ref: `#/components/schemas/${name}` });
@@ -160,6 +169,27 @@ const jobPath = (summary: string, extra: Record<string, unknown>) => ({
   parameters: [idParam('id', 'Generation job id')],
   ...extra,
 });
+
+/** Multipart fields of `POST /audio-uploads` (AudioUploadMetadataSchema plus the file). */
+const audioUploadForm = {
+  type: 'object',
+  required: ['file', 'title', 'declarationVersion', 'declarationAccepted'],
+  properties: {
+    file: {
+      type: 'string',
+      format: 'binary',
+      description: `Audio file; the format (${AUDIO_FORMATS.join(', ')}) is detected from its header`,
+    },
+    title: { type: 'string', minLength: 1, maxLength: 200 },
+    artist: { type: 'string', maxLength: 200, description: 'Optional; empty means unknown' },
+    declarationVersion: {
+      type: 'string',
+      pattern: '^audio-upload-v[1-9][0-9]*$',
+      description: 'Version of the rights declaration shown to the uploader; must be current',
+    },
+    declarationAccepted: { type: 'string', enum: ['true'] },
+  },
+};
 
 const requestIdHeader = {
   name: 'x-request-id',
@@ -545,6 +575,62 @@ export function buildOpenApi(): Json {
             ...WRITE_ERRORS,
             404: errorResponse('ARRANGEMENT_NOT_FOUND'),
           },
+        },
+      },
+      '/audio-uploads': {
+        get: {
+          summary:
+            'Own audio uploads (administrators: every upload), the upload policy and quota usage',
+          responses: {
+            200: okResponse('AudioUploadListResponse'),
+            401: errorResponse('UNAUTHENTICATED'),
+            404: errorResponse('Not available in demo mode'),
+          },
+        },
+        post: {
+          summary:
+            'Upload private audio with a rights declaration (roles in AUDIO_UPLOAD_ROLES); it is never public',
+          requestBody: {
+            required: true,
+            content: { 'multipart/form-data': { schema: audioUploadForm } },
+          },
+          responses: {
+            201: okResponse('AudioUploadResponse', 'Created'),
+            ...WRITE_ERRORS,
+            403: errorResponse(
+              'FORBIDDEN (role not allowed, or uploads disabled for the account) or CSRF_REJECTED',
+            ),
+            409: errorResponse('QUOTA_EXCEEDED (storage quota)'),
+            411: errorResponse('INVALID_REQUEST (Content-Length required)'),
+            415: errorResponse('UNSUPPORTED_AUDIO_FORMAT'),
+            422: errorResponse('VALIDATION_FAILED (fields, or a missing or outdated declaration)'),
+            429: errorResponse('RATE_LIMITED'),
+            503: errorResponse('SERVICE_UNAVAILABLE (upload storage not configured)'),
+          },
+        },
+      },
+      '/audio-uploads/{id}': {
+        delete: {
+          summary:
+            'Withdraw an upload (uploader or admin): deletes the audio, revokes analysis and cancels jobs that still need it; idempotent',
+          parameters: [idParam('id', 'Upload id')],
+          responses: {
+            200: okResponse('AudioUploadResponse'),
+            ...WRITE_ERRORS,
+            404: errorResponse('UPLOAD_NOT_FOUND'),
+          },
+        },
+      },
+      '/audio-upload-blocks/{id}': {
+        put: {
+          summary: 'Disable audio uploads for an account (admin); idempotent',
+          parameters: [idParam('id', 'User id')],
+          responses: { 200: okResponse('AudioUploadBlockResponse'), ...WRITE_ERRORS },
+        },
+        delete: {
+          summary: 'Allow audio uploads for an account again (admin); idempotent',
+          parameters: [idParam('id', 'User id')],
+          responses: { 200: okResponse('AudioUploadBlockResponse'), ...WRITE_ERRORS },
         },
       },
       '/me/recent/{id}': {
