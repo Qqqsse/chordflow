@@ -48,6 +48,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main id="main" className="mx-auto max-w-4xl px-4 py-8">
             {children}
           </main>
+          <footer className="mx-auto max-w-4xl px-4 pb-8 text-xs text-ink-muted">
+            <a href="/terms" className="hover:text-ink">
+              使用條款
+            </a>
+          </footer>
         </AccountProvider>
         <ServiceWorkerRegistrar />
       </body>

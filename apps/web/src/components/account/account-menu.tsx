@@ -17,6 +17,9 @@ export function AccountMenu() {
       <a href="/library" className="text-ink-muted hover:text-ink">
         我的譜庫
       </a>
+      <a href="/uploads" className="text-ink-muted hover:text-ink">
+        我的音訊
+      </a>
       {account.user.role === 'admin' && (
         <a href="/admin" className="text-ink-muted hover:text-ink">
           管理
