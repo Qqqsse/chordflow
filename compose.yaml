@@ -38,6 +38,17 @@ services:
       # Worker API credential (the worker API answers 503 until it is set).
       WORKER_TOKEN: ${WORKER_TOKEN:-}
       WORKER_TOKEN_PREVIOUS: ${WORKER_TOKEN_PREVIOUS:-}
+      # Private audio uploads (database mode; docs/audio-sources.md). Empty limits use the defaults.
+      AUDIO_UPLOAD_DIR: ${AUDIO_UPLOAD_DIR:-/var/lib/chordflow/audio-uploads}
+      AUDIO_UPLOAD_ROLES: ${AUDIO_UPLOAD_ROLES:-admin}
+      AUDIO_UPLOAD_MAX_BYTES: ${AUDIO_UPLOAD_MAX_BYTES:-}
+      AUDIO_MAX_DURATION_SECONDS: ${AUDIO_MAX_DURATION_SECONDS:-}
+      AUDIO_USER_QUOTA_BYTES: ${AUDIO_USER_QUOTA_BYTES:-}
+      AUDIO_RETENTION_DAYS: ${AUDIO_RETENTION_DAYS:-}
+      SITE_CONTACT: ${SITE_CONTACT:-}
+    volumes:
+      # Transient: withdrawn or expired audio is deleted; see docs/local-deployment.md.
+      - audio-uploads:/var/lib/chordflow/audio-uploads
     ports:
       # Loopback only by default. Use a reverse proxy (deploy/compose.public.yaml) for wider access.
       - '127.0.0.1:${WEB_PORT:-3000}:3000'
@@ -101,3 +112,4 @@ services:
 volumes:
   db-data:
   worker-artifacts:
+  audio-uploads:
