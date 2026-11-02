@@ -21,7 +21,11 @@ export const GET = apiRoute(
       request.headers.get(WORKER_AUDIO_HEADERS.leaseToken),
     );
     if (!workerId.success || !leaseToken.success) {
-      throw new ApiProblem(422, 'VALIDATION_FAILED', 'Worker id and lease token headers are required');
+      throw new ApiProblem(
+        422,
+        'VALIDATION_FAILED',
+        'Worker id and lease token headers are required',
+      );
     }
     const sourceId = await leasedJobSource(db, id, workerId.data, leaseToken.data);
     const config = readUploadConfig(process.env);

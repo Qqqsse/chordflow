@@ -555,7 +555,9 @@ export function buildOpenApi(): Json {
                 },
               },
               ...WORKER_ERRORS,
-              404: errorResponse('JOB_NOT_FOUND or AUDIO_NOT_AVAILABLE (no active upload behind the job)'),
+              404: errorResponse(
+                'JOB_NOT_FOUND or AUDIO_NOT_AVAILABLE (no active upload behind the job)',
+              ),
               409: errorResponse('LEASE_LOST (expired, reassigned or job cancelled)'),
             },
           },
