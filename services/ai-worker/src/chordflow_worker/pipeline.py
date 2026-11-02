@@ -5,16 +5,25 @@ into a playable diatonic draft so the whole job → review → publish path can 
 exercised without GPU, model weights or audio. Everything it emits is labelled
 as synthetic: no confidence values, a `synthetic_output` span per section, and
 `decode_and_probe_audio` reported as skipped.
+
+`source_reference` jobs fetch and check their authorized audio (download,
+digest, WAV length), then fail with MODEL_UNAVAILABLE: the CPU mock never
+pretends to have analysed audio. Recognition arrives with the GPU worker (M8-3).
 """
 
 from __future__ import annotations
 
+import tempfile
 import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
+from typing import NoReturn
 
 from . import __version__
 from .artifacts import LocalArtifactStore, cache_key, fingerprint
+from .audio import AudioRejected, DownloadedAudio, probe_audio
+from .client import ApiError, LeaseLost
 from .contracts import (
     PIPELINE_STAGES,
     ArtifactManifestEntry,
@@ -65,12 +74,15 @@ class JobFailure(Exception):
 
 
 ProgressCallback = Callable[[PipelineStage, float], None]
+#: Downloads a job's authorized audio to the given path (WorkerApiClient.download_audio).
+AudioFetcher = Callable[[ClaimedJob, Path], DownloadedAudio]
 
 
 @dataclass(frozen=True)
 class PipelineConfig:
     llm_max_calls: int = 4
     worker_version: str = __version__
+    fetch_audio: AudioFetcher | None = None
 
 
 @dataclass(frozen=True)
@@ -143,6 +155,36 @@ def choose_key(job_input: ReferenceLyricsInput) -> Key:
     return parse_key(DEFAULT_KEYS[job_input.seed % len(DEFAULT_KEYS)])
 
 
+def check_source_audio(
+    job: ClaimedJob, config: PipelineConfig, begin: Callable[[PipelineStage], None]
+) -> NoReturn:
+    """Fetches and checks the job's authorized audio; the mock never invents an analysis."""
+    if config.fetch_audio is None:
+        raise JobFailure("AUDIO_NOT_AVAILABLE", "這個 worker 無法取得音訊", retryable=False)
+    # The audio is private: it exists only in this temporary directory, removed on exit.
+    with tempfile.TemporaryDirectory(prefix="chordflow-audio-") as scratch:
+        try:
+            audio = config.fetch_audio(job, Path(scratch) / "input.audio")
+        except LeaseLost:
+            raise
+        except ApiError as error:
+            if error.code == "AUDIO_NOT_AVAILABLE":
+                raise JobFailure(
+                    "AUDIO_NOT_AVAILABLE", "沒有可分析的授權音訊", retryable=False
+                ) from None
+            raise JobFailure("INTERNAL_ERROR", "無法取得音訊", retryable=True) from None
+        begin("decode_and_probe_audio")
+        try:
+            probe_audio(audio)
+        except AudioRejected as rejected:
+            raise JobFailure(rejected.code, rejected.message, retryable=False) from None
+    raise JobFailure(
+        "MODEL_UNAVAILABLE",
+        "已取得並檢查音訊，但 CPU mock 處理器不做音訊辨識；需要 GPU 處理器（M8-3）",
+        retryable=False,
+    )
+
+
 def run_mock_pipeline(
     job: ClaimedJob,
     store: LocalArtifactStore,
@@ -170,11 +212,7 @@ def run_mock_pipeline(
     # 1. resolve_source / check_rights
     begin("resolve_source")
     if not isinstance(job.input, ReferenceLyricsInput):
-        raise JobFailure(
-            "AUDIO_NOT_AVAILABLE",
-            "沒有可分析的授權音訊：音訊取得與分析在 M8 之前不提供",
-            retryable=False,
-        )
+        check_source_audio(job, config, begin)
     job_input = job.input
     sections_in = paragraphs(job_input.lyrics)
     if not sections_in:

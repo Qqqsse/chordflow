@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import logging
 import threading
+import wave
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -29,6 +32,30 @@ class FakeCoordinator:
         self.complete_failures = 0  # respond 503 this many times first
         self.lease_lost_after_heartbeats: int | None = None
         self.heartbeats = 0
+        # Audio served by GET /worker/jobs/{id}/audio; None answers AUDIO_NOT_AVAILABLE.
+        self.audio: bytes | None = None
+        self.audio_digest: str | None = None  # overrides the real digest when set
+        self.audio_max_seconds = 900
+        self.audio_status = 200
+        self.audio_requests: list[dict[str, str]] = []
+
+    def handle_get(self, path: str, headers: dict[str, str]) -> tuple[int, dict[str, str], bytes]:
+        if headers.get("authorization") != f"Bearer {TOKEN}" or not path.endswith("/audio"):
+            return 401, {}, b""
+        self.audio_requests.append(headers)
+        if self.audio_status == 409:
+            body = {"error": {"code": "LEASE_LOST", "message": "x", "details": None, "requestId": "r"}}
+            return 409, {"content-type": "application/json"}, json.dumps(body).encode()
+        if self.audio is None:
+            body = {"error": {"code": "AUDIO_NOT_AVAILABLE", "message": "x", "details": None, "requestId": "r"}}
+            return 404, {"content-type": "application/json"}, json.dumps(body).encode()
+        digest = self.audio_digest or hashlib.sha256(self.audio).hexdigest()
+        return 200, {
+            "content-type": "application/octet-stream",
+            "x-content-sha256": digest,
+            "x-audio-format": "wav",
+            "x-audio-max-duration-seconds": str(self.audio_max_seconds),
+        }, self.audio
 
     def handle(self, path: str, auth: str | None, body: dict) -> tuple[int, dict]:
         if auth != f"Bearer {TOKEN}":
@@ -67,6 +94,16 @@ def coordinator() -> Iterator[tuple[FakeCoordinator, str]]:
             data = json.dumps(reply).encode()
             self.send_response(status)
             self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self) -> None:  # noqa: N802 - http.server API
+            headers = {k.lower(): v for k, v in self.headers.items()}
+            status, reply_headers, data = fake.handle_get(self.path, headers)
+            self.send_response(status)
+            for name, value in reply_headers.items():
+                self.send_header(name, value)
             self.send_header("content-length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
@@ -141,6 +178,80 @@ def test_reports_typed_failure_for_unanalysable_sources(
         "message": body["error"]["message"],
         "retryable": False,
     }
+
+
+SOURCE_JOB = {**CLAIMED, "input": {"kind": "source_reference", "sourceReferenceId": "src_x"}}
+
+
+def synthetic_wav(seconds: float, rate: int = 8000) -> bytes:
+    """Silent mono PCM; never real audio."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as writer:
+        writer.setnchannels(1)
+        writer.setsampwidth(2)
+        writer.setframerate(rate)
+        writer.writeframes(b"\x00\x00" * int(seconds * rate))
+    return buffer.getvalue()
+
+
+def last_failure(fake: FakeCoordinator) -> dict:
+    path, body = fake.calls[-1]
+    assert path.endswith("/fail")
+    return body["error"]
+
+
+def test_downloads_and_checks_audio_but_never_invents_an_analysis(
+    coordinator: tuple[FakeCoordinator, str], tmp_path: Path
+) -> None:
+    fake, url = coordinator
+    fake.jobs.append(SOURCE_JOB)
+    fake.audio = synthetic_wav(1.5)
+    make_worker(url, tmp_path).run(mode="once")
+    request = fake.audio_requests[0]
+    assert request["x-worker-id"] == "cpu-mock-1"
+    assert request["x-lease-token"] == CLAIMED["leaseToken"]
+    assert last_failure(fake)["code"] == "MODEL_UNAVAILABLE"
+    assert last_failure(fake)["retryable"] is False
+    stages = [b["progress"]["stage"] for p, b in fake.calls if p.endswith("/heartbeat")]
+    assert stages == ["resolve_source", "decode_and_probe_audio"]
+    # The private audio is not kept anywhere in the worker's artifact store.
+    assert not [p for p in tmp_path.rglob("*") if p.is_file()]
+
+
+def test_rejects_audio_longer_than_the_limit(
+    coordinator: tuple[FakeCoordinator, str], tmp_path: Path
+) -> None:
+    fake, url = coordinator
+    fake.jobs.append(SOURCE_JOB)
+    fake.audio = synthetic_wav(2.0)
+    fake.audio_max_seconds = 1
+    make_worker(url, tmp_path).run(mode="once")
+    assert last_failure(fake)["code"] == "AUDIO_TOO_LONG"
+
+
+def test_rejects_unreadable_wav(coordinator: tuple[FakeCoordinator, str], tmp_path: Path) -> None:
+    fake, url = coordinator
+    fake.jobs.append(SOURCE_JOB)
+    fake.audio = b"RIFF\x00\x00\x00\x00WAVE" + b"\x00" * 64
+    make_worker(url, tmp_path).run(mode="once")
+    assert last_failure(fake)["code"] == "AUDIO_INVALID"
+
+
+@pytest.mark.parametrize("problem", ["digest", "lease"])
+def test_stops_without_reporting_on_a_bad_transfer_or_lost_lease(
+    coordinator: tuple[FakeCoordinator, str], tmp_path: Path, problem: str
+) -> None:
+    fake, url = coordinator
+    fake.jobs.append(SOURCE_JOB)
+    fake.audio = synthetic_wav(1.0)
+    if problem == "digest":
+        fake.audio_digest = "0" * 64
+    else:
+        fake.audio_status = 409
+    make_worker(url, tmp_path).run(mode="once")
+    paths = [p.rsplit("/", 1)[-1] for p, _ in fake.calls]
+    # A corrupt transfer lets the lease expire (the job is retried); a lost lease just stops.
+    assert "fail" not in paths and "complete" not in paths
 
 
 def test_wrong_token_is_not_retried_forever(coordinator: tuple[FakeCoordinator, str], tmp_path: Path) -> None:

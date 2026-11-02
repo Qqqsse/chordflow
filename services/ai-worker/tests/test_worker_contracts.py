@@ -119,3 +119,16 @@ def test_cache_key_matches_typescript_fixture() -> None:
         )
         == fixture["key"]
     )
+
+
+def test_audio_download_headers_match_openapi() -> None:
+    operation = OPENAPI["paths"]["/worker/jobs/{id}/audio"]["get"]
+    request_headers = {p["name"] for p in operation["parameters"] if p["in"] == "header"}
+    assert request_headers == {c.WORKER_AUDIO_HEADERS["workerId"], c.WORKER_AUDIO_HEADERS["leaseToken"]}
+    response_headers = operation["responses"]["200"]["headers"]
+    assert set(response_headers) == {
+        c.WORKER_AUDIO_HEADERS["sha256"],
+        c.WORKER_AUDIO_HEADERS["format"],
+        c.WORKER_AUDIO_HEADERS["maxDurationSeconds"],
+    }
+    assert tuple(response_headers[c.WORKER_AUDIO_HEADERS["format"]]["schema"]["enum"]) == c.AUDIO_FORMATS
