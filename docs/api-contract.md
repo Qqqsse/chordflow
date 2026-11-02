@@ -93,7 +93,21 @@
 | `GET`／`PUT /me/preferences/{id}`  | 讀取／儲存看譜設定（UserChartPreference v1，`ViewerPreferencesSchema`）；不會改動和弦譜 |
 | `POST /me/recent/{id}`             | 記錄開啟；每位使用者只保留最新 20 筆（204）                                             |
 
-API 契約版本 1.3.0（1.1.0 個人譜庫；1.2.0 任務重試與 worker 狀態；1.3.0 權利稽核紀錄；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
+### 音訊上傳（只在資料庫模式；需登入；寫入需同源；詳見 `docs/audio-sources.md`）
+
+| 路由                                      | 身分                         | 說明                                                                                             |
+| ----------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `GET /audio-uploads`                      | 會員                         | 自己的上傳（管理員看全部，並附已停用上傳權的帳號）、上傳規則與已用容量；不回傳任何儲存位置       |
+| `POST /audio-uploads`                     | `AUDIO_UPLOAD_ROLES`（限速） | multipart：`file`、`title`、`artist`、`declarationVersion`、`declarationAccepted=true`；成功 201 |
+| `DELETE /audio-uploads/{id}`              | 上傳者或管理員               | 撤回：刪除音訊、撤銷分析權限、取消還需要它的任務（`SOURCE_NOT_AUTHORIZED`）；可重複呼叫          |
+| `PUT`／`DELETE /audio-upload-blocks/{id}` | 管理員                       | 停用／恢復某帳號的上傳權（`{id}` 是帳號 id；不能改自己）；可重複呼叫                             |
+
+- 上傳前先檢查身分與 `Content-Length`，不符合就不讀 body：沒有權限 403 `FORBIDDEN`、沒設定儲存位置 503
+  `SERVICE_UNAVAILABLE`、沒有長度 411 `INVALID_REQUEST`、太大 413 `PAYLOAD_TOO_LARGE`。
+- 格式依檔頭判斷，不是 WAV／FLAC／MP3／OGG／M4A 回 415 `UNSUPPORTED_AUDIO_FORMAT`；容量不足 409 `QUOTA_EXCEEDED`；
+  聲明沒勾或版本不是目前版本回 422 `VALIDATION_FAILED`。看不到的上傳與不存在一樣回 404 `UPLOAD_NOT_FOUND`。
+
+API 契約版本 1.4.0（1.1.0 個人譜庫；1.2.0 任務重試與 worker 狀態；1.3.0 權利稽核紀錄；1.4.0 音訊上傳；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
 
 ## 搜尋
 

@@ -27,25 +27,25 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 
 ## 2. Milestone 狀態
 
-| Milestone                       | 狀態                                                      | 主要文件                                              |
-| ------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
-| M0 基礎建設                     | ✅ 完成                                                   | `README.md`、`docs/local-deployment.md`               |
-| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）                       | `docs/schema-decisions.md`                            |
-| M2 樂理                         | ✅ 完成                                                   | `docs/music-theory.md`                                |
-| M3 ChordPro 匯入／匯出          | ✅ 完成                                                   | `docs/chordpro.md`                                    |
-| M4 看譜器                       | ✅ 完成                                                   | `docs/viewer.md`（含 ADR-001，已接受）                |
-| M5 指法圖／播放模式／PWA        | ✅ 完成                                                   | `docs/offline-and-voicings.md`                        |
-| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP）                | `docs/api-contract.md`、`docs/security-and-rights.md` |
-| M7 生成任務與 CPU mock worker   | ✅ 完成                                                   | `docs/generation-jobs.md`                             |
-| M8 本機 GPU 推論                | ⏳ 設計完成（ADR-003 已接受），實作在擁有者本機進行       | `docs/audio-sources.md`、SPEC §11、§16                |
-| M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器 | `docs/generation-jobs.md`、SPEC §16                   |
+| Milestone                       | 狀態                                                              | 主要文件                                              |
+| ------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| M0 基礎建設                     | ✅ 完成                                                           | `README.md`、`docs/local-deployment.md`               |
+| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）                               | `docs/schema-decisions.md`                            |
+| M2 樂理                         | ✅ 完成                                                           | `docs/music-theory.md`                                |
+| M3 ChordPro 匯入／匯出          | ✅ 完成                                                           | `docs/chordpro.md`                                    |
+| M4 看譜器                       | ✅ 完成                                                           | `docs/viewer.md`（含 ADR-001，已接受）                |
+| M5 指法圖／播放模式／PWA        | ✅ 完成                                                           | `docs/offline-and-voicings.md`                        |
+| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP）                        | `docs/api-contract.md`、`docs/security-and-rights.md` |
+| M7 生成任務與 CPU mock worker   | ✅ 完成                                                           | `docs/generation-jobs.md`                             |
+| M8 本機 GPU 推論                | 🔶 M8-1 音訊上傳完成；M8-2（worker 取得音訊）與 M8-3（GPU）未開始 | `docs/audio-sources.md`、SPEC §11、§16                |
+| M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器         | `docs/generation-jobs.md`、SPEC §16                   |
 
 **CI**：PR #7 合併後的 `main`（`bc36d1a`）四個 job 全部通過：web、worker、compose、security。
 
 **測試數量**（2026-11-02，Windows 本機）：
 
-- Vitest：41 個檔案、763 個測試（含 57 個 PostgreSQL 整合測試）。
-- Playwright：53 個（demo 38、資料庫模式 15）。
+- Vitest：46 個檔案、815 個測試（含 65 個 PostgreSQL 整合測試）。
+- Playwright：56 個（demo 38、資料庫模式 18）。
 - pytest：95 個。
 
 ## 3. Repo 地圖
@@ -54,7 +54,8 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 apps/web/                     Next.js 16 App Router（UI + /api/v1 BFF）
   src/app/                    頁面：/、/demo、/search、/charts/[id]、/offline、/library、/login、/invite、
                               /admin、/admin/import、/admin/generate、/admin/jobs/[id]、
-                              /admin/arrangements/[id]/edit、/admin/arrangements/[id]/audit
+                              /admin/arrangements/[id]/edit、/admin/arrangements/[id]/audit、
+                              /uploads、/terms
   src/app/api/v1/             REST 路由（每個 OpenAPI 路徑都有 route.ts，由 routes-contract.test.ts 檢查）
   src/components/viewer/      看譜器（排版、控制、指法圖、自動捲動、分頁）
   src/components/offline/     離線儲存、離線譜庫、service worker 註冊
@@ -67,7 +68,8 @@ apps/web/                     Next.js 16 App Router（UI + /api/v1 BFF）
   src/server/auth/            better-auth 設定、principal、邀請、guards
   src/server/jobs/            生成任務協調器（service、worker-service、worker-auth、store、views）
   src/server/db/              Drizzle schema（schema.ts、auth-schema.ts、jobs-schema.ts）、migrate、CLI
-  drizzle/                    SQL migrations 0000–0006（含手寫觸發器）
+  src/server/uploads/         音訊上傳（設定、檔頭判斷、私有儲存、服務、保留期限清理）；instrumentation.ts 啟動清理
+  drizzle/                    SQL migrations 0000–0007（含手寫觸發器）
   e2e/                        Playwright（demo 模式）
   e2e-db/                     Playwright（資料庫模式；generation.spec.ts 會啟動真正的 Python worker）
   public/sw.js                service worker（永遠不快取 /api）
@@ -187,6 +189,9 @@ Docker Compose 的完整步驟見 `docs/local-deployment.md`。
 | `TEST_DATABASE_URL`                           | 啟用 PostgreSQL 整合測試與資料庫模式 Playwright（**會清空該資料庫**）  |
 | `CHORDFLOW_ALLOW_DESTRUCTIVE_RESET=yes`       | `db:reset-test` 的安全閥                                               |
 | `GITLEAKS_IMAGE`                              | `pnpm secrets:check` 使用的映像（沙盒可改用 mirror.gcr.io）            |
+| `AUDIO_UPLOAD_DIR`、`AUDIO_UPLOAD_ROLES`      | 音訊上傳的私有儲存位置（絕對路徑；空白＝不能上傳）、可上傳的角色       |
+| `AUDIO_UPLOAD_MAX_BYTES` 等                   | 上傳上限、長度、配額、保留天數，見 `docs/audio-sources.md`             |
+| `SITE_CONTACT`                                | 使用條款頁的聯絡方式（選填）                                           |
 
 ## 7. 品質閘門（推送前全部要跑）
 
@@ -267,7 +272,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `c1a5d0c` 建立）。新工作在
    session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
 2. **M8（全部在擁有者本機）**，依 `docs/audio-sources.md` 的切分：
-   - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（CPU 即可）。
+   - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（**完成**）。
    - M8-2 `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（合成測試音訊）。
    - M8-3 Docker Desktop GPU 驗證、`compose.gpu-nvidia.yaml`、評估 harness、模型轉接器（模型授權先記錄、由擁有者核可）。
 3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
