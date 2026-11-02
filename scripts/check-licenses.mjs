@@ -2,7 +2,7 @@
 // Fails when any installed npm dependency (prod or dev) uses a license outside the
 // allowlist, unless it is listed as a reviewed exception with a recorded reason.
 // See docs/security-and-rights.md (dependency license policy).
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 
 const ALLOWED = new Set([
   'MIT',
@@ -44,9 +44,14 @@ const REVIEWED_EXCEPTIONS = new Map([
     '@img/sharp-libvips-darwin-arm64',
     'LGPL-3.0-or-later libvips binary (macOS); dynamically loaded, unmodified.',
   ],
+  [
+    '@img/sharp-win32-x64',
+    'Apache-2.0 sharp binding bundled with the LGPL-3.0-or-later libvips DLLs (Windows); dynamically loaded, unmodified.',
+  ],
 ]);
 
-const raw = execFileSync('pnpm', ['licenses', 'list', '--json'], {
+// Through a shell so Windows resolves the pnpm.cmd shim (Node will not spawn .cmd files directly).
+const raw = execSync('pnpm licenses list --json', {
   encoding: 'utf8',
   maxBuffer: 64 * 1024 * 1024,
 });
