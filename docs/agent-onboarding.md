@@ -27,26 +27,26 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 
 ## 2. Milestone 狀態
 
-| Milestone                       | 狀態                                                              | 主要文件                                              |
-| ------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
-| M0 基礎建設                     | ✅ 完成                                                           | `README.md`、`docs/local-deployment.md`               |
-| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）                               | `docs/schema-decisions.md`                            |
-| M2 樂理                         | ✅ 完成                                                           | `docs/music-theory.md`                                |
-| M3 ChordPro 匯入／匯出          | ✅ 完成                                                           | `docs/chordpro.md`                                    |
-| M4 看譜器                       | ✅ 完成                                                           | `docs/viewer.md`（含 ADR-001，已接受）                |
-| M5 指法圖／播放模式／PWA        | ✅ 完成                                                           | `docs/offline-and-voicings.md`                        |
-| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP）                        | `docs/api-contract.md`、`docs/security-and-rights.md` |
-| M7 生成任務與 CPU mock worker   | ✅ 完成                                                           | `docs/generation-jobs.md`                             |
-| M8 本機 GPU 推論                | 🔶 M8-1 音訊上傳完成；M8-2（worker 取得音訊）與 M8-3（GPU）未開始 | `docs/audio-sources.md`、SPEC §11、§16                |
-| M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器         | `docs/generation-jobs.md`、SPEC §16                   |
+| Milestone                       | 狀態                                                          | 主要文件                                              |
+| ------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------- |
+| M0 基礎建設                     | ✅ 完成                                                       | `README.md`、`docs/local-deployment.md`               |
+| M1 Chart schema 與領域模型      | ✅ 完成、**已凍結**（擁有者已確認）                           | `docs/schema-decisions.md`                            |
+| M2 樂理                         | ✅ 完成                                                       | `docs/music-theory.md`                                |
+| M3 ChordPro 匯入／匯出          | ✅ 完成                                                       | `docs/chordpro.md`                                    |
+| M4 看譜器                       | ✅ 完成                                                       | `docs/viewer.md`（含 ADR-001，已接受）                |
+| M5 指法圖／播放模式／PWA        | ✅ 完成                                                       | `docs/offline-and-voicings.md`                        |
+| M6 PostgreSQL／搜尋／帳號／修訂 | ✅ 完成（含收藏、最近開啟、看譜設定、CSP）                    | `docs/api-contract.md`、`docs/security-and-rights.md` |
+| M7 生成任務與 CPU mock worker   | ✅ 完成                                                       | `docs/generation-jobs.md`                             |
+| M8 本機 GPU 推論                | 🔶 M8-1 音訊上傳、M8-2 worker 取得音訊完成；M8-3（GPU）未開始 | `docs/audio-sources.md`、SPEC §11、§16                |
+| M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器     | `docs/generation-jobs.md`、SPEC §16                   |
 
 **CI**：PR #7 合併後的 `main`（`bc36d1a`）四個 job 全部通過：web、worker、compose、security。
 
 **測試數量**（2026-11-02，Windows 本機）：
 
-- Vitest：46 個檔案、815 個測試（含 65 個 PostgreSQL 整合測試）。
-- Playwright：56 個（demo 38、資料庫模式 18）。
-- pytest：95 個。
+- Vitest：46 個檔案、817 個測試（含 66 個 PostgreSQL 整合測試）。
+- Playwright：57 個（demo 38、資料庫模式 19）。
+- pytest：101 個。
 
 ## 3. Repo 地圖
 
@@ -273,7 +273,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
    session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
 2. **M8（全部在擁有者本機）**，依 `docs/audio-sources.md` 的切分：
    - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（**完成**）。
-   - M8-2 `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（合成測試音訊）。
+   - M8-2 `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（**完成**）。
    - M8-3 Docker Desktop GPU 驗證、`compose.gpu-nvidia.yaml`、評估 harness、模型轉接器（模型授權先記錄、由擁有者核可）。
 3. **M7 補完**：§10 中 artifact 位元組驗證，以及多程序限速。
 4. **M9**：審查差異比對、權利稽核紀錄、和弦位置與段落編輯器已完成；尚餘同步時間軸看譜、指法轉換排序改進，

@@ -14,12 +14,14 @@ import type { Database, DatabaseHandle } from '../db/client';
 import { generationJobEvents } from '../db/jobs-schema';
 import { audioRightsDeclarations, audioUploads } from '../db/uploads-schema';
 import { getJob, retryJob, submitJob } from '../jobs/service';
+import { claimJob, leasedJobSource } from '../jobs/worker-service';
 import type { UploadConfig } from './config';
 import {
   canAnalyzeUpload,
   createUpload,
   getUploadPolicy,
   listUploads,
+  obtainUploadAudio,
   setUploadBlock,
   sweepUploads,
   withdrawUpload,
@@ -321,6 +323,48 @@ export function uploadsIntegrationSuite(getHandle: () => DatabaseHandle): void {
       // Clean up: withdrawing cancels the waiting job.
       await withdrawUpload(db, admin, config, busy.id);
       expect((await rowOf(busy.id)).status).toBe('withdrawn');
+    });
+
+    it('hands the audio only to the worker that holds the job lease', async () => {
+      const mine = await upload(member, 11);
+      const { row } = await submitJob(
+        db,
+        member,
+        sourceJob('upload-job-audio', mine.sourceReferenceId),
+      );
+      const worker = 'gpu-test-1';
+      // Other suites may have left queued jobs; claim until this one is leased.
+      let claimed = null;
+      for (let i = 0; i < 20 && claimed?.id !== row.id; i += 1) {
+        claimed = await claimJob(db, {
+          workerId: worker,
+          workerVersion: '0.1.0',
+          processors: ['mock'],
+          leaseSeconds: 60,
+        });
+        if (claimed === null) break;
+      }
+      if (claimed?.id !== row.id) throw new Error('the upload job was not claimed');
+      const lease = claimed.leaseToken;
+
+      const sourceId = await leasedJobSource(db, row.id, worker, lease);
+      expect(sourceId).toBe(mine.sourceReferenceId);
+      const audio = await obtainUploadAudio(db, config, sourceId);
+      expect(audio).toMatchObject({ sizeBytes: 1024, sha256: mine.sha256, format: 'wav' });
+      expect(sha256(await readFile(audio.absolutePath))).toBe(mine.sha256);
+
+      await expectProblem(leasedJobSource(db, row.id, 'gpu-test-2', lease), 'LEASE_LOST');
+      await expectProblem(
+        leasedJobSource(db, row.id, worker, `lease_${'0'.repeat(32)}`),
+        'LEASE_LOST',
+      );
+      // A file that no longer matches its record is reported, never served.
+      await writeFile(audio.absolutePath, 'changed');
+      await expectProblem(obtainUploadAudio(db, config, sourceId), 'AUDIO_NOT_AVAILABLE');
+      // Withdrawing cancels the leased job, so the worker loses access.
+      await withdrawUpload(db, member, config, mine.id);
+      await expectProblem(leasedJobSource(db, row.id, worker, lease), 'LEASE_LOST');
+      await expectProblem(obtainUploadAudio(db, config, sourceId), 'AUDIO_NOT_AVAILABLE');
     });
 
     it('cleans up after a deleted account, orphaned files and stale partial uploads', async () => {

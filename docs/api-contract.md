@@ -76,12 +76,13 @@
 
 ### Worker API（`Authorization: Bearer <WORKER_TOKEN>`；不使用 cookie）
 
-| 路由                               | 說明                                                              |
-| ---------------------------------- | ----------------------------------------------------------------- |
-| `POST /worker/jobs/claim`          | 回收過期租約後，以交易租用下一個任務；佇列空時 `{ job: null }`    |
-| `POST /worker/jobs/{id}/heartbeat` | 延長租約並回報階段與進度；租約不屬於此 worker 時 `409 LEASE_LOST` |
-| `POST /worker/jobs/{id}/complete`  | 驗證草稿與 manifest 後建立待審查修訂；重送相同內容回傳相同結果    |
-| `POST /worker/jobs/{id}/fail`      | 型別化錯誤；可重試錯誤以指數退避重新排隊                          |
+| 路由                               | 說明                                                                                                                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /worker/jobs/claim`          | 回收過期租約後，以交易租用下一個任務；佇列空時 `{ job: null }`                                                                                                                                                                  |
+| `POST /worker/jobs/{id}/heartbeat` | 延長租約並回報階段與進度；租約不屬於此 worker 時 `409 LEASE_LOST`                                                                                                                                                               |
+| `POST /worker/jobs/{id}/complete`  | 驗證草稿與 manifest 後建立待審查修訂；重送相同內容回傳相同結果                                                                                                                                                                  |
+| `POST /worker/jobs/{id}/fail`      | 型別化錯誤；可重試錯誤以指數退避重新排隊                                                                                                                                                                                        |
+| `GET /worker/jobs/{id}/audio`      | 只給持有租約的 worker（`x-worker-id`、`x-lease-token`）；串流回傳音訊並附 `x-content-sha256`、`x-audio-format`、`x-audio-max-duration-seconds`；租約不符 `409 LEASE_LOST`，沒有可用音訊 `404 AUDIO_NOT_AVAILABLE`（契約 1.1.0） |
 
 ### 個人譜庫（只在資料庫模式；需登入；寫入需同源）
 
@@ -107,7 +108,7 @@
 - 格式依檔頭判斷，不是 WAV／FLAC／MP3／OGG／M4A 回 415 `UNSUPPORTED_AUDIO_FORMAT`；容量不足 409 `QUOTA_EXCEEDED`；
   聲明沒勾或版本不是目前版本回 422 `VALIDATION_FAILED`。看不到的上傳與不存在一樣回 404 `UPLOAD_NOT_FOUND`。
 
-API 契約版本 1.4.0（1.1.0 個人譜庫；1.2.0 任務重試與 worker 狀態；1.3.0 權利稽核紀錄；1.4.0 音訊上傳；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
+API 契約版本 1.5.0（1.1.0 個人譜庫；1.2.0 任務重試與 worker 狀態；1.3.0 權利稽核紀錄；1.4.0 音訊上傳；1.5.0 worker 下載音訊；都向下相容）；envelope 的 `meta.schemaVersion` 使用同一個版本號。
 
 ## 搜尋
 

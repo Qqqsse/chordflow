@@ -102,7 +102,12 @@ class Worker:
             result = run_mock_pipeline(
                 job,
                 self.store,
-                PipelineConfig(llm_max_calls=self.settings.llm_max_calls),
+                PipelineConfig(
+                    llm_max_calls=self.settings.llm_max_calls,
+                    fetch_audio=lambda claimed, destination: self.client.download_audio(
+                        claimed.id, self.settings.worker_id, claimed.leaseToken, destination
+                    ),
+                ),
                 on_stage,
             )
         except LeaseLost:

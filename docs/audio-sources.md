@@ -53,7 +53,7 @@ interface SourceProvider {
    - `permittedUses: ['audio_analysis']`
 5. **送出任務**：沿用既有的 `source_reference` 任務，權利檢查已經在排隊前執行。
 
-## GPU worker 如何取得音訊
+## GPU worker 如何取得音訊（M8-2 已實作）
 
 建議新增 worker API：`GET /worker/jobs/{id}/audio`。
 
@@ -131,7 +131,7 @@ interface SourceProvider {
   沒有有效上傳的 `user_upload` 來源撤銷分析權限（例如帳號已刪除）、沒有紀錄的孤兒檔案（超過 10 分鐘）與殘留的 `tmp/`
   檔案（超過 1 小時）一併刪除。
 - **頁面**：`/uploads`（上傳、列表、刪除；管理員可看全部並停用上傳權）、`/terms`（平台聲明、上傳聲明全文、
-  `SITE_CONTACT` 聯絡方式）。用上傳的音訊產生草稿要等 M8-2 的 worker 下載端點；目前 CPU mock worker 遇到
+  `SITE_CONTACT` 聯絡方式）。
   `source_reference` 任務會回報 `AUDIO_NOT_AVAILABLE`。
 
 | 環境變數                     | 預設               | 說明                                       |
@@ -147,5 +147,18 @@ interface SourceProvider {
 ## M8 實作切分（全部在擁有者本機進行）
 
 1. 上傳 API、權利聲明與檔案儲存（**完成**，見上方「實作（M8-1）」；聲明措辭待擁有者定稿）。
-2. `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（CPU 即可，以合成的測試音訊驗證，不提交真實音訊）。
+2. `GET /worker/jobs/{id}/audio` 與 worker 端下載、驗證（**完成**，見下方「實作（M8-2）」）。
 3. GPU worker 映像、模型轉接器、原曲與分離音軌的比較評估（需要 RTX 5090；模型授權先逐一確認並記錄）。
+
+## 實作（M8-2）
+
+- **端點**：`GET /worker/jobs/{id}/audio`（worker 契約 1.1.0）。必須帶 worker token 與 `x-worker-id`、`x-lease-token`，
+  而且這個 worker 目前持有該任務的租約；任務被取消（例如撤回上傳）後租約就失效（409）。只回傳仍有效的上傳；
+  檔案不見或大小不符時回 404 `AUDIO_NOT_AVAILABLE`，不會送出不一致的內容。回應附 SHA-256、格式與長度上限。
+- **worker**：`WorkerApiClient.download_audio` 串流寫到暫存目錄並驗證 SHA-256（不符視為傳輸錯誤，讓租約過期後重試）；
+  WAV 以 Python 標準庫檢查長度與格式（`AUDIO_TOO_LONG`／`AUDIO_INVALID`），其他格式要等 M8-3 的解碼器。
+  音訊只存在該步驟的暫存目錄，結束即刪除，不放進 artifact 儲存。
+- **CPU mock 的行為**：取得並檢查音訊後回報 `MODEL_UNAVAILABLE`（不可重試），**不會**假裝分析過音訊。
+  因此 `/uploads` 的「用這份音訊產生草稿」按鈕延到 M8-3，避免一定會失敗的按鈕。
+- **測試**：PostgreSQL 整合測試（只有持租約的 worker 拿得到、檔案被改過或撤回後拒絕）、pytest（下載、摘要不符、
+  租約遺失、太長、無效 WAV、OpenAPI header 名稱一致）、e2e 走真實 HTTP（上傳 → 送任務 → 租用 → 下載並比對位元組）。

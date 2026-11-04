@@ -22,7 +22,20 @@ import {
  */
 
 /** Bumped on any change to the worker-facing schemas; the worker refuses other majors. */
-export const GENERATION_CONTRACT_VERSION = '1.0.0';
+/** 1.1.0: `GET /worker/jobs/{id}/audio` (authorized audio download). Additive. */
+export const GENERATION_CONTRACT_VERSION = '1.1.0';
+
+/**
+ * Headers of `GET /worker/jobs/{id}/audio`. The worker proves its lease in the
+ * request; the audio streams back with its digest so the worker can verify it.
+ */
+export const WORKER_AUDIO_HEADERS = {
+  workerId: 'x-worker-id',
+  leaseToken: 'x-lease-token',
+  sha256: 'x-content-sha256',
+  format: 'x-audio-format',
+  maxDurationSeconds: 'x-audio-max-duration-seconds',
+} as const;
 
 export const MAX_REFERENCE_LYRICS_LENGTH = 5_000;
 export const MAX_REFERENCE_LYRICS_LINES = 200;

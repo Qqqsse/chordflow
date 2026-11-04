@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "chordflow API",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "Envelope: success `{ data, meta: { requestId, schemaVersion } }`, error `{ error: { code, message, details, requestId } }`. Hidden and missing resources both return 404."
   },
   "servers": [
@@ -1896,6 +1896,148 @@
           },
           "409": {
             "description": "LEASE_LOST",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE (worker API not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/worker/jobs/{id}/audio": {
+      "get": {
+        "summary": "Stream the authorized audio of a leased source_reference job (lease holder only); verify it with the digest header",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Generation job id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+            }
+          },
+          {
+            "name": "x-worker-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+            }
+          },
+          {
+            "name": "x-lease-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^lease_[0-9a-f]{32}$"
+            }
+          }
+        ],
+        "security": [
+          {
+            "workerToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The audio file, never cached",
+            "headers": {
+              "x-content-sha256": {
+                "description": "Lowercase hex SHA-256 of the body",
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "x-audio-format": {
+                "description": "Container detected at upload time",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "wav",
+                    "flac",
+                    "mp3",
+                    "ogg",
+                    "m4a"
+                  ]
+                }
+              },
+              "x-audio-max-duration-seconds": {
+                "description": "Longest audio the worker may analyse (AUDIO_TOO_LONG beyond it)",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (missing or wrong worker token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "JOB_NOT_FOUND or AUDIO_NOT_AVAILABLE (no active upload behind the job)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "LEASE_LOST (expired, reassigned or job cancelled)",
             "content": {
               "application/json": {
                 "schema": {
