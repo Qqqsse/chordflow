@@ -203,6 +203,10 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## CI
 
+- **新公開 repo（2026-11-18）：push 與 pull_request 事件目前不會自動觸發 CI**（workflow 已註冊、Actions 已啟用、
+  沒有限制動作來源，原因待查）。在查明前，推送後請手動執行 `gh workflow run CI --repo Qqqsse/chordflow --ref <分支>`；
+  手動執行的 check 名稱與分支保護要求的四個 job 相同，PR 上會正常顯示。
+
 - Run 18–20（`d096d90`、`4b8fd61`、`c854206`）：web、worker、compose 三個 job 通過，**security job 失敗**——
   gitleaks 的 generic-api-key 規則把 worker fixtures 中合成的 `lease_<32 hex>` 判成金鑰（10 筆，全是誤判）。
   `312c3a0` 加入只針對租約 token 格式的 `.gitleaks.toml`；**Run 21（`708d2a0`）四個 job 全部通過**。
