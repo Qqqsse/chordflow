@@ -324,5 +324,6 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 - 權利聲明 v1 定稿；LLM 審查器維持 `disabled` 到 M8-3 量測後；M8-3 照建議做法（Docker 執行＋`chordflow-gpu` 實驗環境）（2026-11-18）。
 - repo 公開：選擇「開新的公開 repo」——改寫歷史把個人信箱換成 noreply 後推到新的 `Qqqsse/chordflow`，原 repo 改名為私人的 `Qqqsse/chordflow-archive`（保留 PR #1～#10 與 CI 紀錄）（2026-11-18）。
+- `main` 分支保護：必須經 PR、web／worker／compose／security 四個 CI job 通過，不需要 review 核准（單人專案），禁止強制推送與刪除，管理員也適用（2026-11-18）。
 
 待擁有者決定的事項見 `docs/agent-handoff.md`「待擁有者決定」。
