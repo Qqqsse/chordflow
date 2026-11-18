@@ -139,7 +139,16 @@ pnpm exec playwright install chromium     # 瀏覽器裝在 %LOCALAPPDATA%\ms-pl
 - 在 PowerShell 呼叫 `conda` 時，版本條件不要寫 `<`、`>`：`conda.bat` 經過 cmd，會把它們當成重新導向。
 - Worker 直接用環境裡的 python，不另建 `.venv`；資料庫模式的 Playwright 要設 `WORKER_PYTHON` 指向 `$env:CONDA_PREFIX\python.exe`。
 - PostgreSQL 測試、`pnpm secrets:check` 與 Compose 都需要 Docker Desktop 在執行中。
-- M8 的 GPU 套件（CUDA 版 PyTorch 等）另開環境（例如 `chordflow-gpu`），不要裝進 `chordflow`。
+- M8 的 GPU 套件裝在另一個專屬環境 `chordflow-gpu`，不要裝進 `chordflow`：
+
+  ```powershell
+  conda create -n chordflow-gpu -c conda-forge --override-channels python=3.12 -y
+  conda activate chordflow-gpu
+  python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
+  ```
+
+  RTX 5090（Blackwell，compute capability 12.0）需要 CUDA 12.8 以上的 PyTorch。Docker Desktop 的容器也用得到 GPU：
+  `docker run --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu24.04 nvidia-smi`。
 
 ### 通用（Linux／macOS／CI）
 
