@@ -46,7 +46,7 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 
 - Vitest：46 個檔案、817 個測試（含 66 個 PostgreSQL 整合測試）。
 - Playwright：57 個（demo 38、資料庫模式 19）。
-- pytest：101 個。
+- pytest：121 個。
 
 ## 3. Repo 地圖
 
@@ -305,6 +305,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 | `docs/api-contract.md`         | REST 路由、錯誤代碼、存取規則                             |
 | `docs/security-and-rights.md`  | 帳號、CSRF、限速、worker 憑證、內容權利                   |
 | `docs/audio-sources.md`        | 授權音訊來源設計與擁有者決定（ADR-003，已接受）           |
+| `docs/chord-recognition.md`    | 和弦辨識：GPU 環境、numpy 基準、評估工具與結果（M8-3）    |
 | `docs/generation-jobs.md`      | 生成任務、租約、mock 流程、審查                           |
 | `docs/local-deployment.md`     | Docker Compose、備份、公開前檢查清單                      |
 | `docs/testing.md`              | 測試分層、Playwright、PostgreSQL 整合、跨語言 fixtures    |
