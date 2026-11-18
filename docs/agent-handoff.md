@@ -133,6 +133,13 @@
 | 4cc48d9 | feat(library): favorite toggle, saved viewer settings and library page     |
 | 388d218 | feat(security): same-origin Content-Security-Policy                        |
 
+## 驗證結果（2026-11-18，M8-3 GPU 環境）
+
+| 項目                                                                                         | 結果                                                            |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Docker Desktop 容器內 `nvidia-smi`（`nvidia/cuda:12.8.1-base-ubuntu24.04`）                  | RTX 5090、驅動 617.42、32 GB、compute capability 12.0           |
+| `chordflow-gpu`（conda-forge Python 3.12）＋ `torch 2.11.0+cu128`、`torchaudio 2.11.0+cu128` | `torch.cuda.is_available()` 為真，GPU 上 4096×4096 矩陣乘法正常 |
+
 ## 驗證結果（2026-11-02，M8-2 worker 取得音訊，Windows 本機）
 
 | 指令                                                                 | 結果                                                                                                        |
