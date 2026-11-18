@@ -40,13 +40,13 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 | M8 本機 GPU 推論                | 🔶 M8-1 音訊上傳、M8-2 worker 取得音訊完成；M8-3（GPU）未開始 | `docs/audio-sources.md`、SPEC §11、§16                |
 | M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器     | `docs/generation-jobs.md`、SPEC §16                   |
 
-**CI**：PR #7 合併後的 `main`（`bc36d1a`）四個 job 全部通過：web、worker、compose、security。
+**CI**：PR #7 合併後的 `main`（`32f7861`）四個 job 全部通過：web、worker、compose、security。
 
 **測試數量**（2026-11-02，Windows 本機）：
 
 - Vitest：46 個檔案、817 個測試（含 66 個 PostgreSQL 整合測試）。
 - Playwright：57 個（demo 38、資料庫模式 19）。
-- pytest：101 個。
+- pytest：121 個。
 
 ## 3. Repo 地圖
 
@@ -139,7 +139,16 @@ pnpm exec playwright install chromium     # 瀏覽器裝在 %LOCALAPPDATA%\ms-pl
 - 在 PowerShell 呼叫 `conda` 時，版本條件不要寫 `<`、`>`：`conda.bat` 經過 cmd，會把它們當成重新導向。
 - Worker 直接用環境裡的 python，不另建 `.venv`；資料庫模式的 Playwright 要設 `WORKER_PYTHON` 指向 `$env:CONDA_PREFIX\python.exe`。
 - PostgreSQL 測試、`pnpm secrets:check` 與 Compose 都需要 Docker Desktop 在執行中。
-- M8 的 GPU 套件（CUDA 版 PyTorch 等）另開環境（例如 `chordflow-gpu`），不要裝進 `chordflow`。
+- M8 的 GPU 套件裝在另一個專屬環境 `chordflow-gpu`，不要裝進 `chordflow`：
+
+  ```powershell
+  conda create -n chordflow-gpu -c conda-forge --override-channels python=3.12 -y
+  conda activate chordflow-gpu
+  python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
+  ```
+
+  RTX 5090（Blackwell，compute capability 12.0）需要 CUDA 12.8 以上的 PyTorch。Docker Desktop 的容器也用得到 GPU：
+  `docker run --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu24.04 nvidia-smi`。
 
 ### 通用（Linux／macOS／CI）
 
@@ -269,7 +278,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 ## 11. 下一步建議（依優先順序）
 
-1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `c1a5d0c` 建立）。新工作在
+1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `043721f` 建立）。新工作在
    session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
 2. **M8（全部在擁有者本機）**，依 `docs/audio-sources.md` 的切分：
    - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（**完成**）。
@@ -296,6 +305,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 | `docs/api-contract.md`         | REST 路由、錯誤代碼、存取規則                             |
 | `docs/security-and-rights.md`  | 帳號、CSRF、限速、worker 憑證、內容權利                   |
 | `docs/audio-sources.md`        | 授權音訊來源設計與擁有者決定（ADR-003，已接受）           |
+| `docs/chord-recognition.md`    | 和弦辨識：GPU 環境、numpy 基準、評估工具與結果（M8-3）    |
 | `docs/generation-jobs.md`      | 生成任務、租約、mock 流程、審查                           |
 | `docs/local-deployment.md`     | Docker Compose、備份、公開前檢查清單                      |
 | `docs/testing.md`              | 測試分層、Playwright、PostgreSQL 整合、跨語言 fixtures    |
@@ -311,5 +321,9 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - 音訊上傳規則（誰可以上傳、大小、配額、保留天數、權利聲明）：見 `docs/audio-sources.md`「擁有者決定」（2026-11-02）。
 - 雲端額度已用完，之後在本機開發；Python 使用專屬 conda 環境，不用 base（2026-11-02）。
 - 短期只有擁有者自己使用，服務要用時才啟動、不常駐；開放其他帳號的配套要先做好（2026-11-02）。
+
+- 權利聲明 v1 定稿；LLM 審查器維持 `disabled` 到 M8-3 量測後；M8-3 照建議做法（Docker 執行＋`chordflow-gpu` 實驗環境）（2026-11-18）。
+- repo 公開：選擇「開新的公開 repo」——改寫歷史把個人信箱換成 noreply 後推到新的 `Qqqsse/chordflow`，原 repo 改名為私人的 `Qqqsse/chordflow-archive`（保留 PR #1～#10 與 CI 紀錄）（2026-11-18）。
+- `main` 分支保護：必須經 PR、web／worker／compose／security 四個 CI job 通過，不需要 review 核准（單人專案），禁止強制推送與刪除，管理員也適用（2026-11-18）。
 
 待擁有者決定的事項見 `docs/agent-handoff.md`「待擁有者決定」。
