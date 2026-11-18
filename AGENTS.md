@@ -36,7 +36,7 @@ docker compose --env-file .env.example config -q   # 只需 Docker CLI，不需 
 
 ## 硬性規則
 
-- `main` 是穩定分支。GitHub 免費方案的私人 repo 不會強制分支保護，所以要自律：**不直接推送、不強制推送 `main`**；
+- `main` 是穩定分支。repo 已公開（2026-11-18）；分支保護開啟前仍要自律：**不直接推送、不強制推送 `main`**；
   只在 session 指定的功能分支開發，經 PR 合併，且 PR 上 CI 全部通過才合併。
 
 - Next.js、看譜器、樂理、儲存 schema 與核心測試都不得依賴 CUDA、Python 或模型權重。

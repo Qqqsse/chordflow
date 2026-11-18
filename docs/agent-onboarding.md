@@ -40,7 +40,7 @@ chordflow 是給吉他自彈自唱用的和弦譜工具，介面預設繁體中�
 | M8 本機 GPU 推論                | 🔶 M8-1 音訊上傳、M8-2 worker 取得音訊完成；M8-3（GPU）未開始 | `docs/audio-sources.md`、SPEC §11、§16                |
 | M9 審查與發布改進               | 🔶 部分完成：審查差異比對、權利稽核紀錄、和弦／段落編輯器     | `docs/generation-jobs.md`、SPEC §16                   |
 
-**CI**：PR #7 合併後的 `main`（`bc36d1a`）四個 job 全部通過：web、worker、compose、security。
+**CI**：PR #7 合併後的 `main`（`32f7861`）四個 job 全部通過：web、worker、compose、security。
 
 **測試數量**（2026-11-02，Windows 本機）：
 
@@ -278,7 +278,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 
 ## 11. 下一步建議（依優先順序）
 
-1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `c1a5d0c` 建立）。新工作在
+1. **分支流程**：`main` 是穩定分支（2026-10-24 由已通過 CI 的 `043721f` 建立）。新工作在
    session 指定的功能分支上開發，經 PR 合併進 `main`，CI 綠燈後才合併。PR 只在使用者要求或授權時開。
 2. **M8（全部在擁有者本機）**，依 `docs/audio-sources.md` 的切分：
    - M8-1 音訊上傳 API、權利聲明、檔案儲存、配額與保留期限（**完成**）。
@@ -322,6 +322,6 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - 短期只有擁有者自己使用，服務要用時才啟動、不常駐；開放其他帳號的配套要先做好（2026-11-02）。
 
 - 權利聲明 v1 定稿；LLM 審查器維持 `disabled` 到 M8-3 量測後；M8-3 照建議做法（Docker 執行＋`chordflow-gpu` 實驗環境）（2026-11-18）。
-- repo 可以公開，但先決定舊 merge commit 中個人 email 的處理方式（2026-11-18，討論中）。
+- repo 公開：選擇「開新的公開 repo」——改寫歷史把個人信箱換成 noreply 後推到新的 `Qqqsse/chordflow`，原 repo 改名為私人的 `Qqqsse/chordflow-archive`（保留 PR #1～#10 與 CI 紀錄）（2026-11-18）。
 
 待擁有者決定的事項見 `docs/agent-handoff.md`「待擁有者決定」。

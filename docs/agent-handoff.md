@@ -13,18 +13,19 @@
 > Python／Node 使用專屬 conda 環境 `chordflow`，不使用 base，見 `docs/agent-onboarding.md` §6）。
 > 擁有者已接受 ADR-002、ADR-003，並決定音訊上傳規則（`docs/audio-sources.md`「擁有者決定」）。
 > 本機基準品質閘門已通過（PR #8）。M8-1 音訊上傳已合併（PR #9）。
+> **2026-11-18 起 repo 公開於 `Qqqsse/chordflow`**：以改寫後的歷史重新建立（舊 merge commit 的個人信箱換成 GitHub noreply，雲端 session 的 commit 簽章因改寫而移除，所以所有 hash 都變了；文件中的 hash 已全部換成新的）。PR #1～#10、Actions 紀錄與舊分支在私人封存 repo `Qqqsse/chordflow-archive`（本機遠端名稱 `archive`）。
 > M8-2 已合併（PR #10）。**進行中：M8-3 GPU 基準**（分支 `claude/m8-3-gpu-baseline`）。
 
 | #   | 工作                                         | 狀態                                     | 計畫與接手方式                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | --- | -------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | M7 補完：使用者重試失敗任務、worker 狀態面板 | **完成**（PR #3 已合併，`a535525`）      | 重試＝新任務（`retry_of_job_id`，migration 0005），原任務不變；`POST /generation-jobs/{id}/retry`、`GET /workers`；API 1.2.0                                                                                                                                                                                                                                                                                                          |
-| 2   | M9：審查差異比對                             | **完成**（PR #4 已合併，`1363c4d`）      | `diffCharts`（`packages/chart-schema/src/chart-diff.ts`）依 id 或內容（LCS）對齊段落與行，和弦依位置再依名稱比對；`/admin/jobs/[id]` 顯示最新衍生修訂與草稿的差異（`review-diff.tsx`、`diff-labels.ts`）                                                                                                                                                                                                                              |
-| 3   | M9：權利稽核紀錄                             | **完成**（PR #5 已合併，`c67127c`）      | `arrangement_audit_events`（migration 0006，觸發器禁止修改／刪除，只允許刪帳號時把操作者設為 NULL）；`editor.ts` 三個寫入函式在同一交易記錄並明確帶入操作者；`GET /arrangements/{id}/audit`、`/admin/arrangements/[id]/audit`；API 1.3.0。另：`AUTH_SIGN_IN_PER_MINUTE`（預設 10）讓 e2e 可調高登入限速                                                                                                                               |
-| 4   | M9：和弦位置／段落編輯器                     | **完成**（PR #6 已合併，`73d309d`）      | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                                                                                                                                                           |
-| 5   | M8 雲端準備                                  | **完成**（PR #6 已合併，`73d309d`）      | 設計文件 `docs/audio-sources.md`（ADR-003，擁有者 2026-11-02 接受）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除                                                                                                                                                                                                                                                     |
-| 6   | 本機環境與基準品質閘門（Windows）            | **完成**（PR #8 已合併，`a917d51`）      | conda 環境 `chordflow`（Python 3.12、Node 22、corepack 的 pnpm 10.28）；`pnpm install --frozen-lockfile` 後依 AGENTS.md 跑品質閘門，Windows 特有的問題記在 onboarding §7                                                                                                                                                                                                                                                              |
-| 7   | M8-1：音訊上傳 API、權利聲明、檔案儲存       | **完成**（PR #9 已合併，`c85741c`）      | migration 0007：`audio_uploads`、只能新增的 `audio_rights_declarations`、`audio_upload_blocks`；`/api/v1/audio-uploads`（GET、multipart POST、DELETE）與管理員的 `/audio-upload-blocks/{id}`；依檔頭判斷格式、串流寫入並算 SHA-256、配額與限速；撤回或到期時撤銷來源、取消還需要它的任務（`SOURCE_NOT_AUTHORIZED`）並刪檔；web 啟動時與每 6 小時清理；`/uploads`、`/terms`；API 1.4.0。細節見 `docs/audio-sources.md`「實作（M8-1）」 |
-| 8   | M8-2：worker 取得上傳的音訊                  | **完成**（PR #10 已合併，`053a70d`）     | 契約 1.1.0／API 1.5.0：`GET /worker/jobs/{id}/audio`（持租約才能下載，附 SHA-256、格式、長度上限）；worker 下載到暫存並驗證摘要、WAV 以標準庫檢查長度，用完即刪；CPU mock 取得音訊後誠實回報 `MODEL_UNAVAILABLE`。「用這份音訊產生草稿」按鈕延到 M8-3。細節見 `docs/audio-sources.md`「實作（M8-2）」                                                                                                                                 |
+| 1   | M7 補完：使用者重試失敗任務、worker 狀態面板 | **完成**（PR #3 已合併，`90ae68c`）      | 重試＝新任務（`retry_of_job_id`，migration 0005），原任務不變；`POST /generation-jobs/{id}/retry`、`GET /workers`；API 1.2.0                                                                                                                                                                                                                                                                                                          |
+| 2   | M9：審查差異比對                             | **完成**（PR #4 已合併，`2c44926`）      | `diffCharts`（`packages/chart-schema/src/chart-diff.ts`）依 id 或內容（LCS）對齊段落與行，和弦依位置再依名稱比對；`/admin/jobs/[id]` 顯示最新衍生修訂與草稿的差異（`review-diff.tsx`、`diff-labels.ts`）                                                                                                                                                                                                                              |
+| 3   | M9：權利稽核紀錄                             | **完成**（PR #5 已合併，`7d15dbc`）      | `arrangement_audit_events`（migration 0006，觸發器禁止修改／刪除，只允許刪帳號時把操作者設為 NULL）；`editor.ts` 三個寫入函式在同一交易記錄並明確帶入操作者；`GET /arrangements/{id}/audit`、`/admin/arrangements/[id]/audit`；API 1.3.0。另：`AUTH_SIGN_IN_PER_MINUTE`（預設 10）讓 e2e 可調高登入限速                                                                                                                               |
+| 4   | M9：和弦位置／段落編輯器                     | **完成**（PR #6 已合併，`25fecaf`）      | `apps/web/src/components/editor/`：純 reducer `editor-state.ts`（移動／新增／改名／刪除和弦、段落類型與名稱；無效輸入不改變譜）與 `chart-editor.tsx`；`/admin/arrangements/[id]/edit`；儲存為新修訂並可發布                                                                                                                                                                                                                           |
+| 5   | M8 雲端準備                                  | **完成**（PR #6 已合併，`25fecaf`）      | 設計文件 `docs/audio-sources.md`（ADR-003，擁有者 2026-11-02 接受）：SourceProvider、使用者上傳與權利聲明、檔案檢查、worker 以 `GET /worker/jobs/{id}/audio` 取得音訊、保留與刪除                                                                                                                                                                                                                                                     |
+| 6   | 本機環境與基準品質閘門（Windows）            | **完成**（PR #8 已合併，`8716a0f`）      | conda 環境 `chordflow`（Python 3.12、Node 22、corepack 的 pnpm 10.28）；`pnpm install --frozen-lockfile` 後依 AGENTS.md 跑品質閘門，Windows 特有的問題記在 onboarding §7                                                                                                                                                                                                                                                              |
+| 7   | M8-1：音訊上傳 API、權利聲明、檔案儲存       | **完成**（PR #9 已合併，`5301cca`）      | migration 0007：`audio_uploads`、只能新增的 `audio_rights_declarations`、`audio_upload_blocks`；`/api/v1/audio-uploads`（GET、multipart POST、DELETE）與管理員的 `/audio-upload-blocks/{id}`；依檔頭判斷格式、串流寫入並算 SHA-256、配額與限速；撤回或到期時撤銷來源、取消還需要它的任務（`SOURCE_NOT_AUTHORIZED`）並刪檔；web 啟動時與每 6 小時清理；`/uploads`、`/terms`；API 1.4.0。細節見 `docs/audio-sources.md`「實作（M8-1）」 |
+| 8   | M8-2：worker 取得上傳的音訊                  | **完成**（PR #10 已合併，`088f095`）     | 契約 1.1.0／API 1.5.0：`GET /worker/jobs/{id}/audio`（持租約才能下載，附 SHA-256、格式、長度上限）；worker 下載到暫存並驗證摘要、WAV 以標準庫檢查長度，用完即刪；CPU mock 取得音訊後誠實回報 `MODEL_UNAVAILABLE`。「用這份音訊產生草稿」按鈕延到 M8-3。細節見 `docs/audio-sources.md`「實作（M8-2）」                                                                                                                                 |
 | 9   | M8-3：GPU worker                             | **進行中**（`claude/m8-3-gpu-baseline`） | 擁有者 2026-11-18 同意建議做法：執行用 Docker（`compose.gpu-nvidia.yaml`），模型實驗用專屬 conda 環境 `chordflow-gpu`（Python 3.12＋CUDA 12.8 以上的 PyTorch，不用 base）。第一步：驗證 Docker Desktop 容器用得到 GPU、建立 `chordflow-gpu`；再用 librosa（ISC）做不靠深度學習的和弦辨識基準與合成訊號評估 harness。學習式模型（音源分離、ACR）先列授權表給擁有者核可才下載。接手：看該分支 `git log origin/main..HEAD`               |
 
 ## 進度（2026-11-02）
@@ -81,57 +82,57 @@
 
 | Hash    | 訊息                                                                       |
 | ------- | -------------------------------------------------------------------------- |
-| b43b6c5 | docs: add SPEC and kickoff brief with standard folder layout               |
-| 6d6f562 | chore: bootstrap monorepo                                                  |
-| eeb384a | chore: add docker base                                                     |
-| 96a92d0 | ci: establish quality gates                                                |
-| 1d8e736 | feat(schema): chart v1                                                     |
-| 7ab0ba2 | test(schema): exhaustive fixture validation                                |
-| 20369b8 | feat(web): in-memory catalog repository and validated demo charts          |
-| 03754f1 | docs: architecture overview and agent handoff for M0–M1                    |
-| 3836414 | docs(handoff): record green CI for M0–M1                                   |
-| 2b4334d | docs: switch project docs to Traditional Chinese                           |
-| a368f8f | test(fixtures): add public-domain songs 送別 and Amazing Grace             |
-| 42a3a6d | feat(theory): spelled pitches, keys and chord parser                       |
-| f9f2410 | feat(theory): key-aware transposition and capo semantics                   |
-| 787f7de | feat(theory): roman numeral and nashville number rendering                 |
-| 5efe366 | feat(theory): pure chart display transformation and capo modes             |
-| 7e0bcc0 | docs(handoff): record M2 completion and M1 freeze                          |
-| 03374d4 | feat(chordpro): bounded ChordPro importer                                  |
-| 155f51d | feat(chordpro): readable exporter with semantic round trip                 |
-| 59b39ae | docs(chordpro): supported subset, capo choice and export losses            |
-| 98bbdbd | test(chordpro): keep the CRLF fixture byte-exact                           |
-| d08b4aa | docs(handoff): record M3 completion                                        |
-| 667b27e | feat(viewer): chord sheet layout core and viewer controls                  |
-| 6b3f22e | test(viewer): interaction and layout geometry e2e                          |
-| 88a959e | docs(handoff): record M4 completion                                        |
-| 2ca4421 | feat(voicings): validated guitar voicings and deterministic recommendation |
-| e2d9b08 | feat(voicings): pure chord diagram geometry                                |
-| ecdf091 | feat(viewer): SVG chord diagrams with a per-viewer voicing chooser         |
-| 5e34bd7 | feat(viewer): continuous autoscroll and paged reading mode                 |
-| d548a8c | feat(pwa): explicit offline save with IndexedDB and a service worker       |
-| 6c7824c | docs(handoff): record M5 completion                                        |
-| 0add746 | feat(db): PostgreSQL catalog schema, migrations and repository adapter     |
-| 8121699 | feat(api): catalog read API with OpenAPI contract and access rules         |
-| 70fd330 | feat(search): search page, catalog chart pages and home search             |
-| 3fce5ee | feat(auth): invitation-only accounts with better-auth and Argon2id         |
-| 8e2b4fd | test(e2e): database-mode account flows                                     |
-| eaaadb3 | feat(revisions): draft revisions, transactional publish and write API      |
-| 3dea180 | feat(admin): ChordPro import, preview and publish UI                       |
-| 4f7ddb3 | docs(handoff): record M6 completion; fix CI postgres health check          |
-| 84515e4 | feat(contracts): generation job and worker API contract v1                 |
-| 4e74005 | feat(jobs): durable generation jobs, leases and worker API                 |
-| 8de4c3f | feat(worker): Python worker client, mock processor chain and fake reviewer |
-| 703b4e5 | fix(auth): allow normal browsing under the auth rate limit                 |
-| 0909687 | feat(admin): generate demo chart, live job status and draft review UI      |
-| ce02303 | ci(security): allowlist synthetic worker lease tokens for gitleaks         |
-| 67a999a | docs: generation jobs and worker guide; record M7 in handoff               |
-| c1a5d0c | docs: agent onboarding guide; add local secret scan to the quality gate    |
-| 5b45b6f | chore: set copyright holder, accept ADR-001, document main branch flow     |
-| 0408581 | Merge pull request #1（`main` 首次合併）                                   |
-| b87196f | feat(library): favorites, recent charts and saved viewer preferences API   |
-| 4cc48d9 | feat(library): favorite toggle, saved viewer settings and library page     |
-| 388d218 | feat(security): same-origin Content-Security-Policy                        |
+| fddeddf | docs: add SPEC and kickoff brief with standard folder layout               |
+| f8f9581 | chore: bootstrap monorepo                                                  |
+| 40749fc | chore: add docker base                                                     |
+| 2182b07 | ci: establish quality gates                                                |
+| 68f5355 | feat(schema): chart v1                                                     |
+| 228f305 | test(schema): exhaustive fixture validation                                |
+| db0c59e | feat(web): in-memory catalog repository and validated demo charts          |
+| 496dbf9 | docs: architecture overview and agent handoff for M0–M1                    |
+| 98638b1 | docs(handoff): record green CI for M0–M1                                   |
+| 74e8080 | docs: switch project docs to Traditional Chinese                           |
+| 7e91602 | test(fixtures): add public-domain songs 送別 and Amazing Grace             |
+| 9d1922c | feat(theory): spelled pitches, keys and chord parser                       |
+| 542bd10 | feat(theory): key-aware transposition and capo semantics                   |
+| 3d533e7 | feat(theory): roman numeral and nashville number rendering                 |
+| cc04320 | feat(theory): pure chart display transformation and capo modes             |
+| 168359e | docs(handoff): record M2 completion and M1 freeze                          |
+| c364c81 | feat(chordpro): bounded ChordPro importer                                  |
+| 93d5a1a | feat(chordpro): readable exporter with semantic round trip                 |
+| d18a663 | docs(chordpro): supported subset, capo choice and export losses            |
+| 5cedd7e | test(chordpro): keep the CRLF fixture byte-exact                           |
+| a5babe9 | docs(handoff): record M3 completion                                        |
+| e24e7b8 | feat(viewer): chord sheet layout core and viewer controls                  |
+| f44528c | test(viewer): interaction and layout geometry e2e                          |
+| c9a1222 | docs(handoff): record M4 completion                                        |
+| 6a92d59 | feat(voicings): validated guitar voicings and deterministic recommendation |
+| 100f7dc | feat(voicings): pure chord diagram geometry                                |
+| 1fa7aec | feat(viewer): SVG chord diagrams with a per-viewer voicing chooser         |
+| 7582439 | feat(viewer): continuous autoscroll and paged reading mode                 |
+| e60dfc8 | feat(pwa): explicit offline save with IndexedDB and a service worker       |
+| 9ea0596 | docs(handoff): record M5 completion                                        |
+| 24a91ff | feat(db): PostgreSQL catalog schema, migrations and repository adapter     |
+| 241f498 | feat(api): catalog read API with OpenAPI contract and access rules         |
+| af56217 | feat(search): search page, catalog chart pages and home search             |
+| 0b61331 | feat(auth): invitation-only accounts with better-auth and Argon2id         |
+| a5d2d09 | test(e2e): database-mode account flows                                     |
+| ac98ca1 | feat(revisions): draft revisions, transactional publish and write API      |
+| 98a284d | feat(admin): ChordPro import, preview and publish UI                       |
+| fb53f5b | docs(handoff): record M6 completion; fix CI postgres health check          |
+| ef24f86 | feat(contracts): generation job and worker API contract v1                 |
+| d096d90 | feat(jobs): durable generation jobs, leases and worker API                 |
+| 4b8fd61 | feat(worker): Python worker client, mock processor chain and fake reviewer |
+| 81c4988 | fix(auth): allow normal browsing under the auth rate limit                 |
+| c854206 | feat(admin): generate demo chart, live job status and draft review UI      |
+| 312c3a0 | ci(security): allowlist synthetic worker lease tokens for gitleaks         |
+| 708d2a0 | docs: generation jobs and worker guide; record M7 in handoff               |
+| 043721f | docs: agent onboarding guide; add local secret scan to the quality gate    |
+| de2f0f3 | chore: set copyright holder, accept ADR-001, document main branch flow     |
+| 12e8839 | Merge pull request #1（`main` 首次合併）                                   |
+| 9838a43 | feat(library): favorites, recent charts and saved viewer preferences API   |
+| 44645a3 | feat(library): favorite toggle, saved viewer settings and library page     |
+| 3cec8a1 | feat(security): same-origin Content-Security-Policy                        |
 
 ## 驗證結果（2026-11-18，M8-3 GPU 環境）
 
@@ -202,15 +203,15 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
 
 ## CI
 
-- Run 18–20（`4e74005`、`8de4c3f`、`0909687`）：web、worker、compose 三個 job 通過，**security job 失敗**——
+- Run 18–20（`d096d90`、`4b8fd61`、`c854206`）：web、worker、compose 三個 job 通過，**security job 失敗**——
   gitleaks 的 generic-api-key 規則把 worker fixtures 中合成的 `lease_<32 hex>` 判成金鑰（10 筆，全是誤判）。
-  `ce02303` 加入只針對租約 token 格式的 `.gitleaks.toml`；**Run 21（`67a999a`）四個 job 全部通過**。
+  `312c3a0` 加入只針對租約 token 格式的 `.gitleaks.toml`；**Run 21（`708d2a0`）四個 job 全部通過**。
   根本原因是推送前沒在本機跑 secret 掃描；已新增 `pnpm secrets:check`（與 CI 相同的 gitleaks 掃描）並列入品質閘門。
 
-- Run 14（`70fd330`）因 `apps/web/e2e/search.spec.ts` 未格式化而在 `format:check` 失敗；下一個 commit 已修正，Run 15 綠燈。
+- Run 14（`af56217`）因 `apps/web/e2e/search.spec.ts` 未格式化而在 `format:check` 失敗；下一個 commit 已修正，Run 15 綠燈。
   教訓：提交前一定跑 `pnpm format:check`，且不要用 `pnpm -s` 檢查 typecheck（會吞掉子專案錯誤輸出；請看 exit code）。
 
-- Run 3（`03754f1`，https://github.com/Qqqsse/chordflow/actions/runs/40014177668）：4 個 job 全部通過
+- Run 3（`496dbf9`，https://github.com/Qqqsse/chordflow-archive/actions/runs/40014177668）：4 個 job 全部通過
   （web、worker、compose build、security）。
 - `playwright install --with-deps chromium` 早期佔了 web job 約 12 分鐘；近期 run（例如 run 21）只需約 25 秒，
   因此不再加快取。
@@ -231,7 +232,7 @@ Docker Hub 回傳 429，因此 `postgres:17-alpine` 改從 `mirror.gcr.io` 拉�
   密碼登入維持每分鐘 10 次。
 - LICENSE：MIT，「Copyright (c) 2026 Chen-Wei, Liu」（擁有者 2026-10-24 指定）。
 - ADR-001 已由擁有者接受（2026-10-24）。
-- `main` 於 2026-10-24 由 `c1a5d0c` 建立為穩定分支；之後經 PR 合併（PR #1 已合併，`0408581`）。
+- `main` 於 2026-10-24 由 `043721f` 建立為穩定分支；之後經 PR 合併（PR #1 已合併，`12e8839`）。
   免費方案不強制分支保護，規則寫在 `AGENTS.md`。
 - 個人譜庫：看譜設定只在登入時於瀏覽器端讀寫（伺服器渲染的 HTML 不含個人資料）；載入完成前讀者已調整的設定不會被覆蓋；
   儲存的資料不符合契約時忽略（回到預設），不猜測。
