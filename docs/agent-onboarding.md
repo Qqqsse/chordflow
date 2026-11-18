@@ -312,4 +312,7 @@ docker compose --env-file .env.example --profile worker --profile tools config -
 - 雲端額度已用完，之後在本機開發；Python 使用專屬 conda 環境，不用 base（2026-11-02）。
 - 短期只有擁有者自己使用，服務要用時才啟動、不常駐；開放其他帳號的配套要先做好（2026-11-02）。
 
+- 權利聲明 v1 定稿；LLM 審查器維持 `disabled` 到 M8-3 量測後；M8-3 照建議做法（Docker 執行＋`chordflow-gpu` 實驗環境）（2026-11-18）。
+- repo 可以公開，但先決定舊 merge commit 中個人 email 的處理方式（2026-11-18，討論中）。
+
 待擁有者決定的事項見 `docs/agent-handoff.md`「待擁有者決定」。
